@@ -1,0 +1,114 @@
+import { useCallback, useState } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  FlatList,
+  Image,
+  Pressable,
+  Alert,
+  Platform,
+} from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { getBooks, removeBook } from "@/lib/storage";
+import type { Book } from "@/lib/types";
+
+export default function BooksScreen() {
+  const [books, setBooks] = useState<Book[]>([]);
+  const [query, setQuery] = useState("");
+  const router = useRouter();
+
+  useFocusEffect(
+    useCallback(() => {
+      getBooks().then(setBooks);
+    }, [])
+  );
+
+  const filtered = books.filter((b) => {
+    const q = query.toLowerCase();
+    return b.title.toLowerCase().includes(q) || b.isbn.includes(q);
+  });
+
+  const confirmDelete = (isbn: string, title: string) => {
+    if (Platform.OS === "web") {
+      if (window.confirm(`Delete "${title}"?`)) {
+        removeBook(isbn).then(() => getBooks().then(setBooks));
+      }
+    } else {
+      Alert.alert("Delete", `Delete "${title}"?`, [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: () => removeBook(isbn).then(() => getBooks().then(setBooks)),
+        },
+      ]);
+    }
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-white">
+      <View className="px-4 pt-2 pb-3">
+        <Text className="text-2xl font-bold mb-3">LibLib</Text>
+        <TextInput
+          className="bg-gray-100 rounded-lg px-4 py-3 text-base"
+          placeholder="Search by title or ISBN..."
+          placeholderTextColor="#999"
+          value={query}
+          onChangeText={setQuery}
+        />
+      </View>
+
+      <FlatList
+        data={filtered}
+        keyExtractor={(item) => item.isbn}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+        ListEmptyComponent={
+          <View className="items-center pt-20">
+            <Text className="text-gray-400 text-base">
+              {query ? "No matches" : "No books yet. Tap Scan to add one."}
+            </Text>
+          </View>
+        }
+        renderItem={({ item }) => (
+          <View className="flex-row items-center py-3 border-b border-gray-100">
+            {item.cover ? (
+              <Image
+                source={{ uri: item.cover }}
+                className="w-12 h-16 rounded bg-gray-200"
+                resizeMode="cover"
+              />
+            ) : (
+              <View className="w-12 h-16 rounded bg-gray-200 items-center justify-center">
+                <Text className="text-gray-400 text-xs">No img</Text>
+              </View>
+            )}
+            <View className="flex-1 ml-3">
+              <Text className="text-base font-medium" numberOfLines={2}>
+                {item.title}
+              </Text>
+              <Text className="text-sm text-gray-400 mt-0.5">{item.isbn}</Text>
+            </View>
+            <Pressable
+              onPress={() => confirmDelete(item.isbn, item.title)}
+              className="p-2"
+              hitSlop={8}
+            >
+              <Text className="text-red-500 text-sm font-medium">Delete</Text>
+            </Pressable>
+          </View>
+        )}
+      />
+
+      <View className="absolute bottom-24 left-0 right-0 items-center">
+        <Pressable
+          onPress={() => router.push("/scan")}
+          className="bg-black rounded-full px-8 py-4 shadow-lg"
+        >
+          <Text className="text-white font-semibold text-base">Scan</Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
+  );
+}
