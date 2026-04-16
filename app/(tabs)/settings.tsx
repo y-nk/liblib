@@ -35,8 +35,8 @@ export default function SettingsScreen() {
     try {
       await saveSettings(settings);
       // ISBN for "The Hitchhiker's Guide to the Galaxy"
-      const result = await lookupISBN("9780345391803", settings);
-      if (result?.title) {
+      const result = await lookupISBN("9780345391803");
+      if (result) {
         setTestStatus("success");
         setTestMessage(`Found: ${result.title}`);
       } else {

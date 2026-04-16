@@ -4,7 +4,6 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { addBook } from "@/lib/storage";
-import { getSettings } from "@/lib/storage";
 import { lookupISBN } from "@/lib/ai";
 
 export default function ScanScreen() {
@@ -27,20 +26,14 @@ export default function ScanScreen() {
     setStatus("loading");
     setMessage("Looking up book...");
     try {
-      const settings = await getSettings();
-      const result = await lookupISBN(isbn, settings);
+      const result = await lookupISBN(isbn);
       if (!result) {
         setStatus("error");
         setMessage("Could not find book info for this ISBN.");
         lockRef.current = false;
         return;
       }
-      const added = await addBook({
-        isbn,
-        title: result.title,
-        cover: result.cover,
-        addedAt: Date.now(),
-      });
+      const added = await addBook(result);
       if (added) {
         setStatus("success");
         setMessage(`Added: ${result.title}`);
