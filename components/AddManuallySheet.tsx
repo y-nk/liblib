@@ -106,54 +106,58 @@ export default function AddManuallySheet({
   if (!visible) return null;
 
   return (
-    <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/50 justify-end">
-        <Pressable className="flex-1" onPress={onClose} />
-        <View className="bg-white rounded-t-2xl">
-          <View className="items-center pt-3 pb-1">
-            <View className="w-10 h-1 rounded-full bg-gray-300" />
-          </View>
-
-          {showWebCam ? (
-            <View style={{ height: 400 }}>
-              <View className="flex-row justify-between items-center px-4 py-3">
-                <Pressable onPress={() => setShowWebCam(false)}>
-                  <Text className="text-base text-blue-500">Cancel</Text>
-                </Pressable>
-                <Text className="text-lg font-semibold">Take Photo</Text>
-                <View className="w-16" />
-              </View>
-              {!permission?.granted ? (
-                <View className="flex-1 justify-center items-center px-6">
-                  <Text className="text-gray-400 text-center mb-4">Camera access needed</Text>
-                  <Pressable onPress={requestPermission} className="bg-black rounded-lg px-6 py-3">
-                    <Text className="text-white font-semibold">Grant Permission</Text>
-                  </Pressable>
-                </View>
-              ) : (
-                <CameraView
-                  className="flex-1"
-                  facing="back"
-                  ref={(ref) => {
-                    if (ref) (globalThis as any).__cameraRef = ref;
-                  }}
-                >
-                  <View className="flex-1 justify-end items-center pb-6">
-                    <Pressable
-                      onPress={async () => {
-                        const cam = (globalThis as any).__cameraRef;
-                        if (cam) {
-                          const photo = await cam.takePictureAsync({ quality: 0.5 });
-                          if (photo?.uri) handleWebCapture(photo.uri);
-                        }
-                      }}
-                      className="w-16 h-16 rounded-full bg-white border-4 border-gray-300"
-                    />
-                  </View>
-                </CameraView>
-              )}
+    <>
+      {showWebCam && (
+        <Modal visible animationType="slide" onRequestClose={() => setShowWebCam(false)}>
+          <View className="flex-1 bg-black">
+            <View className="flex-row justify-between items-center px-4 py-3">
+              <Pressable onPress={() => setShowWebCam(false)}>
+                <Text className="text-base text-white">Cancel</Text>
+              </Pressable>
+              <Text className="text-lg font-semibold text-white">Take Photo</Text>
+              <View className="w-16" />
             </View>
-          ) : (
+            {!permission?.granted ? (
+              <View className="flex-1 justify-center items-center px-6">
+                <Text className="text-gray-400 text-center mb-4">Camera access needed</Text>
+                <Pressable onPress={requestPermission} className="bg-white rounded-lg px-6 py-3">
+                  <Text className="text-black font-semibold">Grant Permission</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <CameraView
+                className="flex-1"
+                facing="back"
+                ref={(ref) => {
+                  if (ref) (globalThis as any).__cameraRef = ref;
+                }}
+              >
+                <View className="flex-1 justify-end items-center pb-10">
+                  <Pressable
+                    onPress={async () => {
+                      const cam = (globalThis as any).__cameraRef;
+                      if (cam) {
+                        const photo = await cam.takePictureAsync({ quality: 0.5 });
+                        if (photo?.uri) handleWebCapture(photo.uri);
+                      }
+                    }}
+                    className="w-16 h-16 rounded-full bg-white border-4 border-gray-300"
+                  />
+                </View>
+              </CameraView>
+            )}
+          </View>
+        </Modal>
+      )}
+
+      <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
+        <View className="flex-1 bg-black/50 justify-end">
+          <Pressable className="flex-1" onPress={onClose} />
+          <View className="bg-white rounded-t-2xl">
+            <View className="items-center pt-3 pb-1">
+              <View className="w-10 h-1 rounded-full bg-gray-300" />
+            </View>
+
             <View className="px-4 pt-4 pb-10">
               <Text className="text-xl font-bold mb-5">Add Book</Text>
 
@@ -211,9 +215,9 @@ export default function AddManuallySheet({
                 )}
               </Pressable>
             </View>
-          )}
+          </View>
         </View>
-      </View>
-    </Modal>
+      </Modal>
+    </>
   );
 }
