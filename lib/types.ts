@@ -7,5 +7,4 @@ export type Book = {
 
 export type Settings = {
   apiKey: string;
-  model: string;
 };

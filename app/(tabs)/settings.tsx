@@ -7,7 +7,7 @@ import { lookupISBN } from "@/lib/ai";
 import type { Settings } from "@/lib/types";
 
 export default function SettingsScreen() {
-  const [settings, setSettings] = useState<Settings>({ apiKey: "", model: "" });
+  const [settings, setSettings] = useState<Settings>({ apiKey: "" });
   const [saved, setSaved] = useState(false);
   const [testStatus, setTestStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [testMessage, setTestMessage] = useState("");
@@ -43,8 +43,6 @@ export default function SettingsScreen() {
     }
   };
 
-  const set = (patch: Partial<Settings>) => setSettings({ ...settings, ...patch });
-
   return (
     <SafeAreaView className="flex-1 bg-white">
       <ScrollView className="px-4 pt-2">
@@ -56,24 +54,12 @@ export default function SettingsScreen() {
           placeholder="sk-..."
           placeholderTextColor="#999"
           value={settings.apiKey}
-          onChangeText={(t) => set({ apiKey: t })}
+          onChangeText={(t) => setSettings({ ...settings, apiKey: t })}
           secureTextEntry
           autoCapitalize="none"
           autoCorrect={false}
         />
         <Text className="text-xs text-gray-400 mb-6">Used as fallback when free lookups fail</Text>
-
-        <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">Model (optional)</Text>
-        <TextInput
-          className="bg-gray-100 rounded-lg px-4 py-3 text-base mb-1"
-          placeholder="gpt-4o-mini"
-          placeholderTextColor="#999"
-          value={settings.model}
-          onChangeText={(t) => set({ model: t })}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-        <Text className="text-xs text-gray-400 mb-6">Leave empty for default</Text>
 
         <Pressable onPress={save} className="bg-black rounded-lg py-3 mb-4">
           <Text className="text-white text-center font-semibold text-base">
