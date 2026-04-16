@@ -111,19 +111,22 @@ export default function BooksScreen() {
         )}
       />
 
-      <View className="absolute bottom-8 left-0 right-0 flex-row justify-center items-center gap-3">
-        <Pressable
-          onPress={() => router.push("/scan")}
-          className="bg-black rounded-full px-8 py-4 shadow-lg"
-        >
-          <Text className="text-white font-semibold text-base">Scan</Text>
-        </Pressable>
-        <Pressable
-          onPress={() => setShowAddManual(true)}
-          className="bg-white border border-black rounded-full px-6 py-4 shadow-lg"
-        >
-          <Text className="text-black font-semibold text-base">Add manually</Text>
-        </Pressable>
+      <View className="absolute bottom-8 left-0 right-0 items-center">
+        <View className="flex-row items-center">
+          <Pressable
+            onPress={() => router.push("/scan")}
+            className="bg-black rounded-full px-8 py-4 shadow-lg"
+          >
+            <Text className="text-white font-semibold text-base">Scan</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setShowAddManual(true)}
+            className="bg-white border border-black rounded-full px-6 py-4 shadow-lg ml-3"
+            style={{ position: "absolute", left: "100%" , marginLeft: 12 }}
+          >
+            <Text className="text-black font-semibold text-base">Add manually</Text>
+          </Pressable>
+        </View>
       </View>
 
       <SettingsSheet visible={showSettings} onClose={() => setShowSettings(false)} />
