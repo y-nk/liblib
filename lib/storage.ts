@@ -29,7 +29,10 @@ export async function removeBook(isbn: string) {
 
 export async function getSettings(): Promise<Settings> {
   const raw = await AsyncStorage.getItem(SETTINGS_KEY);
-  return raw ? JSON.parse(raw) : { apiKey: "", providers: DEFAULT_PROVIDERS };
+  const defaults: Settings = { apiKey: "", providers: DEFAULT_PROVIDERS };
+  if (!raw) return defaults;
+  const parsed = JSON.parse(raw);
+  return { ...defaults, ...parsed, providers: parsed.providers ?? defaults.providers };
 }
 
 export async function saveSettings(settings: Settings) {
