@@ -21,7 +21,28 @@ async function lookupOpenLibrary(isbn: string): Promise<BookResult> {
   return { title: entry.title, cover };
 }
 
-// Pass 2: AI with web search (OpenAI Responses API) or plain chat
+// Pass 2: Google Books (free, no key needed)
+async function lookupGoogleBooks(isbn: string): Promise<BookResult> {
+  const res = await fetch(
+    `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`
+  );
+  if (!res.ok) return null;
+  const data = await res.json();
+  const item = data.items?.[0]?.volumeInfo;
+  if (!item?.title) return null;
+
+  let cover = "";
+  const coverUrl = item.imageLinks?.thumbnail || item.imageLinks?.smallThumbnail;
+  if (coverUrl) {
+    try {
+      cover = await fetchCoverAsBase64(coverUrl.replace("http://", "https://"));
+    } catch {}
+  }
+
+  return { title: item.title, cover };
+}
+
+// Pass 3: AI with web search (OpenAI Responses API) or plain chat
 const AI_DEFAULTS = {
   openai: { baseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini" },
   anthropic: { baseUrl: "https://api.anthropic.com", model: "claude-sonnet-4-20250514" },
@@ -119,10 +140,13 @@ async function fetchCoverAsBase64(url: string): Promise<string> {
   });
 }
 
-// Main entry: Open Library first, AI fallback
+// Main entry: Open Library → Google Books → AI
 export async function lookupISBN(isbn: string, settings: Settings): Promise<BookResult> {
   const olResult = await lookupOpenLibrary(isbn);
   if (olResult) return olResult;
+
+  const gbResult = await lookupGoogleBooks(isbn);
+  if (gbResult) return gbResult;
 
   return lookupAI(isbn, settings);
 }
