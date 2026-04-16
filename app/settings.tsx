@@ -1,6 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, ActivityIndicator, Switch } from "react-native";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
 import { GripVertical, ChevronDown, ChevronRight } from "lucide-react-native";
 import { getSettings, saveSettings } from "@/lib/storage";
@@ -16,6 +16,7 @@ const testableProviders: Record<string, { getBookFromISBN: (isbn: string) => Pro
 };
 
 export default function SettingsScreen() {
+  const router = useRouter();
   const [settings, setSettings] = useState<Settings>({ openaiKey: "", geminiKey: "", providers: DEFAULT_PROVIDERS });
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [testing, setTesting] = useState<Record<string, "idle" | "loading" | "success" | "error">>({});
@@ -163,10 +164,12 @@ export default function SettingsScreen() {
   };
 
   return (
-    <View className="flex-1 bg-white rounded-t-2xl">
-      <View className="items-center pt-3 pb-1">
-        <View className="w-10 h-1 rounded-full bg-gray-300" />
-      </View>
+    <View className="flex-1">
+      <Pressable className="h-[5%]" onPress={() => router.back()} />
+      <View className="flex-1 bg-white rounded-t-2xl">
+        <View className="items-center pt-3 pb-1">
+          <View className="w-10 h-1 rounded-full bg-gray-300" />
+        </View>
       <DraggableFlatList
         data={settings.providers}
         keyExtractor={(item) => item.id}
@@ -181,6 +184,7 @@ export default function SettingsScreen() {
         }
         contentContainerStyle={{ paddingHorizontal: 16 }}
       />
+      </View>
     </View>
   );
 }

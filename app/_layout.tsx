@@ -8,7 +8,7 @@ export default function RootLayout() {
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="scan" options={{ presentation: "fullScreenModal" }} />
-        <Stack.Screen name="settings" options={{ presentation: "formSheet" }} />
+        <Stack.Screen name="settings" options={{ presentation: "transparentModal", animation: "slide_from_bottom" }} />
       </Stack>
     </GestureHandlerRootView>
   );
