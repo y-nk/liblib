@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, ActivityIndicator, Switch, Modal, useColorScheme,
+  View, Text, TextInput, Pressable, ActivityIndicator, Switch, useColorScheme,
 } from "react-native";
+import BottomDrawer from "./BottomDrawer";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
 import { GripVertical, ChevronDown, ChevronRight } from "lucide-react-native";
 import { getSettings, saveSettings } from "@/lib/storage";
@@ -155,17 +156,9 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
     );
   };
 
-  if (!visible) return null;
-
   return (
-    <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/50 justify-end">
-        <Pressable className="flex-1" onPress={onClose} />
-        <View className="bg-white dark:bg-neutral-900 rounded-t-2xl">
-          <View className="items-center pt-3 pb-1">
-            <View className="w-10 h-1 rounded-full bg-gray-300 dark:bg-neutral-600" />
-          </View>
-          <DraggableFlatList
+    <BottomDrawer visible={visible} onClose={onClose}>
+      <DraggableFlatList
             data={settings.providers}
             keyExtractor={(item) => item.id}
             onDragEnd={({ data }) => update({ ...settingsRef.current, providers: data })}
@@ -179,8 +172,6 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
             }
             contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
           />
-        </View>
-      </View>
-    </Modal>
+    </BottomDrawer>
   );
 }

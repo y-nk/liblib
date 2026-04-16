@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, Pressable, Modal, Image, ScrollView,
   ActivityIndicator, Platform, useColorScheme,
 } from "react-native";
+import BottomDrawer from "./BottomDrawer";
 import * as ImagePicker from "expo-image-picker";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { Camera, Search } from "lucide-react-native";
@@ -196,15 +197,8 @@ export default function AddManuallySheet({
         </Modal>
       )}
 
-      <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-        <View className="flex-1 bg-black/50 justify-end">
-          <Pressable className="flex-1" onPress={onClose} />
-          <View className="bg-white dark:bg-neutral-900 rounded-t-2xl">
-            <View className="items-center pt-3 pb-1">
-              <View className="w-10 h-1 rounded-full bg-gray-300 dark:bg-neutral-600" />
-            </View>
-
-            {picks.length > 0 ? (
+      <BottomDrawer visible={visible} onClose={onClose}>
+        {picks.length > 0 ? (
               <ScrollView className="px-4 pt-4" style={{ maxHeight: 400 }}>
                 <Text className="text-gray-400 text-center mb-4">Pick the correct book:</Text>
                 {picks.map((book, i) => (
@@ -303,9 +297,7 @@ export default function AddManuallySheet({
                 </Pressable>
               </View>
             )}
-          </View>
-        </View>
-      </Modal>
+      </BottomDrawer>
     </>
   );
 }

@@ -1,8 +1,9 @@
 import { useEffect, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, Modal, Image, ScrollView,
+  View, Text, TextInput, Pressable, Image, ScrollView,
   ActivityIndicator, useColorScheme,
 } from "react-native";
+import BottomDrawer from "./BottomDrawer";
 import { useISBNLookup } from "@/lib/useISBNLookup";
 
 export default function SearchSheet({
@@ -44,18 +45,9 @@ export default function SearchSheet({
     onManualFallback(trimmed);
   };
 
-  if (!visible) return null;
-
   return (
-    <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/50 justify-end">
-        <Pressable className="flex-1" onPress={onClose} />
-        <View className="bg-white dark:bg-neutral-900 rounded-t-2xl">
-          <View className="items-center pt-3 pb-1">
-            <View className="w-10 h-1 rounded-full bg-gray-300 dark:bg-neutral-600" />
-          </View>
-
-          {status === "picking" ? (
+    <BottomDrawer visible={visible} onClose={onClose}>
+      {status === "picking" ? (
             <ScrollView className="px-4 pt-4" style={{ maxHeight: 400 }}>
               <Text className="text-gray-400 text-center mb-4">{message}</Text>
               {candidates.map((book, i) => (
@@ -138,8 +130,6 @@ export default function SearchSheet({
               )}
             </View>
           )}
-        </View>
-      </View>
-    </Modal>
+    </BottomDrawer>
   );
 }
