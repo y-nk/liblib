@@ -30,7 +30,7 @@ jobs:
 
       - run: pnpm export:web
         env:
-          EXPO_PUBLIC_BASE_PATH: /${{ github.event.pull_request.number }}
+          EXPO_PUBLIC_BASE_URL: /liblib/${{ github.event.pull_request.number }}
 
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
