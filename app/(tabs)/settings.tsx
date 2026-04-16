@@ -3,6 +3,7 @@ import { View, Text, TextInput, Pressable, ActivityIndicator, Switch } from "rea
 import { useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
+import { GripVertical, ChevronDown, ChevronRight } from "lucide-react-native";
 import { getSettings, saveSettings } from "@/lib/storage";
 import { openai, gemini } from "@/lib/providers";
 import type { Settings, ProviderConfig, ProviderId } from "@/lib/types";
@@ -87,18 +88,18 @@ export default function SettingsScreen() {
         <View className={`bg-gray-50 rounded-lg mb-2 ${isActive ? "opacity-80" : ""}`}>
           <View className="flex-row items-center px-3 py-3">
             <Pressable onLongPress={drag} delayLongPress={150} className="mr-3 px-1">
-              <Text className="text-gray-400 text-base leading-none">☰</Text>
+              <GripVertical size={18} color="#9ca3af" />
             </Pressable>
             {hasExpander && (
               <Pressable onPress={() => toggleExpanded(item.id)} className="mr-2">
-                <Text className="text-gray-400 text-sm">{isExpanded ? "▼" : "▶"}</Text>
+                {isExpanded
+                  ? <ChevronDown size={16} color="#9ca3af" />
+                  : <ChevronRight size={16} color="#9ca3af" />
+                }
               </Pressable>
             )}
             <View className={`flex-1 ${!enabled ? "opacity-50" : ""}`}>
               <Text className="text-base font-medium">{PROVIDER_LABELS[item.id]}</Text>
-              {locked && !isExpanded && (
-                <Text className="text-xs text-gray-400">Requires API key</Text>
-              )}
             </View>
             <Switch
               value={enabled}

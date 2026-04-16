@@ -1,5 +1,5 @@
 import { Tabs } from "expo-router";
-import { Text } from "react-native";
+import { BookOpen, Settings } from "lucide-react-native";
 
 export default function TabsLayout() {
   return (
@@ -15,14 +15,14 @@ export default function TabsLayout() {
         name="index"
         options={{
           title: "Books",
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>📚</Text>,
+          tabBarIcon: ({ color, size }) => <BookOpen color={color} size={size} />,
         }}
       />
       <Tabs.Screen
         name="settings"
         options={{
           title: "Settings",
-          tabBarIcon: ({ color }) => <Text style={{ color, fontSize: 20 }}>⚙️</Text>,
+          tabBarIcon: ({ color, size }) => <Settings color={color} size={size} />,
         }}
       />
     </Tabs>
