@@ -6,16 +6,20 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write
+  pages: write
+  id-token: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     environment:
-      name: preview
-      url: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/${{ github.event.pull_request.number }}
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/configure-pages@v5
+        id: pages
 
       - uses: pnpm/action-setup@v4
         with:
@@ -30,13 +34,11 @@ jobs:
 
       - run: pnpm export:web
         env:
-          EXPO_PUBLIC_BASE_URL: /liblib/${{ github.event.pull_request.number }}
+          EXPO_PUBLIC_BASE_URL: ${{ steps.pages.outputs.base_path }}
 
-      - run: touch dist/.nojekyll
-
-      - uses: JamesIves/github-pages-deploy-action@v4
+      - uses: actions/upload-pages-artifact@v3
         with:
-          folder: dist
-          target-folder: ${{ github.event.pull_request.number }}
-          branch: gh-pages
-          clean: false
+          path: dist
+
+      - uses: actions/deploy-pages@v5
+        id: deploy
