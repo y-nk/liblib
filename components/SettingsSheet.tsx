@@ -1,7 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, ActivityIndicator, Switch,
-  Modal, Animated, Dimensions,
+  View, Text, TextInput, Pressable, ActivityIndicator, Switch, Modal,
 } from "react-native";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
 import { GripVertical, ChevronDown, ChevronRight } from "lucide-react-native";
@@ -17,8 +16,6 @@ const testableProviders: Record<string, { getBookFromISBN: (isbn: string) => Pro
   gemini,
 };
 
-const SCREEN_HEIGHT = Dimensions.get("window").height;
-
 export default function SettingsSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const [settings, setSettings] = useState<Settings>({ openaiKey: "", geminiKey: "", providers: DEFAULT_PROVIDERS });
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -26,15 +23,9 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
   const [testMsg, setTestMsg] = useState<Record<string, string>>({});
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
-  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
   useEffect(() => {
-    if (visible) {
-      getSettings().then(setSettings);
-      Animated.spring(slideAnim, { toValue: 0, useNativeDriver: true, tension: 65, friction: 11 }).start();
-    } else {
-      Animated.timing(slideAnim, { toValue: SCREEN_HEIGHT, useNativeDriver: true, duration: 250 }).start();
-    }
+    if (visible) getSettings().then(setSettings);
   }, [visible]);
 
   const update = (next: Settings) => {
@@ -166,12 +157,10 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
   if (!visible) return null;
 
   return (
-    <Modal transparent visible={visible} animationType="none" onRequestClose={onClose}>
+    <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
       <View className="flex-1">
         <Pressable className="h-[5%]" onPress={onClose} />
-        <Animated.View
-          style={{ flex: 1, transform: [{ translateY: slideAnim }], backgroundColor: "#fff", borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
-        >
+        <View className="flex-1 bg-white rounded-t-2xl">
           <View className="items-center pt-3 pb-1">
             <View className="w-10 h-1 rounded-full bg-gray-300" />
           </View>
@@ -189,7 +178,7 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
             }
             contentContainerStyle={{ paddingHorizontal: 16 }}
           />
-        </Animated.View>
+        </View>
       </View>
     </Modal>
   );
