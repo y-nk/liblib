@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Settings } from "lucide-react-native";
+import { Settings, ScanBarcode } from "lucide-react-native";
 import { getBooks, removeBook } from "@/lib/storage";
 import SettingsSheet from "@/components/SettingsSheet";
 import AddManuallySheet from "@/components/AddManuallySheet";
@@ -117,9 +117,9 @@ export default function BooksScreen() {
         <View className="flex-row items-center">
           <Pressable
             onPress={() => router.push("/scan")}
-            className="bg-black dark:bg-white rounded-full px-8 py-4 shadow-lg"
+            className="bg-black dark:bg-white rounded-full p-4 shadow-lg"
           >
-            <Text className="text-white dark:text-black font-semibold text-base">Scan</Text>
+            <ScanBarcode size={24} color={dark ? "#000" : "#fff"} />
           </Pressable>
           <Pressable
             onPress={() => setShowAddManual(true)}
