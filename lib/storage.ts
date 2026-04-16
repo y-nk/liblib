@@ -28,7 +28,7 @@ export async function removeBook(isbn: string) {
 
 export async function getSettings(): Promise<Settings> {
   const raw = await AsyncStorage.getItem(SETTINGS_KEY);
-  return raw ? JSON.parse(raw) : { aiProvider: "openai", apiKey: "", baseUrl: "", model: "" };
+  return raw ? JSON.parse(raw) : { apiKey: "", model: "" };
 }
 
 export async function saveSettings(settings: Settings) {

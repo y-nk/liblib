@@ -6,13 +6,8 @@ import { getSettings, saveSettings } from "@/lib/storage";
 import { lookupISBN } from "@/lib/ai";
 import type { Settings } from "@/lib/types";
 
-const DEFAULTS = {
-  openai: { baseUrl: "https://api.openai.com/v1", model: "gpt-4o-mini" },
-  anthropic: { baseUrl: "https://api.anthropic.com", model: "claude-sonnet-4-20250514" },
-};
-
 export default function SettingsScreen() {
-  const [settings, setSettings] = useState<Settings>({ aiProvider: "openai", apiKey: "", baseUrl: "", model: "" });
+  const [settings, setSettings] = useState<Settings>({ apiKey: "", model: "" });
   const [saved, setSaved] = useState(false);
   const [testStatus, setTestStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [testMessage, setTestMessage] = useState("");
@@ -34,7 +29,6 @@ export default function SettingsScreen() {
     setTestMessage("");
     try {
       await saveSettings(settings);
-      // ISBN for "The Hitchhiker's Guide to the Galaxy"
       const result = await lookupISBN("9780345391803");
       if (result) {
         setTestStatus("success");
@@ -49,7 +43,6 @@ export default function SettingsScreen() {
     }
   };
 
-  const defaults = DEFAULTS[settings.aiProvider];
   const set = (patch: Partial<Settings>) => setSettings({ ...settings, ...patch });
 
   return (
@@ -57,31 +50,10 @@ export default function SettingsScreen() {
       <ScrollView className="px-4 pt-2">
         <Text className="text-2xl font-bold mb-6">Settings</Text>
 
-        <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">AI Provider</Text>
-        <View className="flex-row gap-2 mb-6">
-          {(["openai", "anthropic"] as const).map((p) => (
-            <Pressable
-              key={p}
-              onPress={() => set({ aiProvider: p })}
-              className={`flex-1 py-3 rounded-lg border ${
-                settings.aiProvider === p ? "bg-black border-black" : "bg-white border-gray-200"
-              }`}
-            >
-              <Text
-                className={`text-center font-medium ${
-                  settings.aiProvider === p ? "text-white" : "text-black"
-                }`}
-              >
-                {p === "openai" ? "OpenAI" : "Anthropic"}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-
-        <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">API Key</Text>
+        <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">OpenAI API Key</Text>
         <TextInput
-          className="bg-gray-100 rounded-lg px-4 py-3 text-base mb-6"
-          placeholder={settings.aiProvider === "openai" ? "sk-..." : "sk-ant-..."}
+          className="bg-gray-100 rounded-lg px-4 py-3 text-base mb-1"
+          placeholder="sk-..."
           placeholderTextColor="#999"
           value={settings.apiKey}
           onChangeText={(t) => set({ apiKey: t })}
@@ -89,23 +61,12 @@ export default function SettingsScreen() {
           autoCapitalize="none"
           autoCorrect={false}
         />
-
-        <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">Base URL (optional)</Text>
-        <TextInput
-          className="bg-gray-100 rounded-lg px-4 py-3 text-base mb-1"
-          placeholder={defaults.baseUrl}
-          placeholderTextColor="#999"
-          value={settings.baseUrl}
-          onChangeText={(t) => set({ baseUrl: t })}
-          autoCapitalize="none"
-          autoCorrect={false}
-        />
-        <Text className="text-xs text-gray-400 mb-6">For LiteLLM, Ollama, or other proxies</Text>
+        <Text className="text-xs text-gray-400 mb-6">Used as fallback when free lookups fail</Text>
 
         <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">Model (optional)</Text>
         <TextInput
           className="bg-gray-100 rounded-lg px-4 py-3 text-base mb-1"
-          placeholder={defaults.model}
+          placeholder="gpt-4o-mini"
           placeholderTextColor="#999"
           value={settings.model}
           onChangeText={(t) => set({ model: t })}
