@@ -159,9 +159,9 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
 
   return (
     <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/50">
-        <Pressable className="h-[5%]" onPress={onClose} />
-        <View className="flex-1 bg-white dark:bg-neutral-900 rounded-t-2xl">
+      <View className="flex-1 bg-black/50 justify-end">
+        <Pressable className="flex-1" onPress={onClose} />
+        <View className="bg-white dark:bg-neutral-900 rounded-t-2xl">
           <View className="items-center pt-3 pb-1">
             <View className="w-10 h-1 rounded-full bg-gray-300 dark:bg-neutral-600" />
           </View>
@@ -170,14 +170,14 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
             keyExtractor={(item) => item.id}
             onDragEnd={({ data }) => update({ ...settingsRef.current, providers: data })}
             renderItem={renderItem}
-            containerStyle={{ flex: 1 }}
+            containerStyle={{ flexGrow: 0 }}
             ListHeaderComponent={
               <View className="px-4 pt-2">
                 <Text className="text-2xl font-bold mb-6 dark:text-white">Settings</Text>
                 <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">Providers</Text>
               </View>
             }
-            contentContainerStyle={{ paddingHorizontal: 16 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
           />
         </View>
       </View>
