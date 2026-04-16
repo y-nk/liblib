@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, Modal, Image, ActivityIndicator, Platform, useColorScheme,
+  View, Text, TextInput, Pressable, Modal, Image, ScrollView,
+  ActivityIndicator, Platform, useColorScheme,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { Camera } from "lucide-react-native";
+import { Camera, Search } from "lucide-react-native";
 import { addBook } from "@/lib/storage";
+import { lookupISBN } from "@/lib/providers";
+import { fetchCoverAsBase64 } from "@/lib/providers/cover";
 import type { Book } from "@/lib/types";
 
 const isWeb = Platform.OS === "web";
@@ -28,6 +31,8 @@ export default function AddManuallySheet({
   const [permission, requestPermission] = useCameraPermissions();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [picks, setPicks] = useState<Book[]>([]);
   const dark = useColorScheme() === "dark";
   const titleRef = useRef<TextInput>(null);
 
@@ -39,6 +44,8 @@ export default function AddManuallySheet({
       setShowWebCam(false);
       setSaving(false);
       setError("");
+      setSearching(false);
+      setPicks([]);
     }
   }, [visible]);
 
@@ -82,6 +89,41 @@ export default function AddManuallySheet({
       setCover(uri);
     }
     setShowWebCam(false);
+  };
+
+  const handleSearch = async () => {
+    const trimmed = isbn.trim();
+    if (!trimmed) return;
+    setSearching(true);
+    setError("");
+    setPicks([]);
+    try {
+      const results = await lookupISBN(trimmed);
+      if (results.length === 0) {
+        setError("Not found — fill in manually");
+        setSearching(false);
+      } else if (results.length === 1) {
+        await prefillFromBook(results[0]);
+      } else {
+        setPicks(results);
+        setSearching(false);
+      }
+    } catch {
+      setError("Lookup failed");
+      setSearching(false);
+    }
+  };
+
+  const prefillFromBook = async (book: Book) => {
+    setTitle(book.title);
+    let c = book.cover;
+    if (!c && book.coverUrl) {
+      try { c = await fetchCoverAsBase64(book.coverUrl); } catch {}
+    }
+    if (c) setCover(c);
+    setPicks([]);
+    setSearching(false);
+    titleRef.current?.focus();
   };
 
   const handleSave = async () => {
@@ -162,65 +204,105 @@ export default function AddManuallySheet({
               <View className="w-10 h-1 rounded-full bg-gray-300 dark:bg-neutral-600" />
             </View>
 
-            <View className="px-4 pt-4 pb-10">
-              <Text className="text-xl font-bold mb-5 dark:text-white">Add Book</Text>
-
-              <View className="flex-row mb-5">
-                <View style={{ aspectRatio: 210 / 297 }}>
+            {picks.length > 0 ? (
+              <ScrollView className="px-4 pt-4" style={{ maxHeight: 400 }}>
+                <Text className="text-gray-400 text-center mb-4">Pick the correct book:</Text>
+                {picks.map((book, i) => (
                   <Pressable
-                    onPress={takePhoto}
-                    onLongPress={pickImage}
-                    className="flex-1 border border-dashed border-gray-300 dark:border-neutral-600 rounded-xl overflow-hidden items-center justify-center bg-gray-50 dark:bg-neutral-800"
+                    key={i}
+                    onPress={() => prefillFromBook(book)}
+                    className="flex-row items-center bg-gray-100 dark:bg-neutral-800 rounded-xl p-3 mb-3"
                   >
-                    {cover ? (
-                      <Image source={{ uri: cover }} className="w-full h-full" resizeMode="cover" />
+                    {(book.cover || book.coverUrl) ? (
+                      <Image
+                        source={{ uri: book.cover || book.coverUrl }}
+                        className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-700"
+                        resizeMode="cover"
+                      />
                     ) : (
-                      <>
-                        <Camera size={24} color={dark ? "#666" : "#9ca3af"} />
-                        <Text className="text-gray-400 text-xs mt-1">Hold: gallery</Text>
-                      </>
+                      <View className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-700" />
                     )}
+                    <View className="flex-1 ml-3">
+                      <Text className="text-base font-medium dark:text-white" numberOfLines={2}>{book.title}</Text>
+                    </View>
                   </Pressable>
+                ))}
+                <Pressable onPress={() => setPicks([])} className="mt-1 mb-6">
+                  <Text className="text-gray-500 text-center text-sm">None of these</Text>
+                </Pressable>
+              </ScrollView>
+            ) : (
+              <View className="px-4 pt-4 pb-10">
+                <Text className="text-xl font-bold mb-5 dark:text-white">Add Book</Text>
+
+                <View className="flex-row mb-5">
+                  <View style={{ aspectRatio: 210 / 297 }}>
+                    <Pressable
+                      onPress={takePhoto}
+                      onLongPress={pickImage}
+                      className="flex-1 border border-dashed border-gray-300 dark:border-neutral-600 rounded-xl overflow-hidden items-center justify-center bg-gray-50 dark:bg-neutral-800"
+                    >
+                      {cover ? (
+                        <Image source={{ uri: cover }} className="w-full h-full" resizeMode="cover" />
+                      ) : (
+                        <>
+                          <Camera size={24} color={dark ? "#666" : "#9ca3af"} />
+                          <Text className="text-gray-400 text-xs mt-1">Hold: gallery</Text>
+                        </>
+                      )}
+                    </Pressable>
+                  </View>
+
+                  <View className="flex-1 flex-col gap-4 ml-4 justify-center">
+                    <View className="flex-row items-center bg-gray-100 dark:bg-neutral-800 rounded-lg">
+                      <TextInput
+                        className="flex-1 px-3 py-2.5 text-base dark:text-white"
+                        placeholder="ISBN"
+                        placeholderTextColor={dark ? "#666" : "#999"}
+                        value={isbn}
+                        onChangeText={setIsbn}
+                        keyboardType="number-pad"
+                        autoFocus={!initialIsbn}
+                      />
+                      {isbn.trim().length > 0 && (
+                        <Pressable onPress={handleSearch} disabled={searching} className="pr-3">
+                          {searching ? (
+                            <ActivityIndicator size="small" color={dark ? "#666" : "#9ca3af"} />
+                          ) : (
+                            <Search size={18} color={dark ? "#666" : "#9ca3af"} />
+                          )}
+                        </Pressable>
+                      )}
+                    </View>
+                    <TextInput
+                      ref={titleRef}
+                      className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-3 py-2.5 text-base dark:text-white"
+                      placeholder="Title"
+                      placeholderTextColor={dark ? "#666" : "#999"}
+                      autoFocus={!!initialIsbn}
+                      value={title}
+                      onChangeText={setTitle}
+                    />
+                  </View>
                 </View>
 
-                <View className="flex-1 flex-col gap-4 ml-4 justify-center">
-                  <TextInput
-                    className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-3 py-2.5 text-base dark:text-white"
-                    placeholder="ISBN"
-                    placeholderTextColor={dark ? "#666" : "#999"}
-                    value={isbn}
-                    onChangeText={setIsbn}
-                    keyboardType="number-pad"
-                    autoFocus={!initialIsbn}
-                  />
-                  <TextInput
-                    ref={titleRef}
-                    className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-3 py-2.5 text-base dark:text-white"
-                    placeholder="Title"
-                    placeholderTextColor={dark ? "#666" : "#999"}
-                    autoFocus={!!initialIsbn}
-                    value={title}
-                    onChangeText={setTitle}
-                  />
-                </View>
+                {error ? (
+                  <Text className="text-red-500 text-sm text-center mb-3">{error}</Text>
+                ) : null}
+
+                <Pressable
+                  onPress={handleSave}
+                  disabled={saving}
+                  className="bg-black dark:bg-white rounded-lg py-3"
+                >
+                  {saving ? (
+                    <ActivityIndicator color={dark ? "#000" : "#fff"} />
+                  ) : (
+                    <Text className="text-white dark:text-black text-center font-semibold text-base">Add to Library</Text>
+                  )}
+                </Pressable>
               </View>
-
-              {error ? (
-                <Text className="text-red-500 text-sm text-center mb-3">{error}</Text>
-              ) : null}
-
-              <Pressable
-                onPress={handleSave}
-                disabled={saving}
-                className="bg-black dark:bg-white rounded-lg py-3"
-              >
-                {saving ? (
-                  <ActivityIndicator color={dark ? "#000" : "#fff"} />
-                ) : (
-                  <Text className="text-white dark:text-black text-center font-semibold text-base">Add to Library</Text>
-                )}
-              </Pressable>
-            </View>
+            )}
           </View>
         </View>
       </Modal>
