@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Book, Settings } from "./types";
+import { DEFAULT_PROVIDERS } from "./types";
 
 const BOOKS_KEY = "liblib:books";
 const SETTINGS_KEY = "liblib:settings";
@@ -28,7 +29,7 @@ export async function removeBook(isbn: string) {
 
 export async function getSettings(): Promise<Settings> {
   const raw = await AsyncStorage.getItem(SETTINGS_KEY);
-  return raw ? JSON.parse(raw) : { apiKey: "" };
+  return raw ? JSON.parse(raw) : { apiKey: "", providers: DEFAULT_PROVIDERS };
 }
 
 export async function saveSettings(settings: Settings) {

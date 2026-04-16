@@ -1,12 +1,12 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef } from "react";
 import {
   View, Text, Pressable, TextInput, Platform,
   ActivityIndicator, Image, ScrollView,
 } from "react-native";
-import { useRouter, useFocusEffect } from "expo-router";
+import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { addBook, getSettings } from "@/lib/storage";
+import { addBook } from "@/lib/storage";
 import { lookupISBN } from "@/lib/ai";
 import type { Book } from "@/lib/types";
 
@@ -17,16 +17,8 @@ export default function ScanScreen() {
   const [status, setStatus] = useState<"idle" | "loading" | "picking" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
   const [manualISBN, setManualISBN] = useState("");
-  const [useGPT, setUseGPT] = useState(false);
-  const [hasKey, setHasKey] = useState(false);
   const [candidates, setCandidates] = useState<Book[]>([]);
   const lockRef = useRef(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      getSettings().then((s) => setHasKey(!!s.apiKey));
-    }, [])
-  );
 
   const handleBarcode = ({ data }: { data: string }) => {
     if (lockRef.current) return;
@@ -40,14 +32,10 @@ export default function ScanScreen() {
     setMessage("Looking up book...");
     setCandidates([]);
     try {
-      const results = await lookupISBN(isbn, useGPT && hasKey);
+      const results = await lookupISBN(isbn);
       if (results.length === 0) {
         setStatus("error");
-        setMessage(
-          !useGPT && hasKey
-            ? "Not found in free databases. Enable GPT for AI lookup."
-            : "Could not find book info for this ISBN."
-        );
+        setMessage("Could not find book info for this ISBN.");
         lockRef.current = false;
       } else if (results.length === 1) {
         await handlePick(results[0]);
@@ -88,23 +76,6 @@ export default function ScanScreen() {
   const isWeb = Platform.OS === "web";
   const isBusy = status === "loading" || status === "success";
 
-  const gptToggle = (
-    <Pressable
-      onPress={() => hasKey && setUseGPT(!useGPT)}
-      className="flex-row items-center mt-3"
-    >
-      <View className={`w-5 h-5 rounded border mr-2 items-center justify-center ${
-        !hasKey ? "border-gray-700 bg-gray-800" :
-        useGPT ? "border-white bg-white" : "border-gray-500"
-      }`}>
-        {useGPT && hasKey && <Text className="text-black text-xs font-bold">✓</Text>}
-      </View>
-      <Text className={hasKey ? "text-gray-300 text-sm" : "text-gray-600 text-sm"}>
-        Use GPT{!hasKey ? " (set API key in Settings)" : ""}
-      </Text>
-    </Pressable>
-  );
-
   const inputBlock = (autoFocus?: boolean) => (
     <View>
       <TextInput
@@ -125,7 +96,6 @@ export default function ScanScreen() {
           {status === "loading" ? "Looking up..." : "Look Up"}
         </Text>
       </Pressable>
-      {gptToggle}
     </View>
   );
 
