@@ -79,7 +79,7 @@ export default function AddManuallySheet({
 
   return (
     <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1">
+      <View className="flex-1 bg-black/50">
         <Pressable className="h-[5%]" onPress={onClose} />
         <View className="flex-1 bg-white rounded-t-2xl">
           <View className="items-center pt-3 pb-1">
