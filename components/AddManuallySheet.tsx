@@ -1,11 +1,14 @@
 import { useEffect, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, Modal, Image, ActivityIndicator,
+  View, Text, TextInput, Pressable, Modal, Image, ActivityIndicator, Platform,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
+import { CameraView, useCameraPermissions } from "expo-camera";
 import { Camera } from "lucide-react-native";
 import { addBook } from "@/lib/storage";
 import type { Book } from "@/lib/types";
+
+const isWeb = Platform.OS === "web";
 
 export default function AddManuallySheet({
   visible,
@@ -19,6 +22,8 @@ export default function AddManuallySheet({
   const [isbn, setIsbn] = useState("");
   const [title, setTitle] = useState("");
   const [cover, setCover] = useState("");
+  const [showWebCam, setShowWebCam] = useState(false);
+  const [permission, requestPermission] = useCameraPermissions();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -27,10 +32,15 @@ export default function AddManuallySheet({
       setIsbn("");
       setTitle("");
       setCover("");
+      setShowWebCam(false);
       setSaving(false);
       setError("");
     }
   }, [visible]);
+
+  const setCoverFromAsset = (a: ImagePicker.ImagePickerAsset) => {
+    setCover(a.base64 ? `data:${a.mimeType || "image/jpeg"};base64,${a.base64}` : a.uri);
+  };
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -38,21 +48,36 @@ export default function AddManuallySheet({
       quality: 0.5,
       base64: true,
     });
-    if (!result.canceled && result.assets[0]) {
-      const a = result.assets[0];
-      setCover(a.base64 ? `data:${a.mimeType || "image/jpeg"};base64,${a.base64}` : a.uri);
-    }
+    if (!result.canceled && result.assets[0]) setCoverFromAsset(result.assets[0]);
   };
 
   const takePhoto = async () => {
+    if (isWeb) {
+      setShowWebCam(true);
+      return;
+    }
     const result = await ImagePicker.launchCameraAsync({
       quality: 0.5,
       base64: true,
     });
-    if (!result.canceled && result.assets[0]) {
-      const a = result.assets[0];
-      setCover(a.base64 ? `data:${a.mimeType || "image/jpeg"};base64,${a.base64}` : a.uri);
+    if (!result.canceled && result.assets[0]) setCoverFromAsset(result.assets[0]);
+  };
+
+  const handleWebCapture = async (uri: string) => {
+    try {
+      const res = await fetch(uri);
+      const blob = await res.blob();
+      const b64: string = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => resolve("");
+        reader.readAsDataURL(blob);
+      });
+      setCover(b64);
+    } catch {
+      setCover(uri);
     }
+    setShowWebCam(false);
   };
 
   const handleSave = async () => {
@@ -89,63 +114,104 @@ export default function AddManuallySheet({
             <View className="w-10 h-1 rounded-full bg-gray-300" />
           </View>
 
-          <View className="px-4 pt-4 pb-10">
-            <Text className="text-xl font-bold mb-5">Add Book</Text>
-
-            <View className="flex-row mb-5">
-              <View style={{ aspectRatio: 210 / 297 }}>
-                <Pressable
-                  onPress={takePhoto}
-                  onLongPress={pickImage}
-                  className="flex-1 border border-dashed border-gray-300 rounded-xl overflow-hidden items-center justify-center bg-gray-50"
-                >
-                  {cover ? (
-                    <Image source={{ uri: cover }} className="w-full h-full" resizeMode="cover" />
-                  ) : (
-                    <>
-                      <Camera size={24} color="#9ca3af" />
-                      <Text className="text-gray-400 text-xs mt-1">Hold: gallery</Text>
-                    </>
-                  )}
+          {showWebCam ? (
+            <View style={{ height: 400 }}>
+              <View className="flex-row justify-between items-center px-4 py-3">
+                <Pressable onPress={() => setShowWebCam(false)}>
+                  <Text className="text-base text-blue-500">Cancel</Text>
                 </Pressable>
+                <Text className="text-lg font-semibold">Take Photo</Text>
+                <View className="w-16" />
               </View>
-
-              <View className="flex-1 flex-col gap-4 ml-4 justify-center">
-                <TextInput
-                  className="bg-gray-100 rounded-lg px-3 py-2.5 text-base"
-                  placeholder="ISBN"
-                  placeholderTextColor="#999"
-                  value={isbn}
-                  onChangeText={setIsbn}
-                  keyboardType="number-pad"
-                  autoFocus
-                />
-                <TextInput
-                  className="bg-gray-100 rounded-lg px-3 py-2.5 text-base"
-                  placeholder="Title"
-                  placeholderTextColor="#999"
-                  value={title}
-                  onChangeText={setTitle}
-                />
-              </View>
-            </View>
-
-            {error ? (
-              <Text className="text-red-500 text-sm text-center mb-3">{error}</Text>
-            ) : null}
-
-            <Pressable
-              onPress={handleSave}
-              disabled={saving}
-              className="bg-black rounded-lg py-3"
-            >
-              {saving ? (
-                <ActivityIndicator color="#fff" />
+              {!permission?.granted ? (
+                <View className="flex-1 justify-center items-center px-6">
+                  <Text className="text-gray-400 text-center mb-4">Camera access needed</Text>
+                  <Pressable onPress={requestPermission} className="bg-black rounded-lg px-6 py-3">
+                    <Text className="text-white font-semibold">Grant Permission</Text>
+                  </Pressable>
+                </View>
               ) : (
-                <Text className="text-white text-center font-semibold text-base">Add to Library</Text>
+                <CameraView
+                  className="flex-1"
+                  facing="back"
+                  ref={(ref) => {
+                    if (ref) (globalThis as any).__cameraRef = ref;
+                  }}
+                >
+                  <View className="flex-1 justify-end items-center pb-6">
+                    <Pressable
+                      onPress={async () => {
+                        const cam = (globalThis as any).__cameraRef;
+                        if (cam) {
+                          const photo = await cam.takePictureAsync({ quality: 0.5 });
+                          if (photo?.uri) handleWebCapture(photo.uri);
+                        }
+                      }}
+                      className="w-16 h-16 rounded-full bg-white border-4 border-gray-300"
+                    />
+                  </View>
+                </CameraView>
               )}
-            </Pressable>
-          </View>
+            </View>
+          ) : (
+            <View className="px-4 pt-4 pb-10">
+              <Text className="text-xl font-bold mb-5">Add Book</Text>
+
+              <View className="flex-row mb-5">
+                <View style={{ aspectRatio: 210 / 297 }}>
+                  <Pressable
+                    onPress={takePhoto}
+                    onLongPress={pickImage}
+                    className="flex-1 border border-dashed border-gray-300 rounded-xl overflow-hidden items-center justify-center bg-gray-50"
+                  >
+                    {cover ? (
+                      <Image source={{ uri: cover }} className="w-full h-full" resizeMode="cover" />
+                    ) : (
+                      <>
+                        <Camera size={24} color="#9ca3af" />
+                        <Text className="text-gray-400 text-xs mt-1">Hold: gallery</Text>
+                      </>
+                    )}
+                  </Pressable>
+                </View>
+
+                <View className="flex-1 flex-col gap-4 ml-4 justify-center">
+                  <TextInput
+                    className="bg-gray-100 rounded-lg px-3 py-2.5 text-base"
+                    placeholder="ISBN"
+                    placeholderTextColor="#999"
+                    value={isbn}
+                    onChangeText={setIsbn}
+                    keyboardType="number-pad"
+                    autoFocus
+                  />
+                  <TextInput
+                    className="bg-gray-100 rounded-lg px-3 py-2.5 text-base"
+                    placeholder="Title"
+                    placeholderTextColor="#999"
+                    value={title}
+                    onChangeText={setTitle}
+                  />
+                </View>
+              </View>
+
+              {error ? (
+                <Text className="text-red-500 text-sm text-center mb-3">{error}</Text>
+              ) : null}
+
+              <Pressable
+                onPress={handleSave}
+                disabled={saving}
+                className="bg-black rounded-lg py-3"
+              >
+                {saving ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text className="text-white text-center font-semibold text-base">Add to Library</Text>
+                )}
+              </Pressable>
+            </View>
+          )}
         </View>
       </View>
     </Modal>
