@@ -29,7 +29,7 @@ export async function removeBook(isbn: string) {
 
 export async function getSettings(): Promise<Settings> {
   const raw = await AsyncStorage.getItem(SETTINGS_KEY);
-  const defaults: Settings = { apiKey: "", providers: DEFAULT_PROVIDERS };
+  const defaults: Settings = { openaiKey: "", geminiKey: "", providers: DEFAULT_PROVIDERS };
   if (!raw) return defaults;
   const parsed = JSON.parse(raw);
   return { ...defaults, ...parsed, providers: parsed.providers ?? defaults.providers };

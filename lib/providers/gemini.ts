@@ -4,9 +4,9 @@ import { fetchCoverAsBase64 } from "./cover";
 
 export async function getBookFromISBN(isbn: string): Promise<Book[]> {
   try {
-    const { openaiKey } = await getSettings();
-    if (!openaiKey) {
-      console.log("[openai] no API key configured");
+    const { geminiKey } = await getSettings();
+    if (!geminiKey) {
+      console.log("[gemini] no API key configured");
       return [];
     }
 
@@ -20,19 +20,20 @@ Every entry MUST have a cover image URL — skip entries without one.
 No markdown, no explanation, just the JSON array.
 If you can't find anything, return []`;
 
-    const res = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: { Authorization: `Bearer ${openaiKey}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        model: "gpt-5",
-        tools: [{ type: "web_search_preview" }],
-        input: prompt,
-      }),
-    });
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          tools: [{ google_search: {} }],
+        }),
+      }
+    );
     if (!res.ok) throw new Error(`API error: ${res.status}`);
     const data = await res.json();
-    const text = data.output?.find((o: any) => o.type === "message")?.content
-      ?.find((c: any) => c.type === "output_text")?.text ?? "";
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
 
     const arrMatch = text.match(/\[[\s\S]*\]/);
     if (!arrMatch) return [];
@@ -52,7 +53,7 @@ If you can't find anything, return []`;
 
     return books;
   } catch (e) {
-    console.log("[openai]", e);
+    console.log("[gemini]", e);
     return [];
   }
 }
