@@ -32,6 +32,8 @@ jobs:
         env:
           EXPO_PUBLIC_BASE_URL: /liblib/${{ github.event.pull_request.number }}
 
+      - run: touch dist/.nojekyll
+
       - uses: JamesIves/github-pages-deploy-action@v4
         with:
           folder: dist
