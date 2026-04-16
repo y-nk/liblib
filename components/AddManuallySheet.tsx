@@ -248,9 +248,11 @@ export default function AddManuallySheet({
                   </View>
 
                   <View className="flex-1 flex-col gap-4 ml-4 justify-center">
-                    <View className="flex-row items-center bg-gray-100 dark:bg-neutral-800 rounded-lg">
+                    <View className="flex-row items-center bg-gray-100 dark:bg-neutral-800 rounded-lg" style={{ overflow: "hidden" }}>
                       <TextInput
                         className="flex-1 px-3 py-2.5 text-base dark:text-white"
+                        // @ts-ignore — web: remove default focus outline
+                        style={{ outlineStyle: "none" }}
                         placeholder="ISBN"
                         placeholderTextColor={dark ? "#666" : "#999"}
                         value={isbn}
