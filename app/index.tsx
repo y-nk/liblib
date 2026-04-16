@@ -121,10 +121,10 @@ export default function BooksScreen() {
           </Pressable>
           <Pressable
             onPress={() => setShowAddManual(true)}
-            className="bg-white border border-black rounded-full px-6 py-4 shadow-lg ml-3"
-            style={{ position: "absolute", left: "100%" , marginLeft: 12 }}
+            className="bg-white border border-black rounded-full px-6 py-4 shadow-lg"
+            style={{ position: "absolute", left: "100%", marginLeft: 12 }}
           >
-            <Text className="text-black font-semibold text-base">Add manually</Text>
+            <Text className="text-black font-semibold text-base" numberOfLines={1}>Add manually</Text>
           </Pressable>
         </View>
       </View>
