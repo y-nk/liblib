@@ -3,8 +3,8 @@ import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Switch
 import { useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getSettings, saveSettings } from "@/lib/storage";
-import { lookupISBN } from "@/lib/providers";
-import type { Settings, ProviderConfig } from "@/lib/types";
+import { openai } from "@/lib/providers";
+import type { Settings } from "@/lib/types";
 import { DEFAULT_PROVIDERS, PROVIDER_LABELS } from "@/lib/types";
 
 export default function SettingsScreen() {
@@ -30,13 +30,13 @@ export default function SettingsScreen() {
     setTestMessage("");
     try {
       await saveSettings(settings);
-      const results = await lookupISBN("9780345391803");
+      const results = await openai.getBookFromISBN("9780345391803");
       if (results.length > 0) {
         setTestStatus("success");
         setTestMessage(`Found: ${results[0].title}`);
       } else {
         setTestStatus("error");
-        setTestMessage("No results from any enabled provider");
+        setTestMessage("No results — check your API key");
       }
     } catch (e: any) {
       setTestStatus("error");
@@ -143,7 +143,7 @@ export default function SettingsScreen() {
           </Text>
         ) : (
           <Text className="text-xs text-gray-400 text-center mb-10">
-            Looks up a known ISBN using your enabled providers
+            Tests OpenAI with a known ISBN
           </Text>
         )}
       </ScrollView>
