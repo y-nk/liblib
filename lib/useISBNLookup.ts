@@ -50,17 +50,11 @@ export function useISBNLookup(onDone?: () => void) {
     }
 
     const toSave = { ...book, cover, coverUrl: undefined };
-    const added = await addBook(toSave);
-    if (added) {
-      setStatus("success");
-      setCandidates([]);
-      setMessage(`Added: ${book.title}`);
-      onDone?.();
-    } else {
-      setStatus("error");
-      setMessage("This book is already in your library.");
-      lockRef.current = false;
-    }
+    await addBook(toSave);
+    setStatus("success");
+    setCandidates([]);
+    setMessage(`Added: ${book.title}`);
+    onDone?.();
   }, [onDone]);
 
   const reset = useCallback(() => {

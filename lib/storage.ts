@@ -16,10 +16,13 @@ export async function saveBooks(books: Book[]) {
 
 export async function addBook(book: Book) {
   const books = await getBooks();
-  if (books.some((b) => b.isbn === book.isbn)) return false;
-  books.unshift(book);
+  const idx = books.findIndex((b) => b.isbn === book.isbn);
+  if (idx >= 0) {
+    books[idx] = { ...books[idx], title: book.title || books[idx].title, cover: book.cover || books[idx].cover };
+  } else {
+    books.unshift(book);
+  }
   await saveBooks(books);
-  return true;
 }
 
 export async function removeBook(isbn: string) {

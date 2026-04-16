@@ -140,14 +140,10 @@ export default function AddManuallySheet({
       cover,
       addedAt: Date.now(),
     };
-    const added = await addBook(book);
+    await addBook(book);
     setSaving(false);
-    if (added) {
-      onAdded();
-      onClose();
-    } else {
-      setError("This book is already in your library");
-    }
+    onAdded();
+    onClose();
   };
 
   if (!visible) return null;
