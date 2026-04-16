@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { Settings } from "lucide-react-native";
 import { getBooks, removeBook } from "@/lib/storage";
 import type { Book } from "@/lib/types";
 
@@ -50,7 +51,12 @@ export default function BooksScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white">
       <View className="px-4 pt-2 pb-3">
-        <Text className="text-2xl font-bold mb-3">LibLib</Text>
+        <View className="flex-row items-center justify-between mb-3">
+          <Text className="text-2xl font-bold">LibLib</Text>
+          <Pressable onPress={() => router.push("/settings")} hitSlop={8}>
+            <Settings size={22} color="#666" />
+          </Pressable>
+        </View>
         <TextInput
           className="bg-gray-100 rounded-lg px-4 py-3 text-base"
           placeholder="Search by title or ISBN..."
@@ -101,7 +107,7 @@ export default function BooksScreen() {
         )}
       />
 
-      <View className="absolute bottom-24 left-0 right-0 items-center">
+      <View className="absolute bottom-8 left-0 right-0 items-center">
         <Pressable
           onPress={() => router.push("/scan")}
           className="bg-black rounded-full px-8 py-4 shadow-lg"

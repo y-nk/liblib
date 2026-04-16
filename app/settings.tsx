@@ -1,7 +1,6 @@
 import { useCallback, useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, ActivityIndicator, Switch } from "react-native";
 import { useFocusEffect } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
 import { GripVertical, ChevronDown, ChevronRight } from "lucide-react-native";
 import { getSettings, saveSettings } from "@/lib/storage";
@@ -164,7 +163,10 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <View className="flex-1 bg-white rounded-t-2xl">
+      <View className="items-center pt-3 pb-1">
+        <View className="w-10 h-1 rounded-full bg-gray-300" />
+      </View>
       <DraggableFlatList
         data={settings.providers}
         keyExtractor={(item) => item.id}
@@ -179,6 +181,6 @@ export default function SettingsScreen() {
         }
         contentContainerStyle={{ paddingHorizontal: 16 }}
       />
-    </SafeAreaView>
+    </View>
   );
 }
