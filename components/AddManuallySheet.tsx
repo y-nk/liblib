@@ -132,6 +132,21 @@ export default function AddManuallySheet({
             <ScrollView className="flex-1 px-4 pt-4">
               <Text className="text-2xl font-bold mb-6">Add Book</Text>
 
+              <Text className="text-xs font-medium text-gray-500 mb-1 uppercase">Cover</Text>
+              <Pressable
+                onPress={() => setShowCamera(true)}
+                className="border border-gray-200 rounded-lg mb-4 overflow-hidden self-start"
+                style={{ aspectRatio: 210 / 297, width: 120 }}
+              >
+                {cover ? (
+                  <Image source={{ uri: cover }} className="w-full h-full" resizeMode="cover" />
+                ) : (
+                  <View className="flex-1 items-center justify-center bg-gray-50">
+                    <Text className="text-gray-400 text-sm">Tap to photo</Text>
+                  </View>
+                )}
+              </Pressable>
+
               <Text className="text-xs font-medium text-gray-500 mb-1 uppercase">ISBN</Text>
               <TextInput
                 className="bg-gray-100 rounded-lg px-4 py-3 text-base mb-4"
@@ -151,20 +166,6 @@ export default function AddManuallySheet({
                 value={title}
                 onChangeText={setTitle}
               />
-
-              <Text className="text-xs font-medium text-gray-500 mb-1 uppercase">Cover</Text>
-              <Pressable
-                onPress={() => setShowCamera(true)}
-                className="border border-gray-200 rounded-lg mb-6 overflow-hidden"
-              >
-                {cover ? (
-                  <Image source={{ uri: cover }} className="w-full h-48" resizeMode="cover" />
-                ) : (
-                  <View className="h-32 items-center justify-center">
-                    <Text className="text-gray-400 text-base">Tap to take a photo</Text>
-                  </View>
-                )}
-              </Pressable>
 
               {error ? (
                 <Text className="text-red-500 text-sm text-center mb-3">{error}</Text>
