@@ -26,6 +26,8 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: npx expo prebuild --platform android --no-install
+        env:
+          EXPO_PUBLIC_COMMIT_SHA: ${{ github.sha }}
 
       - run: cd android && ./gradlew assembleDebug
 

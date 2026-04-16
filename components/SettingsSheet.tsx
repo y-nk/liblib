@@ -170,7 +170,14 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
                 <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">Providers</Text>
               </View>
             }
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+            ListFooterComponent={
+              <View className="mt-6">
+                <Text className="text-xs text-gray-400 text-center">
+                  Version: {process.env.EXPO_PUBLIC_COMMIT_SHA?.slice(0, 7) || "dev"}
+                </Text>
+              </View>
+            }
           />
     </BottomDrawer>
   );

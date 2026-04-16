@@ -35,6 +35,7 @@ jobs:
       - run: pnpm export:web
         env:
           EXPO_PUBLIC_BASE_URL: ${{ steps.pages.outputs.base_path }}
+          EXPO_PUBLIC_COMMIT_SHA: ${{ github.sha }}
 
       - run: cp dist/index.html dist/404.html
 
