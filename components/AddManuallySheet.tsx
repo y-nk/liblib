@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   View, Text, TextInput, Pressable, Modal, Image, ActivityIndicator, Platform, useColorScheme,
 } from "react-native";
@@ -29,6 +29,7 @@ export default function AddManuallySheet({
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const dark = useColorScheme() === "dark";
+  const titleRef = useRef<TextInput>(null);
 
   useEffect(() => {
     if (visible) {
@@ -190,12 +191,14 @@ export default function AddManuallySheet({
                     value={isbn}
                     onChangeText={setIsbn}
                     keyboardType="number-pad"
-                    autoFocus
+                    autoFocus={!initialIsbn}
                   />
                   <TextInput
+                    ref={titleRef}
                     className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-3 py-2.5 text-base dark:text-white"
                     placeholder="Title"
                     placeholderTextColor={dark ? "#666" : "#999"}
+                    autoFocus={!!initialIsbn}
                     value={title}
                     onChangeText={setTitle}
                   />
