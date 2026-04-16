@@ -50,13 +50,18 @@ export default function SettingsScreen() {
   };
 
   const testProvider = async (id: ProviderId) => {
+    console.log("[test] start", id);
     setTesting((prev) => ({ ...prev, [id]: "loading" }));
     setTestMsg((prev) => ({ ...prev, [id]: "" }));
     try {
-      // save current state first, then read fresh from storage
-      await saveSettings(settingsRef.current);
+      const current = settingsRef.current;
+      console.log("[test] saving settings, key present:", id, !!PROVIDER_KEY_FIELD[id] && !!current[PROVIDER_KEY_FIELD[id]!]);
+      await saveSettings(current);
+      console.log("[test] settings saved, calling provider...");
       const provider = testableProviders[id];
+      console.log("[test] provider found:", !!provider);
       const results = await provider.getBookFromISBN("9780345391803");
+      console.log("[test] results:", results.length);
       if (results.length > 0) {
         setTesting((prev) => ({ ...prev, [id]: "success" }));
         setTestMsg((prev) => ({ ...prev, [id]: `Found: ${results[0].title}` }));
@@ -65,6 +70,7 @@ export default function SettingsScreen() {
         setTestMsg((prev) => ({ ...prev, [id]: "No results — check your API key" }));
       }
     } catch (e: any) {
+      console.log("[test] error:", e);
       setTesting((prev) => ({ ...prev, [id]: "error" }));
       setTestMsg((prev) => ({ ...prev, [id]: e.message || "Failed" }));
     }
