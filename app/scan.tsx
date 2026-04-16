@@ -1,6 +1,6 @@
 import { useState, useRef } from "react";
 import {
-  View, Text, Pressable, TextInput, Platform,
+  View, Text, Pressable, TextInput,
   ActivityIndicator, Image, ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -56,7 +56,6 @@ export default function ScanScreen() {
     setStatus("saving");
     setMessage(`Saving: ${book.title}`);
 
-    // fetch cover as base64 if we only have a URL
     let cover = book.cover;
     if (!cover && book.coverUrl) {
       try {
@@ -86,19 +85,17 @@ export default function ScanScreen() {
     processISBN(isbn);
   };
 
-  const isWeb = Platform.OS === "web";
   const isBusy = status === "loading" || status === "saving" || status === "success";
 
-  const inputBlock = (autoFocus?: boolean) => (
+  const inputBlock = () => (
     <View>
       <TextInput
         className="bg-gray-800 rounded-lg px-4 py-3 text-white text-base mb-3"
-        placeholder="Enter ISBN..."
+        placeholder="Or type ISBN manually..."
         placeholderTextColor="#666"
         value={manualISBN}
         onChangeText={setManualISBN}
         keyboardType="number-pad"
-        autoFocus={autoFocus}
       />
       <Pressable
         onPress={handleManualSubmit}
@@ -159,13 +156,6 @@ export default function ScanScreen() {
             <Text className="text-gray-500 text-center text-sm">None of these — cancel</Text>
           </Pressable>
         </ScrollView>
-      ) : isWeb ? (
-        <View className="flex-1 justify-center px-6">
-          <Text className="text-gray-400 text-center mb-6">
-            Camera scanning is not available on web. Enter ISBN manually.
-          </Text>
-          {inputBlock(true)}
-        </View>
       ) : !permission?.granted ? (
         <View className="flex-1 justify-center items-center px-6">
           <Text className="text-gray-400 text-center mb-4">
@@ -175,7 +165,6 @@ export default function ScanScreen() {
             <Text className="text-black font-semibold">Grant Permission</Text>
           </Pressable>
           <View className="mt-8 w-full">
-            <Text className="text-gray-400 text-center mb-3">Or enter ISBN manually:</Text>
             {inputBlock()}
           </View>
         </View>
