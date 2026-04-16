@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Settings, ScanBarcode } from "lucide-react-native";
+import { Settings, ScanBarcode, Plus } from "lucide-react-native";
 import { getBooks, removeBook } from "@/lib/storage";
 import SettingsSheet from "@/components/SettingsSheet";
 import AddManuallySheet from "@/components/AddManuallySheet";
@@ -123,10 +123,10 @@ export default function BooksScreen() {
           </Pressable>
           <Pressable
             onPress={() => setShowAddManual(true)}
-            className="bg-white dark:bg-neutral-950 border border-black dark:border-white rounded-full px-6 py-4 shadow-lg"
+            className="bg-white dark:bg-neutral-950 border border-black dark:border-white rounded-full p-4 shadow-lg"
             style={{ position: "absolute", left: "100%", marginLeft: 12 }}
           >
-            <Text className="text-black dark:text-white font-semibold text-base" numberOfLines={1}>Add manually</Text>
+            <Plus size={24} color={dark ? "#fff" : "#000"} />
           </Pressable>
         </View>
       </View>
