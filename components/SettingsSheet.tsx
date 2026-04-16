@@ -170,8 +170,7 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
       <View className="flex-1">
         <Pressable className="h-[5%]" onPress={onClose} />
         <Animated.View
-          style={{ flex: 1, transform: [{ translateY: slideAnim }] }}
-          className="bg-white rounded-t-2xl"
+          style={{ flex: 1, transform: [{ translateY: slideAnim }], backgroundColor: "#fff", borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
         >
           <View className="items-center pt-3 pb-1">
             <View className="w-10 h-1 rounded-full bg-gray-300" />
