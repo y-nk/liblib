@@ -8,6 +8,7 @@ import {
   Pressable,
   Alert,
   Platform,
+  useColorScheme,
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -23,6 +24,7 @@ export default function BooksScreen() {
   const [showSettings, setShowSettings] = useState(false);
   const [showAddManual, setShowAddManual] = useState(false);
   const router = useRouter();
+  const dark = useColorScheme() === "dark";
 
   useFocusEffect(
     useCallback(() => {
@@ -53,18 +55,18 @@ export default function BooksScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white">
+    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-950">
       <View className="px-4 pt-2 pb-3">
         <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-2xl font-bold">LibLib</Text>
+          <Text className="text-2xl font-bold dark:text-white">LibLib</Text>
           <Pressable onPress={() => setShowSettings(true)} hitSlop={8}>
-            <Settings size={22} color="#666" />
+            <Settings size={22} color={dark ? "#aaa" : "#666"} />
           </Pressable>
         </View>
         <TextInput
-          className="bg-gray-100 rounded-lg px-4 py-3 text-base"
+          className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-3 text-base dark:text-white"
           placeholder="Search by title or ISBN..."
-          placeholderTextColor="#999"
+          placeholderTextColor={dark ? "#666" : "#999"}
           value={query}
           onChangeText={setQuery}
         />
@@ -82,20 +84,20 @@ export default function BooksScreen() {
           </View>
         }
         renderItem={({ item }) => (
-          <View className="flex-row items-center py-3 border-b border-gray-100">
+          <View className="flex-row items-center py-3 border-b border-gray-100 dark:border-neutral-800">
             {item.cover ? (
               <Image
                 source={{ uri: item.cover }}
-                className="w-12 h-16 rounded bg-gray-200"
+                className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-800"
                 resizeMode="cover"
               />
             ) : (
-              <View className="w-12 h-16 rounded bg-gray-200 items-center justify-center">
+              <View className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-800 items-center justify-center">
                 <Text className="text-gray-400 text-xs">No img</Text>
               </View>
             )}
             <View className="flex-1 ml-3">
-              <Text className="text-base font-medium" numberOfLines={2}>
+              <Text className="text-base font-medium dark:text-white" numberOfLines={2}>
                 {item.title}
               </Text>
               <Text className="text-sm text-gray-400 mt-0.5">{item.isbn}</Text>
@@ -115,16 +117,16 @@ export default function BooksScreen() {
         <View className="flex-row items-center">
           <Pressable
             onPress={() => router.push("/scan")}
-            className="bg-black rounded-full px-8 py-4 shadow-lg"
+            className="bg-black dark:bg-white rounded-full px-8 py-4 shadow-lg"
           >
-            <Text className="text-white font-semibold text-base">Scan</Text>
+            <Text className="text-white dark:text-black font-semibold text-base">Scan</Text>
           </Pressable>
           <Pressable
             onPress={() => setShowAddManual(true)}
-            className="bg-white border border-black rounded-full px-6 py-4 shadow-lg"
+            className="bg-white dark:bg-neutral-950 border border-black dark:border-white rounded-full px-6 py-4 shadow-lg"
             style={{ position: "absolute", left: "100%", marginLeft: 12 }}
           >
-            <Text className="text-black font-semibold text-base" numberOfLines={1}>Add manually</Text>
+            <Text className="text-black dark:text-white font-semibold text-base" numberOfLines={1}>Add manually</Text>
           </Pressable>
         </View>
       </View>

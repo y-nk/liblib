@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, ActivityIndicator, Switch, Modal,
+  View, Text, TextInput, Pressable, ActivityIndicator, Switch, Modal, useColorScheme,
 } from "react-native";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
 import { GripVertical, ChevronDown, ChevronRight } from "lucide-react-native";
@@ -23,6 +23,7 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
   const [testMsg, setTestMsg] = useState<Record<string, string>>({});
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
+  const dark = useColorScheme() === "dark";
 
   useEffect(() => {
     if (visible) getSettings().then(setSettings);
@@ -86,21 +87,21 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
 
     return (
       <ScaleDecorator>
-        <View className={`bg-gray-100 rounded-lg mb-2 ${isActive ? "opacity-80" : ""}`}>
+        <View className={`bg-gray-100 dark:bg-neutral-800 rounded-lg mb-2 ${isActive ? "opacity-80" : ""}`}>
           <View className="flex-row items-center px-3 py-3">
             <Pressable onLongPress={drag} delayLongPress={150} className="mr-3 px-1">
-              <GripVertical size={18} color="#9ca3af" />
+              <GripVertical size={18} color={dark ? "#666" : "#9ca3af"} />
             </Pressable>
             {hasExpander && (
               <Pressable onPress={() => toggleExpanded(item.id)} className="mr-2">
                 {isExpanded_
-                  ? <ChevronDown size={16} color="#9ca3af" />
-                  : <ChevronRight size={16} color="#9ca3af" />
+                  ? <ChevronDown size={16} color={dark ? "#666" : "#9ca3af"} />
+                  : <ChevronRight size={16} color={dark ? "#666" : "#9ca3af"} />
                 }
               </Pressable>
             )}
             <View className={`flex-1 ${!enabled ? "opacity-50" : ""}`}>
-              <Text className="text-base font-medium">{PROVIDER_LABELS[item.id]}</Text>
+              <Text className="text-base font-medium dark:text-white">{PROVIDER_LABELS[item.id]}</Text>
             </View>
             <Switch
               value={enabled}
@@ -108,10 +109,10 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
                 if (locked) return;
                 toggleProvider(item.id);
               }}
-              trackColor={{ false: "#e5e5e5", true: "#000" }}
-              thumbColor="#fff"
+              trackColor={{ false: dark ? "#333" : "#e5e5e5", true: dark ? "#fff" : "#000" }}
+              thumbColor={dark ? "#000" : "#fff"}
               // @ts-ignore — web override
-              activeThumbColor="#fff"
+              activeThumbColor={dark ? "#000" : "#fff"}
             />
           </View>
 
@@ -119,9 +120,9 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
             <View className="pb-3 pl-12 pr-3">
               <Text className="text-xs font-medium text-gray-500 mb-1 uppercase">API Key</Text>
               <TextInput
-                className="bg-white rounded-lg px-4 py-3 text-base mb-3 border border-gray-200"
+                className="bg-white dark:bg-neutral-700 rounded-lg px-4 py-3 text-base dark:text-white mb-3 border border-gray-200 dark:border-neutral-600"
                 placeholder={PROVIDER_KEY_PLACEHOLDER[keyField] || "API key..."}
-                placeholderTextColor="#999"
+                placeholderTextColor={dark ? "#666" : "#999"}
                 value={settings[keyField] as string}
                 onChangeText={(t) => setSettings({ ...settings, [keyField]: t })}
                 onBlur={save}
@@ -132,18 +133,18 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
               <Pressable
                 onPress={() => testProvider(item.id)}
                 disabled={status === "loading" || !settings[keyField]}
-                className={`border rounded-lg py-2 ${!settings[keyField] ? "border-gray-200" : "border-gray-300"}`}
+                className={`border rounded-lg py-2 ${!settings[keyField] ? "border-gray-200 dark:border-neutral-700" : "border-gray-300 dark:border-neutral-500"}`}
               >
                 {status === "loading" ? (
-                  <ActivityIndicator color="#000" size="small" />
+                  <ActivityIndicator color={dark ? "#fff" : "#000"} size="small" />
                 ) : (
-                  <Text className={`text-center text-sm font-medium ${!settings[keyField] ? "text-gray-300" : "text-black"}`}>
+                  <Text className={`text-center text-sm font-medium ${!settings[keyField] ? "text-gray-300 dark:text-neutral-600" : "text-black dark:text-white"}`}>
                     Test
                   </Text>
                 )}
               </Pressable>
               {msg ? (
-                <Text className={`text-xs text-center mt-2 ${status === "error" ? "text-red-500" : "text-green-600"}`}>
+                <Text className={`text-xs text-center mt-2 ${status === "error" ? "text-red-500" : "text-green-600 dark:text-green-400"}`}>
                   {msg}
                 </Text>
               ) : null}
@@ -160,9 +161,9 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
     <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
       <View className="flex-1 bg-black/50">
         <Pressable className="h-[5%]" onPress={onClose} />
-        <View className="flex-1 bg-white rounded-t-2xl">
+        <View className="flex-1 bg-white dark:bg-neutral-900 rounded-t-2xl">
           <View className="items-center pt-3 pb-1">
-            <View className="w-10 h-1 rounded-full bg-gray-300" />
+            <View className="w-10 h-1 rounded-full bg-gray-300 dark:bg-neutral-600" />
           </View>
           <DraggableFlatList
             data={settings.providers}
@@ -172,7 +173,7 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
             containerStyle={{ flex: 1 }}
             ListHeaderComponent={
               <View className="px-4 pt-2">
-                <Text className="text-2xl font-bold mb-6">Settings</Text>
+                <Text className="text-2xl font-bold mb-6 dark:text-white">Settings</Text>
                 <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">Providers</Text>
               </View>
             }
