@@ -1,10 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
-  View, Text, TextInput, Pressable, Modal, Image, ScrollView, ActivityIndicator,
+  View, Text, TextInput, Pressable, Modal, Image, ActivityIndicator,
 } from "react-native";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import { Camera } from "lucide-react-native";
 import { addBook } from "@/lib/storage";
-import { fetchCoverAsBase64 } from "@/lib/providers/cover";
 import type { Book } from "@/lib/types";
 
 export default function AddManuallySheet({
@@ -79,15 +79,15 @@ export default function AddManuallySheet({
 
   return (
     <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
-      <View className="flex-1 bg-black/50">
-        <Pressable className="h-[5%]" onPress={onClose} />
-        <View className="flex-1 bg-white rounded-t-2xl">
+      <View className="flex-1 bg-black/50 justify-end">
+        <Pressable className="flex-1" onPress={onClose} />
+        <View className="bg-white rounded-t-2xl">
           <View className="items-center pt-3 pb-1">
             <View className="w-10 h-1 rounded-full bg-gray-300" />
           </View>
 
           {showCamera ? (
-            <View className="flex-1">
+            <View style={{ height: 400 }}>
               <View className="flex-row justify-between items-center px-4 py-3">
                 <Pressable onPress={() => setShowCamera(false)}>
                   <Text className="text-base text-blue-500">Cancel</Text>
@@ -106,14 +106,11 @@ export default function AddManuallySheet({
                 <CameraView
                   className="flex-1"
                   facing="back"
-                  onCameraReady={() => {}}
                   ref={(ref) => {
-                    if (ref) {
-                      (globalThis as any).__cameraRef = ref;
-                    }
+                    if (ref) (globalThis as any).__cameraRef = ref;
                   }}
                 >
-                  <View className="flex-1 justify-end items-center pb-10">
+                  <View className="flex-1 justify-end items-center pb-6">
                     <Pressable
                       onPress={async () => {
                         const cam = (globalThis as any).__cameraRef;
@@ -129,43 +126,41 @@ export default function AddManuallySheet({
               )}
             </View>
           ) : (
-            <ScrollView className="flex-1 px-4 pt-4">
-              <Text className="text-2xl font-bold mb-6">Add Book</Text>
+            <View className="px-4 pt-4 pb-10">
+              <Text className="text-xl font-bold mb-5">Add Book</Text>
 
-              <Text className="text-xs font-medium text-gray-500 mb-1 uppercase">Cover</Text>
-              <Pressable
-                onPress={() => setShowCamera(true)}
-                className="border border-gray-200 rounded-lg mb-4 overflow-hidden self-start"
-                style={{ aspectRatio: 210 / 297, width: 120 }}
-              >
-                {cover ? (
-                  <Image source={{ uri: cover }} className="w-full h-full" resizeMode="cover" />
-                ) : (
-                  <View className="flex-1 items-center justify-center bg-gray-50">
-                    <Text className="text-gray-400 text-sm">Tap to photo</Text>
-                  </View>
-                )}
-              </Pressable>
+              <View className="flex-row mb-5">
+                <Pressable
+                  onPress={() => setShowCamera(true)}
+                  className="border border-dashed border-gray-300 rounded-xl overflow-hidden items-center justify-center bg-gray-50"
+                  style={{ width: 80, aspectRatio: 210 / 297 }}
+                >
+                  {cover ? (
+                    <Image source={{ uri: cover }} className="w-full h-full" resizeMode="cover" />
+                  ) : (
+                    <Camera size={24} color="#9ca3af" />
+                  )}
+                </Pressable>
 
-              <Text className="text-xs font-medium text-gray-500 mb-1 uppercase">ISBN</Text>
-              <TextInput
-                className="bg-gray-100 rounded-lg px-4 py-3 text-base mb-4"
-                placeholder="9780..."
-                placeholderTextColor="#999"
-                value={isbn}
-                onChangeText={setIsbn}
-                keyboardType="number-pad"
-                autoFocus
-              />
-
-              <Text className="text-xs font-medium text-gray-500 mb-1 uppercase">Title</Text>
-              <TextInput
-                className="bg-gray-100 rounded-lg px-4 py-3 text-base mb-4"
-                placeholder="Book title..."
-                placeholderTextColor="#999"
-                value={title}
-                onChangeText={setTitle}
-              />
+                <View className="flex-1 ml-4 justify-center">
+                  <TextInput
+                    className="bg-gray-100 rounded-lg px-3 py-2.5 text-base mb-3"
+                    placeholder="ISBN"
+                    placeholderTextColor="#999"
+                    value={isbn}
+                    onChangeText={setIsbn}
+                    keyboardType="number-pad"
+                    autoFocus
+                  />
+                  <TextInput
+                    className="bg-gray-100 rounded-lg px-3 py-2.5 text-base"
+                    placeholder="Title"
+                    placeholderTextColor="#999"
+                    value={title}
+                    onChangeText={setTitle}
+                  />
+                </View>
+              </View>
 
               {error ? (
                 <Text className="text-red-500 text-sm text-center mb-3">{error}</Text>
@@ -174,7 +169,7 @@ export default function AddManuallySheet({
               <Pressable
                 onPress={handleSave}
                 disabled={saving}
-                className="bg-black rounded-lg py-3 mb-10"
+                className="bg-black rounded-lg py-3"
               >
                 {saving ? (
                   <ActivityIndicator color="#fff" />
@@ -182,7 +177,7 @@ export default function AddManuallySheet({
                   <Text className="text-white text-center font-semibold text-base">Add to Library</Text>
                 )}
               </Pressable>
-            </ScrollView>
+            </View>
           )}
         </View>
       </View>
