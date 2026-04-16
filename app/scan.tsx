@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState } from "react";
 import {
   View, Text, Pressable, TextInput,
   ActivityIndicator, Image, ScrollView,
@@ -6,86 +6,26 @@ import {
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { addBook } from "@/lib/storage";
-import { lookupISBN } from "@/lib/providers";
-import { fetchCoverAsBase64 } from "@/lib/providers/cover";
-import type { Book } from "@/lib/types";
+import { useISBNLookup } from "@/lib/useISBNLookup";
 
 export default function ScanScreen() {
   const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
-  const [scannedCode, setScannedCode] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "picking" | "saving" | "success" | "error">("idle");
-  const [message, setMessage] = useState("");
   const [manualISBN, setManualISBN] = useState("");
-  const [candidates, setCandidates] = useState<Book[]>([]);
-  const lockRef = useRef(false);
+
+  const { status, message, candidates, isBusy, search, pick, reset } = useISBNLookup(() => {
+    setTimeout(() => router.back(), 1500);
+  });
 
   const handleBarcode = ({ data }: { data: string }) => {
-    if (lockRef.current) return;
-    lockRef.current = true;
-    setScannedCode(data);
-    processISBN(data);
-  };
-
-  const processISBN = async (isbn: string) => {
-    setStatus("loading");
-    setMessage("Looking up book...");
-    setCandidates([]);
-    try {
-      const results = await lookupISBN(isbn);
-      if (results.length === 0) {
-        setStatus("error");
-        setMessage("Could not find book info for this ISBN.");
-        lockRef.current = false;
-      } else if (results.length === 1) {
-        await handlePick(results[0]);
-      } else {
-        setCandidates(results);
-        setStatus("picking");
-        setMessage("Multiple matches — pick the correct one:");
-      }
-    } catch (e: any) {
-      setStatus("error");
-      setMessage(e.message || "Lookup failed");
-      lockRef.current = false;
-    }
-  };
-
-  const handlePick = async (book: Book) => {
-    setStatus("saving");
-    setMessage(`Saving: ${book.title}`);
-
-    let cover = book.cover;
-    if (!cover && book.coverUrl) {
-      try {
-        cover = await fetchCoverAsBase64(book.coverUrl);
-      } catch {}
-    }
-
-    const toSave = { ...book, cover, coverUrl: undefined };
-    const added = await addBook(toSave);
-    if (added) {
-      setStatus("success");
-      setCandidates([]);
-      setMessage(`Added: ${book.title}`);
-      setTimeout(() => router.back(), 1500);
-    } else {
-      setStatus("error");
-      setMessage("This book is already in your library.");
-      lockRef.current = false;
-    }
+    search(data);
   };
 
   const handleManualSubmit = () => {
     const isbn = manualISBN.trim();
     if (!isbn) return;
-    lockRef.current = true;
-    setScannedCode(isbn);
-    processISBN(isbn);
+    search(isbn);
   };
-
-  const isBusy = status === "loading" || status === "saving" || status === "success";
 
   const inputBlock = () => (
     <View>
@@ -125,7 +65,7 @@ export default function ScanScreen() {
           {candidates.map((book, i) => (
             <Pressable
               key={i}
-              onPress={() => handlePick(book)}
+              onPress={() => pick(book)}
               className="flex-row items-center bg-gray-900 rounded-xl p-3 mb-3"
             >
               {(book.cover || book.coverUrl) ? (
@@ -145,14 +85,7 @@ export default function ScanScreen() {
               </View>
             </Pressable>
           ))}
-          <Pressable
-            onPress={() => {
-              setStatus("idle");
-              setCandidates([]);
-              lockRef.current = false;
-            }}
-            className="mt-2"
-          >
+          <Pressable onPress={reset} className="mt-2">
             <Text className="text-gray-500 text-center text-sm">None of these — cancel</Text>
           </Pressable>
         </ScrollView>
@@ -191,9 +124,6 @@ export default function ScanScreen() {
           >
             {message}
           </Text>
-          {scannedCode ? (
-            <Text className="text-gray-500 text-center text-xs mt-1">ISBN: {scannedCode}</Text>
-          ) : null}
         </View>
       )}
     </SafeAreaView>

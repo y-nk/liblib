@@ -12,10 +12,11 @@ import {
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Settings, ScanBarcode, Plus } from "lucide-react-native";
+import { Settings, ScanBarcode, Plus, Search } from "lucide-react-native";
 import { getBooks, removeBook } from "@/lib/storage";
 import SettingsSheet from "@/components/SettingsSheet";
 import AddManuallySheet from "@/components/AddManuallySheet";
+import SearchSheet from "@/components/SearchSheet";
 import type { Book } from "@/lib/types";
 
 export default function BooksScreen() {
@@ -23,14 +24,13 @@ export default function BooksScreen() {
   const [query, setQuery] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [showAddManual, setShowAddManual] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
   const router = useRouter();
   const dark = useColorScheme() === "dark";
 
-  useFocusEffect(
-    useCallback(() => {
-      getBooks().then(setBooks);
-    }, [])
-  );
+  const reload = () => getBooks().then(setBooks);
+
+  useFocusEffect(useCallback(() => { reload(); }, []));
 
   const filtered = books.filter((b) => {
     const q = query.toLowerCase();
@@ -40,16 +40,12 @@ export default function BooksScreen() {
   const confirmDelete = (isbn: string, title: string) => {
     if (Platform.OS === "web") {
       if (window.confirm(`Delete "${title}"?`)) {
-        removeBook(isbn).then(() => getBooks().then(setBooks));
+        removeBook(isbn).then(reload);
       }
     } else {
       Alert.alert("Delete", `Delete "${title}"?`, [
         { text: "Cancel", style: "cancel" },
-        {
-          text: "Delete",
-          style: "destructive",
-          onPress: () => removeBook(isbn).then(() => getBooks().then(setBooks)),
-        },
+        { text: "Delete", style: "destructive", onPress: () => removeBook(isbn).then(reload) },
       ]);
     }
   };
@@ -79,7 +75,7 @@ export default function BooksScreen() {
         ListEmptyComponent={
           <View className="items-center pt-20">
             <Text className="text-gray-400 text-base">
-              {query ? "No matches" : "No books yet. Tap Scan to add one."}
+              {query ? "No matches" : "No books yet. Tap scan to add one."}
             </Text>
           </View>
         }
@@ -113,30 +109,30 @@ export default function BooksScreen() {
         )}
       />
 
-      <View className="absolute bottom-8 left-0 right-0 items-center">
-        <View className="flex-row items-center">
-          <Pressable
-            onPress={() => router.push("/scan")}
-            className="bg-black dark:bg-white rounded-full p-4 shadow-lg"
-          >
-            <ScanBarcode size={24} color={dark ? "#000" : "#fff"} />
-          </Pressable>
-          <Pressable
-            onPress={() => setShowAddManual(true)}
-            className="bg-white dark:bg-neutral-950 border border-black dark:border-white rounded-full p-4 shadow-lg"
-            style={{ position: "absolute", left: "100%", marginLeft: 12 }}
-          >
-            <Plus size={24} color={dark ? "#fff" : "#000"} />
-          </Pressable>
-        </View>
+      <View className="absolute bottom-8 right-5 items-end gap-3">
+        <Pressable
+          onPress={() => setShowSearch(true)}
+          className="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-full p-3 shadow"
+        >
+          <Search size={20} color={dark ? "#fff" : "#000"} />
+        </Pressable>
+        <Pressable
+          onPress={() => setShowAddManual(true)}
+          className="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-full p-3 shadow"
+        >
+          <Plus size={20} color={dark ? "#fff" : "#000"} />
+        </Pressable>
+        <Pressable
+          onPress={() => router.push("/scan")}
+          className="bg-black dark:bg-white rounded-full p-5 shadow-lg"
+        >
+          <ScanBarcode size={28} color={dark ? "#000" : "#fff"} />
+        </Pressable>
       </View>
 
       <SettingsSheet visible={showSettings} onClose={() => setShowSettings(false)} />
-      <AddManuallySheet
-        visible={showAddManual}
-        onClose={() => setShowAddManual(false)}
-        onAdded={() => getBooks().then(setBooks)}
-      />
+      <AddManuallySheet visible={showAddManual} onClose={() => setShowAddManual(false)} onAdded={reload} />
+      <SearchSheet visible={showSearch} onClose={() => setShowSearch(false)} onAdded={reload} />
     </SafeAreaView>
   );
 }
