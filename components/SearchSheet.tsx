@@ -9,10 +9,12 @@ export default function SearchSheet({
   visible,
   onClose,
   onAdded,
+  onManualFallback,
 }: {
   visible: boolean;
   onClose: () => void;
   onAdded: () => void;
+  onManualFallback: (isbn: string) => void;
 }) {
   const [isbn, setIsbn] = useState("");
   const dark = useColorScheme() === "dark";
@@ -34,6 +36,12 @@ export default function SearchSheet({
     const trimmed = isbn.trim();
     if (!trimmed) return;
     search(trimmed);
+  };
+
+  const handleManualFallback = () => {
+    const trimmed = isbn.trim();
+    onClose();
+    onManualFallback(trimmed);
   };
 
   if (!visible) return null;
@@ -85,34 +93,49 @@ export default function SearchSheet({
                 placeholder="Enter ISBN..."
                 placeholderTextColor={dark ? "#666" : "#999"}
                 value={isbn}
-                onChangeText={setIsbn}
+                onChangeText={(t) => { setIsbn(t); if (status === "error") reset(); }}
                 keyboardType="number-pad"
                 autoFocus
                 editable={!isBusy}
               />
 
-              {status !== "idle" && (
+              {status === "error" ? (
+                <View className="mb-4">
+                  <Text className="text-red-500 text-center text-sm">{message}</Text>
+                </View>
+              ) : status !== "idle" ? (
                 <View className="mb-4">
                   {(status === "loading" || status === "saving") && <ActivityIndicator color={dark ? "#fff" : "#000"} />}
                   <Text
                     className={`text-center text-sm mt-1 ${
-                      status === "error" ? "text-red-500" : status === "success" ? "text-green-600 dark:text-green-400" : "text-gray-400"
+                      status === "success" ? "text-green-600 dark:text-green-400" : "text-gray-400"
                     }`}
                   >
                     {message}
                   </Text>
                 </View>
-              )}
+              ) : null}
 
-              <Pressable
-                onPress={handleSubmit}
-                disabled={isBusy || !isbn.trim()}
-                className={`rounded-lg py-3 ${isBusy || !isbn.trim() ? "bg-gray-300 dark:bg-neutral-700" : "bg-black dark:bg-white"}`}
-              >
-                <Text className={`text-center font-semibold text-base ${isBusy || !isbn.trim() ? "text-gray-500" : "text-white dark:text-black"}`}>
-                  Look Up
-                </Text>
-              </Pressable>
+              {status === "error" ? (
+                <Pressable
+                  onPress={handleManualFallback}
+                  className="bg-black dark:bg-white rounded-lg py-3"
+                >
+                  <Text className="text-white dark:text-black text-center font-semibold text-base">
+                    Add manually instead
+                  </Text>
+                </Pressable>
+              ) : (
+                <Pressable
+                  onPress={handleSubmit}
+                  disabled={isBusy || !isbn.trim()}
+                  className={`rounded-lg py-3 ${isBusy || !isbn.trim() ? "bg-gray-300 dark:bg-neutral-700" : "bg-black dark:bg-white"}`}
+                >
+                  <Text className={`text-center font-semibold text-base ${isBusy || !isbn.trim() ? "text-gray-500" : "text-white dark:text-black"}`}>
+                    Look Up
+                  </Text>
+                </Pressable>
+              )}
             </View>
           )}
         </View>

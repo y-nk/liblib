@@ -24,6 +24,7 @@ export default function BooksScreen() {
   const [query, setQuery] = useState("");
   const [showSettings, setShowSettings] = useState(false);
   const [showAddManual, setShowAddManual] = useState(false);
+  const [manualIsbn, setManualIsbn] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const router = useRouter();
   const dark = useColorScheme() === "dark";
@@ -117,7 +118,7 @@ export default function BooksScreen() {
           <Search size={20} color={dark ? "#fff" : "#000"} />
         </Pressable>
         <Pressable
-          onPress={() => setShowAddManual(true)}
+          onPress={() => { setManualIsbn(""); setShowAddManual(true); }}
           className="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-full p-3 shadow"
         >
           <Plus size={20} color={dark ? "#fff" : "#000"} />
@@ -131,8 +132,13 @@ export default function BooksScreen() {
       </View>
 
       <SettingsSheet visible={showSettings} onClose={() => setShowSettings(false)} />
-      <AddManuallySheet visible={showAddManual} onClose={() => setShowAddManual(false)} onAdded={reload} />
-      <SearchSheet visible={showSearch} onClose={() => setShowSearch(false)} onAdded={reload} />
+      <AddManuallySheet visible={showAddManual} onClose={() => setShowAddManual(false)} onAdded={reload} initialIsbn={manualIsbn} />
+      <SearchSheet
+        visible={showSearch}
+        onClose={() => setShowSearch(false)}
+        onAdded={reload}
+        onManualFallback={(isbn) => { setManualIsbn(isbn); setShowAddManual(true); }}
+      />
     </SafeAreaView>
   );
 }

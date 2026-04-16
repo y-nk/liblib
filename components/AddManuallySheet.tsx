@@ -14,10 +14,12 @@ export default function AddManuallySheet({
   visible,
   onClose,
   onAdded,
+  initialIsbn = "",
 }: {
   visible: boolean;
   onClose: () => void;
   onAdded: () => void;
+  initialIsbn?: string;
 }) {
   const [isbn, setIsbn] = useState("");
   const [title, setTitle] = useState("");
@@ -30,7 +32,7 @@ export default function AddManuallySheet({
 
   useEffect(() => {
     if (visible) {
-      setIsbn("");
+      setIsbn(initialIsbn);
       setTitle("");
       setCover("");
       setShowWebCam(false);
