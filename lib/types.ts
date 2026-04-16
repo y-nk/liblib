@@ -1,7 +1,7 @@
 export type Book = {
   isbn: string;
   title: string;
-  cover: string; // url
+  cover: string; // data:image/... base64
   addedAt: number;
 };
 
