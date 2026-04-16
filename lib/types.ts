@@ -8,4 +8,6 @@ export type Book = {
 export type Settings = {
   aiProvider: "openai" | "anthropic";
   apiKey: string;
+  baseUrl: string;
+  model: string;
 };
