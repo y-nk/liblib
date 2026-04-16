@@ -3,7 +3,7 @@ import { View, Text, TextInput, Pressable, ScrollView, ActivityIndicator, Switch
 import { useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getSettings, saveSettings } from "@/lib/storage";
-import { lookupISBN } from "@/lib/ai";
+import { lookupISBN } from "@/lib/providers";
 import type { Settings, ProviderConfig } from "@/lib/types";
 import { DEFAULT_PROVIDERS, PROVIDER_LABELS } from "@/lib/types";
 

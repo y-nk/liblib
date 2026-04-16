@@ -7,7 +7,7 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { addBook } from "@/lib/storage";
-import { lookupISBN } from "@/lib/ai";
+import { lookupISBN } from "@/lib/providers";
 import type { Book } from "@/lib/types";
 
 export default function ScanScreen() {
