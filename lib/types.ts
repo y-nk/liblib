@@ -36,3 +36,8 @@ export const PROVIDER_KEY_FIELD: Partial<Record<ProviderId, keyof Settings>> = {
   openai: "openaiKey",
   gemini: "geminiKey",
 };
+
+export const PROVIDER_KEY_PLACEHOLDER: Record<string, string> = {
+  openaiKey: "sk-...",
+  geminiKey: "AIza...",
+};
