@@ -14,12 +14,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Settings } from "lucide-react-native";
 import { getBooks, removeBook } from "@/lib/storage";
 import SettingsSheet from "@/components/SettingsSheet";
+import AddManuallySheet from "@/components/AddManuallySheet";
 import type { Book } from "@/lib/types";
 
 export default function BooksScreen() {
   const [books, setBooks] = useState<Book[]>([]);
   const [query, setQuery] = useState("");
   const [showSettings, setShowSettings] = useState(false);
+  const [showAddManual, setShowAddManual] = useState(false);
   const router = useRouter();
 
   useFocusEffect(
@@ -109,16 +111,27 @@ export default function BooksScreen() {
         )}
       />
 
-      <View className="absolute bottom-8 left-0 right-0 items-center">
+      <View className="absolute bottom-8 left-0 right-0 flex-row justify-center items-center gap-3">
         <Pressable
           onPress={() => router.push("/scan")}
           className="bg-black rounded-full px-8 py-4 shadow-lg"
         >
           <Text className="text-white font-semibold text-base">Scan</Text>
         </Pressable>
+        <Pressable
+          onPress={() => setShowAddManual(true)}
+          className="bg-white border border-black rounded-full px-6 py-4 shadow-lg"
+        >
+          <Text className="text-black font-semibold text-base">Add manually</Text>
+        </Pressable>
       </View>
 
       <SettingsSheet visible={showSettings} onClose={() => setShowSettings(false)} />
+      <AddManuallySheet
+        visible={showAddManual}
+        onClose={() => setShowAddManual(false)}
+        onAdded={() => getBooks().then(setBooks)}
+      />
     </SafeAreaView>
   );
 }
