@@ -133,7 +133,7 @@ export default function AddManuallySheet({
                 <Pressable
                   onPress={() => setShowCamera(true)}
                   className="border border-dashed border-gray-300 rounded-xl overflow-hidden items-center justify-center bg-gray-50"
-                  style={{ width: 80, aspectRatio: 210 / 297 }}
+                  style={{ aspectRatio: 210 / 297 }}
                 >
                   {cover ? (
                     <Image source={{ uri: cover }} className="w-full h-full" resizeMode="cover" />
@@ -142,9 +142,9 @@ export default function AddManuallySheet({
                   )}
                 </Pressable>
 
-                <View className="flex-1 ml-4 justify-center">
+                <View className="flex-1 flex-col gap-4 ml-4 justify-center">
                   <TextInput
-                    className="bg-gray-100 rounded-lg px-3 py-2.5 text-base mb-3"
+                    className="bg-gray-100 rounded-lg px-3 py-2.5 text-base"
                     placeholder="ISBN"
                     placeholderTextColor="#999"
                     value={isbn}
