@@ -18,7 +18,6 @@ const testableProviders: Record<string, { getBookFromISBN: (isbn: string) => Pro
 
 export default function SettingsScreen() {
   const [settings, setSettings] = useState<Settings>({ openaiKey: "", geminiKey: "", providers: DEFAULT_PROVIDERS });
-  const [saved, setSaved] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [testing, setTesting] = useState<Record<string, "idle" | "loading" | "success" | "error">>({});
   const [testMsg, setTestMsg] = useState<Record<string, string>>({});
@@ -29,17 +28,16 @@ export default function SettingsScreen() {
     }, [])
   );
 
-  const save = async () => {
-    await saveSettings(settings);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const update = (next: Settings) => {
+    setSettings(next);
+    saveSettings(next);
   };
 
   const toggleProvider = (id: string) => {
     const providers = settings.providers.map((p) =>
       p.id === id ? { ...p, enabled: !p.enabled } : p
     );
-    setSettings({ ...settings, providers });
+    update({ ...settings, providers });
   };
 
   const toggleExpanded = (id: string) => {
@@ -115,13 +113,15 @@ export default function SettingsScreen() {
           </View>
 
           {hasExpander && isExpanded && keyField && (
-            <View className="px-4 pb-3">
+            <View className="pb-3 pl-12 pr-3">
+              <Text className="text-xs font-medium text-gray-500 mb-1 uppercase">API Key</Text>
               <TextInput
                 className="bg-white rounded-lg px-4 py-3 text-base mb-3 border border-gray-200"
                 placeholder={PROVIDER_KEY_PLACEHOLDER[keyField] || "API key..."}
                 placeholderTextColor="#999"
                 value={settings[keyField] as string}
                 onChangeText={(t) => setSettings({ ...settings, [keyField]: t })}
+                onBlur={() => saveSettings(settings)}
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -156,22 +156,13 @@ export default function SettingsScreen() {
       <DraggableFlatList
         data={settings.providers}
         keyExtractor={(item) => item.id}
-        onDragEnd={({ data }) => setSettings({ ...settings, providers: data })}
+        onDragEnd={({ data }) => update({ ...settings, providers: data })}
         renderItem={renderItem}
         containerStyle={{ flex: 1 }}
         ListHeaderComponent={
           <View className="px-4 pt-2">
             <Text className="text-2xl font-bold mb-6">Settings</Text>
             <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">Providers</Text>
-          </View>
-        }
-        ListFooterComponent={
-          <View className="px-4 mt-4">
-            <Pressable onPress={save} className="bg-black rounded-lg py-3 mb-10">
-              <Text className="text-white text-center font-semibold text-base">
-                {saved ? "Saved ✓" : "Save"}
-              </Text>
-            </Pressable>
           </View>
         }
         contentContainerStyle={{ paddingHorizontal: 16 }}
