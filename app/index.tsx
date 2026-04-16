@@ -13,11 +13,13 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Settings } from "lucide-react-native";
 import { getBooks, removeBook } from "@/lib/storage";
+import SettingsSheet from "@/components/SettingsSheet";
 import type { Book } from "@/lib/types";
 
 export default function BooksScreen() {
   const [books, setBooks] = useState<Book[]>([]);
   const [query, setQuery] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
   const router = useRouter();
 
   useFocusEffect(
@@ -53,7 +55,7 @@ export default function BooksScreen() {
       <View className="px-4 pt-2 pb-3">
         <View className="flex-row items-center justify-between mb-3">
           <Text className="text-2xl font-bold">LibLib</Text>
-          <Pressable onPress={() => router.push("/settings")} hitSlop={8}>
+          <Pressable onPress={() => setShowSettings(true)} hitSlop={8}>
             <Settings size={22} color="#666" />
           </Pressable>
         </View>
@@ -115,6 +117,8 @@ export default function BooksScreen() {
           <Text className="text-white font-semibold text-base">Scan</Text>
         </Pressable>
       </View>
+
+      <SettingsSheet visible={showSettings} onClose={() => setShowSettings(false)} />
     </SafeAreaView>
   );
 }
