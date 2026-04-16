@@ -7,7 +7,7 @@ import { useRouter, useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { addBook, getSettings } from "@/lib/storage";
-import { lookupISBN, lookupISBNCandidates } from "@/lib/ai";
+import { lookupISBN } from "@/lib/ai";
 import type { Book } from "@/lib/types";
 
 export default function ScanScreen() {
@@ -40,34 +40,21 @@ export default function ScanScreen() {
     setMessage("Looking up book...");
     setCandidates([]);
     try {
-      if (useGPT && hasKey) {
-        const results = await lookupISBNCandidates(isbn);
-        if (!results || results.length === 0) {
-          setStatus("error");
-          setMessage("Could not find book info for this ISBN.");
-          lockRef.current = false;
-          return;
-        }
-        if (results.length === 1) {
-          await handlePick(results[0]);
-        } else {
-          setCandidates(results);
-          setStatus("picking");
-          setMessage("Multiple matches — pick the correct one:");
-        }
+      const results = await lookupISBN(isbn, useGPT && hasKey);
+      if (results.length === 0) {
+        setStatus("error");
+        setMessage(
+          !useGPT && hasKey
+            ? "Not found in free databases. Enable GPT for AI lookup."
+            : "Could not find book info for this ISBN."
+        );
+        lockRef.current = false;
+      } else if (results.length === 1) {
+        await handlePick(results[0]);
       } else {
-        const result = await lookupISBN(isbn);
-        if (!result) {
-          setStatus("error");
-          setMessage(
-            hasKey
-              ? "Not found in free databases. Enable GPT for AI lookup."
-              : "Could not find book info for this ISBN."
-          );
-          lockRef.current = false;
-          return;
-        }
-        await handlePick(result);
+        setCandidates(results);
+        setStatus("picking");
+        setMessage("Multiple matches — pick the correct one:");
       }
     } catch (e: any) {
       setStatus("error");

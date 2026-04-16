@@ -2,17 +2,12 @@ import type { Book } from "../types";
 import { getSettings } from "../storage";
 import { fetchCoverAsBase64 } from "./cover";
 
-export async function getBookFromISBN(isbn: string): Promise<Book | undefined> {
-  const candidates = await getCandidates(isbn);
-  return candidates?.[0];
-}
-
-export async function getCandidates(isbn: string): Promise<Book[] | undefined> {
+export async function getBookFromISBN(isbn: string): Promise<Book[]> {
   try {
     const { apiKey } = await getSettings();
     if (!apiKey) {
       console.log("[openai] no API key configured");
-      return undefined;
+      return [];
     }
 
     const prompt = `I have a book with ISBN ${isbn}. Search the web for this ISBN to find the exact book.
@@ -40,9 +35,9 @@ If you can't find anything, return []`;
       ?.find((c: any) => c.type === "output_text")?.text ?? "";
 
     const arrMatch = text.match(/\[[\s\S]*\]/);
-    if (!arrMatch) return undefined;
+    if (!arrMatch) return [];
     const arr = JSON.parse(arrMatch[0]);
-    if (!Array.isArray(arr) || arr.length === 0) return undefined;
+    if (!Array.isArray(arr) || arr.length === 0) return [];
 
     const books: Book[] = [];
     for (const item of arr) {
@@ -55,9 +50,9 @@ If you can't find anything, return []`;
       books.push({ isbn, title: item.title, cover, addedAt: Date.now() });
     }
 
-    return books.length > 0 ? books : undefined;
+    return books;
   } catch (e) {
     console.log("[openai]", e);
-    return undefined;
+    return [];
   }
 }

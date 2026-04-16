@@ -3,26 +3,13 @@ import { openLibrary, googleBooks, openai } from "./providers";
 
 const freeProviders = [openLibrary, googleBooks];
 
-export async function lookupISBN(isbn: string, useAI: boolean = false): Promise<Book | undefined> {
+export async function lookupISBN(isbn: string, useAI: boolean = false): Promise<Book[]> {
   for (const provider of freeProviders) {
-    const result = await provider.getBookFromISBN(isbn);
-    if (result) return result;
+    const results = await provider.getBookFromISBN(isbn);
+    if (results.length > 0) return results;
   }
 
-  if (useAI) {
-    const candidates = await openai.getCandidates(isbn);
-    return candidates?.[0];
-  }
+  if (useAI) return openai.getBookFromISBN(isbn);
 
-  return undefined;
-}
-
-export async function lookupISBNCandidates(isbn: string): Promise<Book[] | undefined> {
-  // try free providers first — if they hit, return single result as array
-  for (const provider of freeProviders) {
-    const result = await provider.getBookFromISBN(isbn);
-    if (result) return [result];
-  }
-
-  return openai.getCandidates(isbn);
+  return [];
 }

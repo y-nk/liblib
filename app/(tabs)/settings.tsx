@@ -29,10 +29,10 @@ export default function SettingsScreen() {
     setTestMessage("");
     try {
       await saveSettings(settings);
-      const result = await lookupISBN("9780345391803");
-      if (result) {
+      const results = await lookupISBN("9780345391803", true);
+      if (results.length > 0) {
         setTestStatus("success");
-        setTestMessage(`Found: ${result.title}`);
+        setTestMessage(`Found: ${results[0].title}`);
       } else {
         setTestStatus("error");
         setTestMessage("Connected but could not parse response");
