@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { View, Text, TextInput, Pressable, ActivityIndicator, Switch } from "react-native";
 import { useFocusEffect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -21,6 +21,8 @@ export default function SettingsScreen() {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [testing, setTesting] = useState<Record<string, "idle" | "loading" | "success" | "error">>({});
   const [testMsg, setTestMsg] = useState<Record<string, string>>({});
+  const settingsRef = useRef(settings);
+  settingsRef.current = settings;
 
   useFocusEffect(
     useCallback(() => {
@@ -33,11 +35,14 @@ export default function SettingsScreen() {
     saveSettings(next);
   };
 
+  const save = () => saveSettings(settingsRef.current);
+
   const toggleProvider = (id: string) => {
-    const providers = settings.providers.map((p) =>
+    const s = settingsRef.current;
+    const providers = s.providers.map((p) =>
       p.id === id ? { ...p, enabled: !p.enabled } : p
     );
-    update({ ...settings, providers });
+    update({ ...s, providers });
   };
 
   const toggleExpanded = (id: string) => {
@@ -48,7 +53,8 @@ export default function SettingsScreen() {
     setTesting((prev) => ({ ...prev, [id]: "loading" }));
     setTestMsg((prev) => ({ ...prev, [id]: "" }));
     try {
-      await saveSettings(settings);
+      // save current state first, then read fresh from storage
+      await saveSettings(settingsRef.current);
       const provider = testableProviders[id];
       const results = await provider.getBookFromISBN("9780345391803");
       if (results.length > 0) {
@@ -121,7 +127,7 @@ export default function SettingsScreen() {
                 placeholderTextColor="#999"
                 value={settings[keyField] as string}
                 onChangeText={(t) => setSettings({ ...settings, [keyField]: t })}
-                onBlur={() => saveSettings(settings)}
+                onBlur={save}
                 secureTextEntry
                 autoCapitalize="none"
                 autoCorrect={false}
@@ -156,7 +162,7 @@ export default function SettingsScreen() {
       <DraggableFlatList
         data={settings.providers}
         keyExtractor={(item) => item.id}
-        onDragEnd={({ data }) => update({ ...settings, providers: data })}
+        onDragEnd={({ data }) => update({ ...settingsRef.current, providers: data })}
         renderItem={renderItem}
         containerStyle={{ flex: 1 }}
         ListHeaderComponent={
