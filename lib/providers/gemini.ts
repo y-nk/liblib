@@ -1,6 +1,5 @@
 import type { Book } from "../types";
 import { getSettings } from "../storage";
-import { fetchCoverAsBase64 } from "./cover";
 
 export async function getBookFromISBN(isbn: string): Promise<Book[]> {
   try {
@@ -40,18 +39,15 @@ If you can't find anything, return []`;
     const arr = JSON.parse(arrMatch[0]);
     if (!Array.isArray(arr) || arr.length === 0) return [];
 
-    const books: Book[] = [];
-    for (const item of arr) {
-      if (!item.title || !item.cover) continue;
-      let cover = "";
-      try {
-        cover = await fetchCoverAsBase64(item.cover);
-      } catch {}
-      if (!cover) continue;
-      books.push({ isbn, title: item.title, cover, addedAt: Date.now() });
-    }
-
-    return books;
+    return arr
+      .filter((item: any) => item.title && item.cover)
+      .map((item: any) => ({
+        isbn,
+        title: item.title,
+        cover: "",
+        coverUrl: item.cover,
+        addedAt: Date.now(),
+      }));
   } catch (e) {
     console.log("[gemini]", e);
     return [];

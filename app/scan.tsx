@@ -8,13 +8,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { addBook } from "@/lib/storage";
 import { lookupISBN } from "@/lib/providers";
+import { fetchCoverAsBase64 } from "@/lib/providers/cover";
 import type { Book } from "@/lib/types";
 
 export default function ScanScreen() {
   const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
   const [scannedCode, setScannedCode] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "picking" | "success" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "picking" | "saving" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
   const [manualISBN, setManualISBN] = useState("");
   const [candidates, setCandidates] = useState<Book[]>([]);
@@ -52,7 +53,19 @@ export default function ScanScreen() {
   };
 
   const handlePick = async (book: Book) => {
-    const added = await addBook(book);
+    setStatus("saving");
+    setMessage(`Saving: ${book.title}`);
+
+    // fetch cover as base64 if we only have a URL
+    let cover = book.cover;
+    if (!cover && book.coverUrl) {
+      try {
+        cover = await fetchCoverAsBase64(book.coverUrl);
+      } catch {}
+    }
+
+    const toSave = { ...book, cover, coverUrl: undefined };
+    const added = await addBook(toSave);
     if (added) {
       setStatus("success");
       setCandidates([]);
@@ -74,7 +87,7 @@ export default function ScanScreen() {
   };
 
   const isWeb = Platform.OS === "web";
-  const isBusy = status === "loading" || status === "success";
+  const isBusy = status === "loading" || status === "saving" || status === "success";
 
   const inputBlock = (autoFocus?: boolean) => (
     <View>
@@ -118,11 +131,15 @@ export default function ScanScreen() {
               onPress={() => handlePick(book)}
               className="flex-row items-center bg-gray-900 rounded-xl p-3 mb-3"
             >
-              <Image
-                source={{ uri: book.cover }}
-                className="w-16 h-22 rounded bg-gray-800"
-                resizeMode="cover"
-              />
+              {(book.cover || book.coverUrl) ? (
+                <Image
+                  source={{ uri: book.cover || book.coverUrl }}
+                  className="w-16 h-22 rounded bg-gray-800"
+                  resizeMode="cover"
+                />
+              ) : (
+                <View className="w-16 h-22 rounded bg-gray-800" />
+              )}
               <View className="flex-1 ml-3">
                 <Text className="text-white text-base font-medium" numberOfLines={3}>
                   {book.title}
@@ -175,9 +192,9 @@ export default function ScanScreen() {
         </View>
       )}
 
-      {(status === "loading" || status === "success" || status === "error") && (
+      {(status === "loading" || status === "saving" || status === "success" || status === "error") && (
         <View className="absolute bottom-44 left-4 right-4 bg-gray-900 rounded-xl p-4">
-          {status === "loading" && <ActivityIndicator color="#fff" />}
+          {(status === "loading" || status === "saving") && <ActivityIndicator color="#fff" />}
           <Text
             className={`text-center mt-1 ${
               status === "error" ? "text-red-400" : status === "success" ? "text-green-400" : "text-white"

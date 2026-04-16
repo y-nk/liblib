@@ -2,6 +2,7 @@ export type Book = {
   isbn: string;
   title: string;
   cover: string; // data:image/... base64
+  coverUrl?: string; // original URL, used for lazy loading
   addedAt: number;
 };
 
