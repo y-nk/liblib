@@ -62,7 +62,7 @@ export default function SettingsScreen() {
         <View
           className={`flex-row items-center bg-gray-50 rounded-lg px-3 py-3 mb-2 ${isActive ? "opacity-80" : ""}`}
         >
-          <Pressable onLongPress={drag} className="mr-3 px-1">
+          <Pressable onLongPress={drag} delayLongPress={150} className="mr-3 px-1">
             <Text className="text-gray-400 text-base leading-none">☰</Text>
           </Pressable>
           <View className={`flex-1 ${!enabled ? "opacity-50" : ""}`}>
@@ -79,6 +79,8 @@ export default function SettingsScreen() {
             }}
             trackColor={{ false: "#e5e5e5", true: "#000" }}
             thumbColor="#fff"
+            // @ts-ignore — web override, RNW ignores thumbColor
+            activeThumbColor="#fff"
           />
         </View>
       </ScaleDecorator>
