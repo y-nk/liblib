@@ -1,4 +1,4 @@
-import { Modal, View, Pressable } from "react-native";
+import { Modal, View, Pressable, KeyboardAvoidingView, Platform } from "react-native";
 import type { ReactNode } from "react";
 
 export default function CenterModal({
@@ -14,13 +14,18 @@ export default function CenterModal({
 
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
-      <Pressable className="flex-1 bg-black/50 justify-center px-6" onPress={onClose}>
-        <Pressable onPress={() => {}}>
-          <View className="bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden">
-            {children}
-          </View>
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      >
+        <Pressable className="flex-1 bg-black/50 justify-center px-6" onPress={onClose}>
+          <Pressable onPress={() => {}}>
+            <View className="bg-white dark:bg-neutral-900 rounded-2xl overflow-hidden">
+              {children}
+            </View>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
