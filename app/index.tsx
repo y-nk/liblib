@@ -12,11 +12,12 @@ import {
 } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Settings, ScanBarcode, Plus, Search } from "lucide-react-native";
+import { Settings } from "lucide-react-native";
 import { getBooks, removeBook } from "@/lib/storage";
 import SettingsSheet from "@/components/SettingsSheet";
 import AddManuallySheet from "@/components/AddManuallySheet";
 import SearchSheet from "@/components/SearchSheet";
+import ActionToolbar from "@/components/ActionToolbar";
 import type { Book } from "@/lib/types";
 
 export default function BooksScreen() {
@@ -110,26 +111,10 @@ export default function BooksScreen() {
         )}
       />
 
-      <View className="absolute bottom-8 right-5 items-end gap-3">
-        <Pressable
-          onPress={() => setShowSearch(true)}
-          className="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-full p-3 shadow"
-        >
-          <Search size={20} color={dark ? "#fff" : "#000"} />
-        </Pressable>
-        <Pressable
-          onPress={() => { setManualIsbn(""); setShowAddManual(true); }}
-          className="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-full p-3 shadow"
-        >
-          <Plus size={20} color={dark ? "#fff" : "#000"} />
-        </Pressable>
-        <Pressable
-          onPress={() => router.push("/scan")}
-          className="bg-black dark:bg-white rounded-full p-5 shadow-lg"
-        >
-          <ScanBarcode size={28} color={dark ? "#000" : "#fff"} />
-        </Pressable>
-      </View>
+      <ActionToolbar
+        onSearch={() => setShowSearch(true)}
+        onAdd={() => { setManualIsbn(""); setShowAddManual(true); }}
+      />
 
       <SettingsSheet visible={showSettings} onClose={() => setShowSettings(false)} />
       <AddManuallySheet visible={showAddManual} onClose={() => setShowAddManual(false)} onAdded={reload} initialIsbn={manualIsbn} />
