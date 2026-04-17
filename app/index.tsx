@@ -53,7 +53,7 @@ export default function BooksScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white dark:bg-neutral-950">
-      <View className="px-4 pt-2 pb-3">
+      <View className="px-4 py-4">
         <View className="flex-row items-center justify-between mb-3">
           <Text className="text-2xl font-bold dark:text-white">LibLib</Text>
           <Pressable onPress={() => setShowSettings(true)} hitSlop={8}>
