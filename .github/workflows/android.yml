@@ -40,6 +40,15 @@ jobs:
       - run: cd android && ./gradlew assembleRelease -quiet
 
       - uses: actions/upload-artifact@v4
+        id: upload
         with:
           name: app-release.apk
           path: android/app/build/outputs/apk/release/app-release.apk
+
+      - run: |
+          curl -s \
+            -H "Title: LibLib Android build ready" \
+            -H "Tags: white_check_mark,android" \
+            -H "Click: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            -d "Build ${{ github.sha }} finished. Download: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload.outputs.artifact-id }}" \
+            https://ntfy.sh/liblib-build
