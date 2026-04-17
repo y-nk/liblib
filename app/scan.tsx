@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-  View, Text, Pressable,
+  View, Text, Pressable, StyleSheet,
   ActivityIndicator, Image, ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -13,6 +13,7 @@ export default function ScanScreen() {
   const { top } = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [permissionRequested, setPermissionRequested] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
 
   useEffect(() => {
     if (!permissionRequested) {
@@ -26,7 +27,7 @@ export default function ScanScreen() {
   });
 
   return (
-    <View style={{ flex: 1, backgroundColor: "#000" }}>
+    <View style={styles.container}>
       <View style={{ paddingTop: top }} className="flex-row justify-between items-center px-4 py-3">
         <Pressable onPress={() => router.back()}>
           <Text className="text-white text-base">Cancel</Text>
@@ -66,12 +67,15 @@ export default function ScanScreen() {
           </Pressable>
         </ScrollView>
       ) : permission?.granted ? (
-        <CameraView
-          style={{ flex: 1 }}
-          facing="back"
-          barcodeScannerSettings={{ barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e"] }}
-          onBarcodeScanned={isBusy ? undefined : ({ data }) => search(data)}
-        />
+        <View style={styles.cameraContainer}>
+          <CameraView
+            style={StyleSheet.absoluteFillObject}
+            facing="back"
+            onCameraReady={() => setCameraReady(true)}
+            barcodeScannerSettings={{ barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e"] }}
+            onBarcodeScanned={!cameraReady || isBusy ? undefined : ({ data }) => search(data)}
+          />
+        </View>
       ) : (
         <View className="flex-1 justify-center items-center">
           <ActivityIndicator color="#fff" />
@@ -93,3 +97,8 @@ export default function ScanScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: "#000" },
+  cameraContainer: { flex: 1, position: "relative" },
+});

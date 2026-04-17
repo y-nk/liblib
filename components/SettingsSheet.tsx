@@ -3,6 +3,7 @@ import {
   View, Text, TextInput, Pressable, ActivityIndicator, Switch, useColorScheme,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { TouchableOpacity } from "react-native-gesture-handler";
 import BottomDrawer from "./BottomDrawer";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
 import { GripVertical, ChevronDown, ChevronRight, TriangleAlert } from "lucide-react-native";
@@ -89,9 +90,9 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
       <ScaleDecorator>
         <View className={`bg-gray-100 dark:bg-neutral-800 rounded-lg mb-2 ${isActive ? "opacity-80" : ""}`}>
           <View className="flex-row items-center px-3 py-3">
-            <Pressable onLongPress={drag} delayLongPress={100} className="mr-2 p-2">
+            <TouchableOpacity onLongPress={drag} delayLongPress={100} style={{ marginRight: 8, padding: 8 }}>
               <GripVertical size={18} color={iconColor} />
-            </Pressable>
+            </TouchableOpacity>
             <Pressable
               onPress={hasExpander ? () => toggleExpanded(item.id) : undefined}
               className="flex-1 flex-row items-center"
