@@ -23,6 +23,14 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: gradle-
+
       - run: pnpm install --frozen-lockfile
 
       - run: npx expo prebuild --clean --platform android --no-install
