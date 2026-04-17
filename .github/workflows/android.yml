@@ -47,13 +47,25 @@ jobs:
           name: app-release.apk
           path: android/app/build/outputs/apk/release/app-release.apk
 
-      - run: |
+      - if: always()
+        run: |
           DURATION=$(( $(date +%s) - BUILD_START ))
           MINS=$(( DURATION / 60 ))
           SECS=$(( DURATION % 60 ))
+          if [ "${{ job.status }}" = "success" ]; then
+            TITLE="Android build ready"
+            TAGS="white_check_mark,android"
+            CLICK="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload.outputs.artifact-id }}"
+            BODY="Build ${GITHUB_SHA::7} finished in ${MINS}m${SECS}s."
+          else
+            TITLE="Android build failed"
+            TAGS="x,android"
+            CLICK="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            BODY="Build ${GITHUB_SHA::7} failed after ${MINS}m${SECS}s."
+          fi
           curl -s \
-            -H "Title: LibLib Android build ready" \
-            -H "Tags: white_check_mark,android" \
-            -H "Click: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            -d "Build ${GITHUB_SHA::7} finished in ${MINS}m${SECS}s. Download: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload.outputs.artifact-id }}" \
+            -H "Title: $TITLE" \
+            -H "Tags: $TAGS" \
+            -H "Click: $CLICK" \
+            -d "$BODY" \
             https://ntfy.sh/liblib-build
