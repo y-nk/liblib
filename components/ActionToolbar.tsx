@@ -1,5 +1,6 @@
 import { Pressable, View, useColorScheme } from "react-native";
 import { useRouter } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ScanBarcode, Plus, Search } from "lucide-react-native";
 
 export default function ActionToolbar({
@@ -11,9 +12,10 @@ export default function ActionToolbar({
 }) {
   const router = useRouter();
   const dark = useColorScheme() === "dark";
+  const { bottom } = useSafeAreaInsets();
 
   return (
-    <View className="absolute bottom-8 right-5 items-center gap-3">
+    <View className="absolute right-5 items-center gap-3" style={{ bottom: bottom + 16 }}>
       <Pressable
         onPress={onSearch}
         className="bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded-full p-3 shadow"
