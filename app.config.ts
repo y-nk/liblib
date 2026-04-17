@@ -45,6 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     "react-native-keyboard-controller",
+    ["@zoontek/react-native-navigation-bar", { android: { enforceNavigationBarContrast: true } }],
   ],
   experiments: {
     baseUrl,
