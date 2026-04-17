@@ -7,6 +7,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - run: echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
+
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v4
@@ -46,9 +48,12 @@ jobs:
           path: android/app/build/outputs/apk/release/app-release.apk
 
       - run: |
+          DURATION=$(( $(date +%s) - BUILD_START ))
+          MINS=$(( DURATION / 60 ))
+          SECS=$(( DURATION % 60 ))
           curl -s \
             -H "Title: LibLib Android build ready" \
             -H "Tags: white_check_mark,android" \
             -H "Click: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            -d "Build ${{ github.sha }} finished. Download: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload.outputs.artifact-id }}" \
+            -d "Build ${GITHUB_SHA::7} finished in ${MINS}m${SECS}s. Download: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload.outputs.artifact-id }}" \
             https://ntfy.sh/liblib-build
