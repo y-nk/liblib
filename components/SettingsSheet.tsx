@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import {
   View, Text, TextInput, Pressable, ActivityIndicator, Switch, useColorScheme,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BottomDrawer from "./BottomDrawer";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
 import { GripVertical, ChevronDown, ChevronRight, TriangleAlert } from "lucide-react-native";
@@ -25,6 +26,7 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
   const dark = useColorScheme() === "dark";
+  const { bottom } = useSafeAreaInsets();
 
   useEffect(() => {
     if (visible) getSettings().then(setSettings);
@@ -174,7 +176,7 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
                 <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">Providers</Text>
               </View>
             }
-            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
+            contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: bottom + 16 }}
             ListFooterComponent={
               <View className="mt-6">
                 <Text className="text-xs text-gray-400 text-center">

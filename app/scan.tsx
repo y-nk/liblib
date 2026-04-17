@@ -4,12 +4,13 @@ import {
   ActivityIndicator, Image, ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useISBNLookup } from "@/lib/useISBNLookup";
 
 export default function ScanScreen() {
   const router = useRouter();
+  const { top } = useSafeAreaInsets();
   const [permission, requestPermission] = useCameraPermissions();
   const [permissionRequested, setPermissionRequested] = useState(false);
 
@@ -25,8 +26,8 @@ export default function ScanScreen() {
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-black">
-      <View className="flex-row justify-between items-center px-4 py-3">
+    <View style={{ flex: 1, backgroundColor: "#000" }}>
+      <View style={{ paddingTop: top }} className="flex-row justify-between items-center px-4 py-3">
         <Pressable onPress={() => router.back()}>
           <Text className="text-white text-base">Cancel</Text>
         </Pressable>
@@ -89,6 +90,6 @@ export default function ScanScreen() {
           </Text>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
