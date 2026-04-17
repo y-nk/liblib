@@ -44,7 +44,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         cameraPermission: "LibLib needs camera access to scan book barcodes",
       },
     ],
-    "react-native-keyboard-controller",
   ],
   experiments: {
     baseUrl,
