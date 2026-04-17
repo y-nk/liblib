@@ -4,7 +4,7 @@ import {
 } from "react-native";
 import BottomDrawer from "./BottomDrawer";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
-import { GripVertical, ChevronDown, ChevronRight } from "lucide-react-native";
+import { GripVertical, ChevronDown, ChevronRight, TriangleAlert } from "lucide-react-native";
 import { getSettings, saveSettings } from "@/lib/storage";
 import { openai, gemini } from "@/lib/providers";
 import type { Settings, ProviderConfig, ProviderId } from "@/lib/types";
@@ -74,42 +74,46 @@ export default function SettingsSheet({ visible, onClose }: { visible: boolean; 
     return keyField ? !settings[keyField] : false;
   };
 
-  const isEnabled = (p: ProviderConfig) =>
-    needsKey(p) ? false : p.enabled;
-
   const renderItem = ({ item, drag, isActive }: RenderItemParams<ProviderConfig>) => {
-    const enabled = isEnabled(item);
-    const locked = needsKey(item);
     const keyField = PROVIDER_KEY_FIELD[item.id];
     const hasExpander = !!keyField;
     const isExpanded_ = !!expanded[item.id];
+    const missingKey = needsKey(item);
     const status = testing[item.id] || "idle";
     const msg = testMsg[item.id] || "";
+    const iconColor = dark ? "#666" : "#9ca3af";
 
     return (
       <ScaleDecorator>
         <View className={`bg-gray-100 dark:bg-neutral-800 rounded-lg mb-2 ${isActive ? "opacity-80" : ""}`}>
           <View className="flex-row items-center px-3 py-3">
-            <Pressable onLongPress={drag} delayLongPress={150} className="mr-3 px-1">
-              <GripVertical size={18} color={dark ? "#666" : "#9ca3af"} />
+            <Pressable onLongPress={drag} delayLongPress={100} className="mr-2 p-2">
+              <GripVertical size={18} color={iconColor} />
             </Pressable>
-            {hasExpander && (
-              <Pressable onPress={() => toggleExpanded(item.id)} className="mr-2">
-                {isExpanded_
-                  ? <ChevronDown size={16} color={dark ? "#666" : "#9ca3af"} />
-                  : <ChevronRight size={16} color={dark ? "#666" : "#9ca3af"} />
-                }
-              </Pressable>
-            )}
-            <View className={`flex-1 ${!enabled ? "opacity-50" : ""}`}>
-              <Text className="text-base font-medium dark:text-white">{PROVIDER_LABELS[item.id]}</Text>
-            </View>
+            <Pressable
+              onPress={hasExpander ? () => toggleExpanded(item.id) : undefined}
+              className="flex-1 flex-row items-center"
+            >
+              {hasExpander && (
+                <View className="mr-2">
+                  {isExpanded_
+                    ? <ChevronDown size={16} color={iconColor} />
+                    : <ChevronRight size={16} color={iconColor} />
+                  }
+                </View>
+              )}
+              <Text className={`text-base font-medium dark:text-white ${!item.enabled ? "opacity-50" : ""}`}>
+                {PROVIDER_LABELS[item.id]}
+              </Text>
+              {item.enabled && missingKey && (
+                <View className="ml-2">
+                  <TriangleAlert size={14} color="#f59e0b" />
+                </View>
+              )}
+            </Pressable>
             <Switch
-              value={enabled}
-              onValueChange={() => {
-                if (locked) return;
-                toggleProvider(item.id);
-              }}
+              value={item.enabled}
+              onValueChange={() => toggleProvider(item.id)}
               trackColor={{ false: dark ? "#333" : "#e5e5e5", true: dark ? "#fff" : "#000" }}
               thumbColor={dark ? "#000" : "#fff"}
               // @ts-ignore — web override

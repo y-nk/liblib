@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import {
   View, Text, Pressable,
   ActivityIndicator, Image, ScrollView,
@@ -11,10 +11,14 @@ import { useISBNLookup } from "@/lib/useISBNLookup";
 export default function ScanScreen() {
   const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
+  const [permissionRequested, setPermissionRequested] = useState(false);
 
   useEffect(() => {
-    if (!permission?.granted) requestPermission();
-  }, [permission]);
+    if (!permissionRequested) {
+      setPermissionRequested(true);
+      requestPermission();
+    }
+  }, []);
 
   const { status, message, candidates, isBusy, pick, reset, search } = useISBNLookup(() => {
     setTimeout(() => router.back(), 1500);
@@ -62,7 +66,8 @@ export default function ScanScreen() {
         </ScrollView>
       ) : permission?.granted ? (
         <CameraView
-          className="flex-1"
+          style={{ flex: 1 }}
+          facing="back"
           barcodeScannerSettings={{ barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e"] }}
           onBarcodeScanned={isBusy ? undefined : ({ data }) => search(data)}
         />

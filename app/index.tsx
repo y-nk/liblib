@@ -53,7 +53,8 @@ export default function BooksScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-white dark:bg-neutral-950">
+    <View className="flex-1 bg-white dark:bg-neutral-950">
+      <SafeAreaView className="flex-1">
       <View className="px-4 py-4">
         <View className="flex-row items-center justify-between mb-3">
           <Text className="text-2xl font-bold dark:text-white">LibLib</Text>
@@ -111,6 +112,8 @@ export default function BooksScreen() {
         )}
       />
 
+      </SafeAreaView>
+
       <ActionToolbar
         onSearch={() => setShowSearch(true)}
         onAdd={() => { setManualIsbn(""); setShowAddManual(true); }}
@@ -124,6 +127,6 @@ export default function BooksScreen() {
         onAdded={reload}
         onManualFallback={(isbn) => { setManualIsbn(isbn); setShowAddManual(true); }}
       />
-    </SafeAreaView>
+    </View>
   );
 }
