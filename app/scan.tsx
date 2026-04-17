@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect } from "react";
 import {
-  View, Text, Pressable, TextInput,
+  View, Text, Pressable,
   ActivityIndicator, Image, ScrollView,
 } from "react-native";
 import { useRouter } from "expo-router";
@@ -11,43 +11,14 @@ import { useISBNLookup } from "@/lib/useISBNLookup";
 export default function ScanScreen() {
   const router = useRouter();
   const [permission, requestPermission] = useCameraPermissions();
-  const [manualISBN, setManualISBN] = useState("");
 
-  const { status, message, candidates, isBusy, search, pick, reset } = useISBNLookup(() => {
+  useEffect(() => {
+    if (!permission?.granted) requestPermission();
+  }, [permission]);
+
+  const { status, message, candidates, isBusy, pick, reset, search } = useISBNLookup(() => {
     setTimeout(() => router.back(), 1500);
   });
-
-  const handleBarcode = ({ data }: { data: string }) => {
-    search(data);
-  };
-
-  const handleManualSubmit = () => {
-    const isbn = manualISBN.trim();
-    if (!isbn) return;
-    search(isbn);
-  };
-
-  const inputBlock = () => (
-    <View>
-      <TextInput
-        className="bg-gray-800 rounded-lg px-4 py-3 text-white text-base mb-3"
-        placeholder="Or type ISBN manually..."
-        placeholderTextColor="#666"
-        value={manualISBN}
-        onChangeText={setManualISBN}
-        keyboardType="number-pad"
-      />
-      <Pressable
-        onPress={handleManualSubmit}
-        className="bg-white rounded-lg py-3"
-        disabled={isBusy}
-      >
-        <Text className="text-black text-center font-semibold text-base">
-          {status === "loading" ? "Looking up..." : "Look Up"}
-        </Text>
-      </Pressable>
-    </View>
-  );
 
   return (
     <SafeAreaView className="flex-1 bg-black">
@@ -89,33 +60,20 @@ export default function ScanScreen() {
             <Text className="text-gray-500 text-center text-sm">None of these — cancel</Text>
           </Pressable>
         </ScrollView>
-      ) : !permission?.granted ? (
-        <View className="flex-1 justify-center items-center px-6">
-          <Text className="text-gray-400 text-center mb-4">
-            Camera access is needed to scan barcodes.
-          </Text>
-          <Pressable onPress={requestPermission} className="bg-white rounded-lg px-6 py-3">
-            <Text className="text-black font-semibold">Grant Permission</Text>
-          </Pressable>
-          <View className="mt-8 w-full">
-            {inputBlock()}
-          </View>
-        </View>
+      ) : permission?.granted ? (
+        <CameraView
+          className="flex-1"
+          barcodeScannerSettings={{ barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e"] }}
+          onBarcodeScanned={isBusy ? undefined : ({ data }) => search(data)}
+        />
       ) : (
-        <View className="flex-1">
-          <CameraView
-            className="flex-1"
-            barcodeScannerSettings={{ barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e"] }}
-            onBarcodeScanned={isBusy ? undefined : handleBarcode}
-          />
-          <View className="absolute bottom-0 left-0 right-0 bg-black/70 px-4 py-4">
-            {inputBlock()}
-          </View>
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator color="#fff" />
         </View>
       )}
 
       {(status === "loading" || status === "saving" || status === "success" || status === "error") && (
-        <View className="absolute bottom-44 left-4 right-4 bg-gray-900 rounded-xl p-4">
+        <View className="absolute bottom-20 left-4 right-4 bg-gray-900 rounded-xl p-4">
           {(status === "loading" || status === "saving") && <ActivityIndicator color="#fff" />}
           <Text
             className={`text-center mt-1 ${

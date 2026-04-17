@@ -65,6 +65,7 @@ export default function AddManuallySheet({
 
   const takePhoto = async () => {
     if (isWeb) {
+      if (!permission?.granted) requestPermission();
       setShowWebCam(true);
       return;
     }
@@ -161,11 +162,8 @@ export default function AddManuallySheet({
               <View className="w-16" />
             </View>
             {!permission?.granted ? (
-              <View className="flex-1 justify-center items-center px-6">
-                <Text className="text-gray-400 text-center mb-4">Camera access needed</Text>
-                <Pressable onPress={requestPermission} className="bg-white rounded-lg px-6 py-3">
-                  <Text className="text-black font-semibold">Grant Permission</Text>
-                </Pressable>
+              <View className="flex-1 justify-center items-center">
+                <ActivityIndicator color="#fff" />
               </View>
             ) : (
               <CameraView
