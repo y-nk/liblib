@@ -78,6 +78,9 @@ importers:
       autoprefixer:
         specifier: ^10.5.0
         version: 10.5.0(postcss@8.5.9)
+      babel-preset-expo:
+        specifier: ~54.0.10
+        version: 54.0.10(@babel/core@7.29.0)(@babel/runtime@7.29.2)(expo@54.0.33)(react-refresh@0.14.2)
       postcss:
         specifier: ^8.5.9
         version: 8.5.9
