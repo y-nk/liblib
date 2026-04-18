@@ -58,25 +58,28 @@ export default function BooksScreen() {
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
       <SafeAreaView className="flex-1">
-      <View className="px-4 py-4">
-        <View className="flex-row items-center justify-between mb-3">
-          <Text className="text-2xl font-bold dark:text-white">LibLib</Text>
-          <Pressable onPress={() => setShowSettings(true)} hitSlop={8}>
-            <Settings size={22} color={dark ? "#aaa" : "#666"} />
-          </Pressable>
-        </View>
-        <TextInput
-          className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-3 text-base dark:text-white"
-          placeholder="Search by title or ISBN..."
-          placeholderTextColor={dark ? "#666" : "#999"}
-          value={query}
-          onChangeText={setQuery}
-        />
-      </View>
 
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.isbn}
+        stickyHeaderIndices={[0]}
+        ListHeaderComponent={
+          <View className="px-4 py-4 bg-white dark:bg-neutral-950">
+            <View className="flex-row items-center justify-between mb-3">
+              <Text className="text-2xl font-bold dark:text-white">LibLib</Text>
+              <Pressable onPress={() => setShowSettings(true)} hitSlop={8}>
+                <Settings size={22} color={dark ? "#aaa" : "#666"} />
+              </Pressable>
+            </View>
+            <TextInput
+              className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-3 text-base dark:text-white"
+              placeholder="Search by title or ISBN..."
+              placeholderTextColor={dark ? "#666" : "#999"}
+              value={query}
+              onChangeText={setQuery}
+            />
+          </View>
+        }
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
         ListEmptyComponent={
           <View className="items-center pt-20">
