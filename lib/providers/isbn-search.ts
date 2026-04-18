@@ -17,13 +17,13 @@ export async function getBookFromISBN(isbn: string): Promise<Book[]> {
     const html = await res.text()
     const $ = cheerio.load(html)
 
-    const title = $('div.bookinfo h2').first().text().trim()
+    const title = $('div.bookinfo h1').first().text().trim()
 
     if (!title) {
       return []
     }
 
-    const coverUrl = $('div.thumbnail img').first().attr('src') || ''
+    const coverUrl = $('div.image img').first().attr('src') || ''
 
     return [{ isbn, title, cover: '', coverUrl: coverUrl || undefined, createdAt: new Date() }]
   } catch (e) {
