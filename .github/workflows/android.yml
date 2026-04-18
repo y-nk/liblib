@@ -36,10 +36,10 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - run: npx expo prebuild --clean --platform android --no-install
-        env:
-          EXPO_PUBLIC_COMMIT_SHA: ${{ github.sha }}
 
       - run: cd android && ./gradlew assembleRelease -quiet
+        env:
+          EXPO_PUBLIC_COMMIT_SHA: ${{ github.sha }}
 
       - uses: actions/upload-artifact@v4
         id: upload
