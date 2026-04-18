@@ -1,66 +1,66 @@
-import { ExpoConfig, ConfigContext } from "expo/config";
+import { ExpoConfig, ConfigContext } from 'expo/config'
 
-const baseUrl = process.env.EXPO_PUBLIC_BASE_URL || "";
+const baseUrl = process.env.EXPO_PUBLIC_BASE_URL || ''
 
-export default ({ config }: ConfigContext): ExpoConfig => ({
-  name: "liblib",
-  slug: "liblib",
-  version: "1.0.0",
-  orientation: "portrait",
-  icon: "./assets/icon.png",
-  userInterfaceStyle: "automatic",
+export default ({ config: _config }: ConfigContext): ExpoConfig => ({
+  name: 'liblib',
+  slug: 'liblib',
+  version: '1.0.0',
+  orientation: 'portrait',
+  icon: './assets/icon.png',
+  userInterfaceStyle: 'automatic',
   newArchEnabled: true,
-  scheme: "liblib",
+  scheme: 'liblib',
   splash: {
-    image: "./assets/splash-icon.png",
-    resizeMode: "contain",
-    backgroundColor: "#ffffff",
+    image: './assets/splash-icon.png',
+    resizeMode: 'contain',
+    backgroundColor: '#ffffff',
   },
   ios: {
     supportsTablet: true,
-    bundleIdentifier: "com.liblib.app",
+    bundleIdentifier: 'com.liblib.app',
     infoPlist: {
-      NSCameraUsageDescription: "LibLib needs camera access to scan book barcodes",
+      NSCameraUsageDescription: 'LibLib needs camera access to scan book barcodes',
     },
   },
   android: {
     adaptiveIcon: {
-      foregroundImage: "./assets/adaptive-icon.png",
-      backgroundColor: "#ffffff",
+      foregroundImage: './assets/adaptive-icon.png',
+      backgroundColor: '#ffffff',
     },
     edgeToEdgeEnabled: true,
-    package: "com.liblib.app",
-    permissions: ["CAMERA"],
+    package: 'com.liblib.app',
+    permissions: ['CAMERA'],
   },
   web: {
-    favicon: "./assets/favicon.png",
-    bundler: "metro",
+    favicon: './assets/favicon.png',
+    bundler: 'metro',
   },
   plugins: [
-    "expo-router",
+    'expo-router',
     [
-      "expo-camera",
+      'expo-camera',
       {
-        cameraPermission: "LibLib needs camera access to scan book barcodes",
+        cameraPermission: 'LibLib needs camera access to scan book barcodes',
       },
     ],
     [
-      "expo-image-picker",
+      'expo-image-picker',
       {
         colors: {
-          cropToolbarColor: "#ffffff",
-          cropToolbarIconColor: "#000000",
-          cropToolbarActionTextColor: "#000000",
-          cropBackButtonIconColor: "#000000",
-          cropBackgroundColor: "#000000",
+          cropToolbarColor: '#ffffff',
+          cropToolbarIconColor: '#000000',
+          cropToolbarActionTextColor: '#000000',
+          cropBackButtonIconColor: '#000000',
+          cropBackgroundColor: '#000000',
         },
         dark: {
           colors: {
-            cropToolbarColor: "#1a1a1a",
-            cropToolbarIconColor: "#ffffff",
-            cropToolbarActionTextColor: "#ffffff",
-            cropBackButtonIconColor: "#ffffff",
-            cropBackgroundColor: "#000000",
+            cropToolbarColor: '#1a1a1a',
+            cropToolbarIconColor: '#ffffff',
+            cropToolbarActionTextColor: '#ffffff',
+            cropBackButtonIconColor: '#ffffff',
+            cropBackgroundColor: '#000000',
           },
         },
       },
@@ -69,4 +69,4 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   experiments: {
     baseUrl,
   },
-});
+})

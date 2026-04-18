@@ -1,17 +1,19 @@
-import { Modal, View, Pressable } from "react-native";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import type { ReactNode } from "react";
+import { Modal, View, Pressable } from 'react-native'
+import { GestureHandlerRootView } from 'react-native-gesture-handler'
+import type { ReactNode } from 'react'
 
 export default function BottomDrawer({
   visible,
   onClose,
   children,
 }: {
-  visible: boolean;
-  onClose: () => void;
-  children: ReactNode;
+  visible: boolean
+  onClose: () => void
+  children: ReactNode
 }) {
-  if (!visible) return null;
+  if (!visible) {
+    return null
+  }
 
   return (
     <Modal transparent visible={visible} animationType="slide" onRequestClose={onClose}>
@@ -27,5 +29,5 @@ export default function BottomDrawer({
         </View>
       </GestureHandlerRootView>
     </Modal>
-  );
+  )
 }

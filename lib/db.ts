@@ -1,10 +1,10 @@
-import { openDatabaseAsync, type SQLiteDatabase } from "expo-sqlite";
+import { openDatabaseAsync, type SQLiteDatabase } from 'expo-sqlite'
 
-let dbPromise: Promise<SQLiteDatabase> | null = null;
+let dbPromise: Promise<SQLiteDatabase> | null = null
 
 export function getDb(): Promise<SQLiteDatabase> {
   if (!dbPromise) {
-    dbPromise = openDatabaseAsync("liblib.db").then(async (db) => {
+    dbPromise = openDatabaseAsync('liblib.db').then(async (db) => {
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS books (
           isbn         TEXT PRIMARY KEY,
@@ -16,9 +16,9 @@ export function getDb(): Promise<SQLiteDatabase> {
           metadata     TEXT NOT NULL DEFAULT '{}'
         );
         CREATE INDEX IF NOT EXISTS idx_books_collectionId ON books(collectionId);
-      `);
-      return db;
-    });
+      `)
+      return db
+    })
   }
-  return dbPromise;
+  return dbPromise
 }

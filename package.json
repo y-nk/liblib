@@ -1,13 +1,17 @@
 {
   "name": "liblib",
   "version": "1.0.0",
+  "private": true,
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "export:web": "expo export --platform web"
+    "export:web": "expo export --platform web",
+    "lint": "oxlint --config .oxlintrc.jsonc .",
+    "format": "oxfmt .",
+    "format:check": "oxfmt --check ."
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.2.0",
@@ -40,9 +44,10 @@
     "@types/react": "~19.1.0",
     "autoprefixer": "^10.5.0",
     "babel-preset-expo": "~54.0.10",
+    "oxfmt": "^0.45.0",
+    "oxlint": "^1.60.0",
     "postcss": "^8.5.9",
     "tailwindcss": "3.4.17",
     "typescript": "~5.9.2"
-  },
-  "private": true
+  }
 }

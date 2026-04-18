@@ -1,10 +1,16 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState } from 'react'
 import {
-  View, Text, TextInput, Pressable, Image, ScrollView,
-  ActivityIndicator, useColorScheme,
-} from "react-native";
-import CenterModal from "./CenterModal";
-import { useISBNLookup } from "@/lib/useISBNLookup";
+  View,
+  Text,
+  TextInput,
+  Pressable,
+  Image,
+  ScrollView,
+  ActivityIndicator,
+  useColorScheme,
+} from 'react-native'
+import CenterModal from './CenterModal'
+import { useISBNLookup } from '@/lib/useISBNLookup'
 
 export default function SearchSheet({
   visible,
@@ -12,42 +18,44 @@ export default function SearchSheet({
   onAdded,
   onManualFallback,
 }: {
-  visible: boolean;
-  onClose: () => void;
-  onAdded: () => void;
-  onManualFallback: (isbn: string) => void;
+  visible: boolean
+  onClose: () => void
+  onAdded: () => void
+  onManualFallback: (isbn: string) => void
 }) {
-  const [isbn, setIsbn] = useState("");
-  const dark = useColorScheme() === "dark";
+  const [isbn, setIsbn] = useState('')
+  const dark = useColorScheme() === 'dark'
   const { status, message, candidates, isBusy, search, pick, reset } = useISBNLookup(() => {
     setTimeout(() => {
-      onAdded();
-      onClose();
-    }, 1500);
-  });
+      onAdded()
+      onClose()
+    }, 1500)
+  })
 
   useEffect(() => {
     if (visible) {
-      setIsbn("");
-      reset();
+      setIsbn('')
+      reset()
     }
-  }, [visible]);
+  }, [visible])
 
   const handleSubmit = () => {
-    const trimmed = isbn.trim();
-    if (!trimmed) return;
-    search(trimmed);
-  };
+    const trimmed = isbn.trim()
+    if (!trimmed) {
+      return
+    }
+    search(trimmed)
+  }
 
   const handleManualFallback = () => {
-    const trimmed = isbn.trim();
-    onClose();
-    onManualFallback(trimmed);
-  };
+    const trimmed = isbn.trim()
+    onClose()
+    onManualFallback(trimmed)
+  }
 
   return (
     <CenterModal visible={visible} onClose={onClose}>
-      {status === "picking" ? (
+      {status === 'picking' ? (
         <ScrollView className="p-4" style={{ maxHeight: 400 }}>
           <Text className="text-gray-400 text-center mb-4">{message}</Text>
           {candidates.map((book, i) => (
@@ -56,7 +64,7 @@ export default function SearchSheet({
               onPress={() => pick(book)}
               className="flex-row items-center bg-gray-100 dark:bg-neutral-800 rounded-xl p-3 mb-3"
             >
-              {(book.cover || book.coverUrl) ? (
+              {book.cover || book.coverUrl ? (
                 <Image
                   source={{ uri: book.cover || book.coverUrl }}
                   className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-700"
@@ -83,22 +91,29 @@ export default function SearchSheet({
           <TextInput
             className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-3 text-base dark:text-white mb-4"
             placeholder="Enter ISBN..."
-            placeholderTextColor={dark ? "#666" : "#999"}
+            placeholderTextColor={dark ? '#666' : '#999'}
             value={isbn}
-            onChangeText={(t) => { setIsbn(t); if (status === "error") reset(); }}
+            onChangeText={(t) => {
+              setIsbn(t)
+              if (status === 'error') {
+                reset()
+              }
+            }}
             keyboardType="number-pad"
             autoFocus
             editable={!isBusy}
           />
 
-          {status === "error" ? (
+          {status === 'error' ? (
             <Text className="text-red-500 text-center text-sm mb-4">{message}</Text>
-          ) : status !== "idle" ? (
+          ) : status !== 'idle' ? (
             <View className="mb-4">
-              {(status === "loading" || status === "saving") && <ActivityIndicator color={dark ? "#fff" : "#000"} />}
+              {(status === 'loading' || status === 'saving') && (
+                <ActivityIndicator color={dark ? '#fff' : '#000'} />
+              )}
               <Text
                 className={`text-center text-sm mt-1 ${
-                  status === "success" ? "text-green-600 dark:text-green-400" : "text-gray-400"
+                  status === 'success' ? 'text-green-600 dark:text-green-400' : 'text-gray-400'
                 }`}
               >
                 {message}
@@ -106,8 +121,11 @@ export default function SearchSheet({
             </View>
           ) : null}
 
-          {status === "error" ? (
-            <Pressable onPress={handleManualFallback} className="bg-black dark:bg-white rounded-lg py-3">
+          {status === 'error' ? (
+            <Pressable
+              onPress={handleManualFallback}
+              className="bg-black dark:bg-white rounded-lg py-3"
+            >
               <Text className="text-white dark:text-black text-center font-semibold text-base">
                 Add manually instead
               </Text>
@@ -116,9 +134,11 @@ export default function SearchSheet({
             <Pressable
               onPress={handleSubmit}
               disabled={isBusy || !isbn.trim()}
-              className={`rounded-lg py-3 ${isBusy || !isbn.trim() ? "bg-gray-300 dark:bg-neutral-700" : "bg-black dark:bg-white"}`}
+              className={`rounded-lg py-3 ${isBusy || !isbn.trim() ? 'bg-gray-300 dark:bg-neutral-700' : 'bg-black dark:bg-white'}`}
             >
-              <Text className={`text-center font-semibold text-base ${isBusy || !isbn.trim() ? "text-gray-500" : "text-white dark:text-black"}`}>
+              <Text
+                className={`text-center font-semibold text-base ${isBusy || !isbn.trim() ? 'text-gray-500' : 'text-white dark:text-black'}`}
+              >
                 Look Up
               </Text>
             </Pressable>
@@ -126,5 +146,5 @@ export default function SearchSheet({
         </View>
       )}
     </CenterModal>
-  );
+  )
 }
