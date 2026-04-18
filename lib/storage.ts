@@ -16,11 +16,13 @@ export async function saveBooks(books: Book[]) {
 
 export async function addBook(book: Book) {
   const books = await getBooks();
+  const safeCover = book.cover && book.cover.length > 500_000 ? "" : book.cover;
+  const safeBook = { ...book, cover: safeCover };
   const idx = books.findIndex((b) => b.isbn === book.isbn);
   if (idx >= 0) {
-    books[idx] = { ...books[idx], title: book.title || books[idx].title, cover: book.cover || books[idx].cover };
+    books[idx] = { ...books[idx], title: safeBook.title || books[idx].title, cover: safeBook.cover || books[idx].cover };
   } else {
-    books.unshift(book);
+    books.unshift(safeBook);
   }
   await saveBooks(books);
 }

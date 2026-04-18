@@ -142,16 +142,22 @@ export default function AddManuallySheet({
     }
     setSaving(true);
     setError("");
-    const book: Book = {
-      isbn: isbn.trim(),
-      title: title.trim(),
-      cover,
-      addedAt: Date.now(),
-    };
-    await addBook(book);
-    setSaving(false);
-    onAdded();
-    onClose();
+    try {
+      const book: Book = {
+        isbn: isbn.trim(),
+        title: title.trim(),
+        cover,
+        addedAt: Date.now(),
+      };
+      await addBook(book);
+      setSaving(false);
+      onAdded();
+      onClose();
+    } catch (e) {
+      console.log("[manual-add] save failed:", e);
+      setSaving(false);
+      setError("Failed to save");
+    }
   };
 
   if (!visible) return null;
