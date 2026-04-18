@@ -40,14 +40,17 @@ export default function BooksScreen() {
   });
 
   const confirmDelete = (isbn: string, title: string) => {
+    const doDelete = async () => {
+      await removeBook(isbn);
+      const updated = await getBooks();
+      setBooks(updated);
+    };
     if (Platform.OS === "web") {
-      if (window.confirm(`Delete "${title}"?`)) {
-        removeBook(isbn).then(reload);
-      }
+      if (window.confirm(`Delete "${title}"?`)) doDelete();
     } else {
       Alert.alert("Delete", `Delete "${title}"?`, [
         { text: "Cancel", style: "cancel" },
-        { text: "Delete", style: "destructive", onPress: () => removeBook(isbn).then(reload) },
+        { text: "Delete", style: "destructive", onPress: doDelete },
       ]);
     }
   };
