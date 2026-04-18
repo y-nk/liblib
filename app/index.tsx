@@ -64,13 +64,13 @@ export default function BooksScreen() {
 
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
-      <SafeAreaView className="flex-1">
+      <SafeAreaView className="flex-1 px-4">
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.isbn}
           stickyHeaderIndices={[0]}
           ListHeaderComponent={
-            <View className="px-4 py-4 bg-white dark:bg-neutral-950">
+            <View className="py-4 bg-white dark:bg-neutral-950">
               <Header
                 action={
                   <Pressable onPress={() => setShowSettings(true)} hitSlop={8}>
@@ -91,14 +91,14 @@ export default function BooksScreen() {
           }
           contentContainerStyle={{ paddingBottom: 100 }}
           ListEmptyComponent={
-            <View className="items-center pt-20 px-4">
+            <View className="items-center pt-20">
               <Text className="text-gray-400 text-base">
                 {query ? 'No matches' : 'No books yet. Tap scan to add one.'}
               </Text>
             </View>
           }
           renderItem={({ item }) => (
-            <View className="flex-row items-center py-3 px-4 border-b border-gray-100 dark:border-neutral-800">
+            <View className="flex-row items-center py-3 border-b border-gray-100 dark:border-neutral-800">
               {item.cover ? (
                 <Image
                   source={{ uri: item.cover }}
