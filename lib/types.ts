@@ -22,9 +22,9 @@ export type Settings = {
 }
 
 export const DEFAULT_PROVIDERS: ProviderConfig[] = [
+  { id: 'isbnSearch', enabled: true },
   { id: 'openLibrary', enabled: true },
   { id: 'googleBooks', enabled: true },
-  { id: 'isbnSearch', enabled: true },
   { id: 'gemini', enabled: false },
   { id: 'openai', enabled: false },
 ]
