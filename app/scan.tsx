@@ -1,12 +1,20 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
   View, Text, Pressable, StyleSheet,
-  ActivityIndicator, Image, ScrollView,
+  ActivityIndicator, Image, ScrollView, Animated,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import type { BarcodeScanningResult } from "expo-camera";
 import { useISBNLookup } from "@/lib/useISBNLookup";
+
+type BarcodeOverlay = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
 
 export default function ScanScreen() {
   const router = useRouter();
@@ -14,6 +22,8 @@ export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [permissionRequested, setPermissionRequested] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
+  const [overlay, setOverlay] = useState<BarcodeOverlay | null>(null);
+  const overlayOpacity = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (!permissionRequested) {
@@ -25,6 +35,23 @@ export default function ScanScreen() {
   const { status, message, candidates, isBusy, pick, reset, search } = useISBNLookup(() => {
     setTimeout(() => router.back(), 1500);
   });
+
+  const handleBarcodeScanned = (result: BarcodeScanningResult) => {
+    const { bounds } = result;
+    if (bounds?.origin && bounds?.size) {
+      setOverlay({
+        x: bounds.origin.x,
+        y: bounds.origin.y,
+        width: bounds.size.width,
+        height: bounds.size.height,
+      });
+      Animated.sequence([
+        Animated.timing(overlayOpacity, { toValue: 1, duration: 100, useNativeDriver: true }),
+        Animated.timing(overlayOpacity, { toValue: 0, duration: 600, useNativeDriver: true }),
+      ]).start();
+    }
+    search(result.data);
+  };
 
   return (
     <View style={styles.container}>
@@ -73,8 +100,23 @@ export default function ScanScreen() {
             facing="back"
             onCameraReady={() => setCameraReady(true)}
             barcodeScannerSettings={{ barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e"] }}
-            onBarcodeScanned={!cameraReady || isBusy ? undefined : ({ data }) => search(data)}
+            onBarcodeScanned={!cameraReady || isBusy ? undefined : handleBarcodeScanned}
           />
+          {overlay && (
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                styles.overlay,
+                {
+                  left: overlay.x,
+                  top: overlay.y,
+                  width: overlay.width,
+                  height: overlay.height,
+                  opacity: overlayOpacity,
+                },
+              ]}
+            />
+          )}
         </View>
       ) : (
         <View className="flex-1 justify-center items-center">
@@ -101,4 +143,11 @@ export default function ScanScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#000" },
   cameraContainer: { flex: 1, position: "relative" },
+  overlay: {
+    position: "absolute",
+    borderWidth: 2,
+    borderColor: "#22c55e",
+    borderRadius: 4,
+    backgroundColor: "rgba(34, 197, 94, 0.15)",
+  },
 });

@@ -51,14 +51,20 @@ export default function AddManuallySheet({
   }, [visible]);
 
   const setCoverFromAsset = (a: ImagePicker.ImagePickerAsset) => {
-    setCover(a.base64 ? `data:${a.mimeType || "image/jpeg"};base64,${a.base64}` : a.uri);
+    const dataUrl = a.base64 ? `data:${a.mimeType || "image/jpeg"};base64,${a.base64}` : "";
+    if (dataUrl && dataUrl.length < 500_000) {
+      setCover(dataUrl);
+    } else if (a.uri) {
+      setCover(a.uri);
+    }
   };
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
-      quality: 0.5,
+      quality: 0.3,
       base64: true,
+      allowsEditing: true,
     });
     if (!result.canceled && result.assets[0]) setCoverFromAsset(result.assets[0]);
   };
@@ -70,8 +76,9 @@ export default function AddManuallySheet({
       return;
     }
     const result = await ImagePicker.launchCameraAsync({
-      quality: 0.5,
+      quality: 0.3,
       base64: true,
+      allowsEditing: true,
     });
     if (!result.canceled && result.assets[0]) setCoverFromAsset(result.assets[0]);
   };
