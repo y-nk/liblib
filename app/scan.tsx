@@ -54,6 +54,7 @@ export default function ScanScreen() {
     }
 
     const { bounds } = result
+
     if (bounds?.origin && bounds?.size) {
       // On Android bounds are in view coordinates already
       // On iOS they may be normalized (0-1)

@@ -26,6 +26,8 @@ npx expo prebuild --clean --platform android --no-install
 - Trailing commas always
 - 100 char print width
 - Always curly braces (no braceless if/else/for)
+- Blank line before and after block statements (if, for, while, try, switch)
+- Blank line before return statements (unless it's the only statement)
 - No explicit return types
 - `console.log` is warn-only (ok for debug, remove before shipping)
 - `any` is warn-only (prefer `unknown` when possible)

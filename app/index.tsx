@@ -49,6 +49,7 @@ export default function BooksScreen() {
       const updated = await getBooks()
       setBooks(updated)
     }
+
     if (Platform.OS === 'web') {
       if (window.confirm(`Delete "${title}"?`)) {
         doDelete()
