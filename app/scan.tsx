@@ -1,11 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import {
-  View, Text, Pressable, StyleSheet,
-  ActivityIndicator, Image, ScrollView,
+  View, Text, Pressable, StyleSheet, LayoutChangeEvent,
+  ActivityIndicator, Image, ScrollView, Animated, Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
+import type { BarcodeScanningResult } from "expo-camera";
 import { useISBNLookup } from "@/lib/useISBNLookup";
 
 export default function ScanScreen() {
@@ -14,6 +15,14 @@ export default function ScanScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [permissionRequested, setPermissionRequested] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
+  const [viewSize, setViewSize] = useState({ width: 0, height: 0 });
+  const overlayAnim = useRef({
+    x: new Animated.Value(0),
+    y: new Animated.Value(0),
+    w: new Animated.Value(0),
+    h: new Animated.Value(0),
+    opacity: new Animated.Value(0),
+  }).current;
 
   useEffect(() => {
     if (!permissionRequested) {
@@ -25,6 +34,42 @@ export default function ScanScreen() {
   const { status, message, candidates, isBusy, pick, reset, search } = useISBNLookup(() => {
     setTimeout(() => router.back(), 1500);
   });
+
+  const onCameraLayout = (e: LayoutChangeEvent) => {
+    const { width, height } = e.nativeEvent.layout;
+    setViewSize({ width, height });
+  };
+
+  const handleBarcodeScanned = (result: BarcodeScanningResult) => {
+    if (viewSize.width === 0) {
+      search(result.data);
+      return;
+    }
+
+    const { bounds } = result;
+    if (bounds?.origin && bounds?.size) {
+      // On Android bounds are in view coordinates already
+      // On iOS they may be normalized (0-1)
+      const isNormalized = bounds.origin.x <= 1 && bounds.origin.y <= 1 &&
+        bounds.size.width <= 1 && bounds.size.height <= 1;
+
+      const x = isNormalized ? bounds.origin.x * viewSize.width : bounds.origin.x;
+      const y = isNormalized ? bounds.origin.y * viewSize.height : bounds.origin.y;
+      const w = isNormalized ? bounds.size.width * viewSize.width : bounds.size.width;
+      const h = isNormalized ? bounds.size.height * viewSize.height : bounds.size.height;
+
+      overlayAnim.x.setValue(x);
+      overlayAnim.y.setValue(y);
+      overlayAnim.w.setValue(w);
+      overlayAnim.h.setValue(h);
+      Animated.sequence([
+        Animated.timing(overlayAnim.opacity, { toValue: 1, duration: 100, useNativeDriver: false }),
+        Animated.timing(overlayAnim.opacity, { toValue: 0, duration: 800, useNativeDriver: false }),
+      ]).start();
+    }
+
+    search(result.data);
+  };
 
   return (
     <View style={styles.container}>
@@ -67,13 +112,28 @@ export default function ScanScreen() {
           </Pressable>
         </ScrollView>
       ) : permission?.granted ? (
-        <View style={styles.cameraContainer}>
+        <View style={styles.cameraContainer} onLayout={onCameraLayout}>
           <CameraView
             style={StyleSheet.absoluteFillObject}
             facing="back"
             onCameraReady={() => setCameraReady(true)}
             barcodeScannerSettings={{ barcodeTypes: ["ean13", "ean8", "upc_a", "upc_e"] }}
-            onBarcodeScanned={!cameraReady || isBusy ? undefined : ({ data }) => search(data)}
+            onBarcodeScanned={!cameraReady || isBusy ? undefined : handleBarcodeScanned}
+          />
+          <Animated.View
+            pointerEvents="none"
+            style={{
+              position: "absolute",
+              left: overlayAnim.x,
+              top: overlayAnim.y,
+              width: overlayAnim.w,
+              height: overlayAnim.h,
+              opacity: overlayAnim.opacity,
+              borderWidth: 2,
+              borderColor: "#fff",
+              borderStyle: "dashed",
+              borderRadius: 8,
+            }}
           />
         </View>
       ) : (
