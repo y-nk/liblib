@@ -1,5 +1,5 @@
 import type { Book } from "../types";
-import { getSettings } from "../storage";
+import { getSettings } from "../data/settings";
 
 export async function getBookFromISBN(isbn: string): Promise<Book[]> {
   try {

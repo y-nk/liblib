@@ -13,7 +13,7 @@ import {
 import { useFocusEffect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Settings } from "lucide-react-native";
-import { getBooks, removeBook } from "@/lib/storage";
+import { getBooks, removeBook } from "@/lib/data/books";
 import Header from "@/components/Header";
 import SettingsSheet from "@/components/SettingsSheet";
 import AddManuallySheet from "@/components/AddManuallySheet";

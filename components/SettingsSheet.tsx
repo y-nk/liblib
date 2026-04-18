@@ -7,7 +7,7 @@ import { TouchableOpacity } from "react-native-gesture-handler";
 import BottomDrawer from "./BottomDrawer";
 import DraggableFlatList, { RenderItemParams, ScaleDecorator } from "react-native-draggable-flatlist";
 import { GripVertical, ChevronDown, ChevronRight, TriangleAlert } from "lucide-react-native";
-import { getSettings, saveSettings } from "@/lib/storage";
+import { getSettings, saveSettings } from "@/lib/data/settings";
 import { openai, gemini } from "@/lib/providers";
 import type { Settings, ProviderConfig, ProviderId } from "@/lib/types";
 import {

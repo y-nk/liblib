@@ -1,10 +1,6 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import type { Book, Settings } from "./types";
-import { DEFAULT_PROVIDERS } from "./types";
-import { getDb } from "./db";
-import { deleteCover } from "./covers";
-
-const SETTINGS_KEY = "liblib:settings";
+import type { Book } from "../types";
+import { getDb } from "../db";
+import { deleteCover } from "../covers";
 
 type BookRow = {
   isbn: string;
@@ -29,6 +25,22 @@ function rowToBook(row: BookRow): Book {
   };
 }
 
+async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
+  const metadata = JSON.stringify(book.coverUrl ? { coverUrl: book.coverUrl } : {});
+  await db.runAsync(
+    "INSERT OR REPLACE INTO books (isbn, title, cover, createdAt, syncedAt, collectionId, metadata) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    [
+      book.isbn,
+      book.title,
+      book.cover ?? "",
+      book.createdAt.getTime(),
+      book.syncedAt ? book.syncedAt.getTime() : null,
+      book.collectionId ?? null,
+      metadata,
+    ]
+  );
+}
+
 export async function getBooks(): Promise<Book[]> {
   const db = await getDb();
   const rows = await db.getAllAsync<BookRow>(
@@ -50,36 +62,8 @@ export async function addBook(book: Book) {
   await insert(db, book);
 }
 
-async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
-  const metadata = JSON.stringify(book.coverUrl ? { coverUrl: book.coverUrl } : {});
-  await db.runAsync(
-    "INSERT OR REPLACE INTO books (isbn, title, cover, createdAt, syncedAt, collectionId, metadata) VALUES (?, ?, ?, ?, ?, ?, ?)",
-    [
-      book.isbn,
-      book.title,
-      book.cover ?? "",
-      book.createdAt.getTime(),
-      book.syncedAt ? book.syncedAt.getTime() : null,
-      book.collectionId ?? null,
-      metadata,
-    ]
-  );
-}
-
 export async function removeBook(isbn: string) {
   const db = await getDb();
   await db.runAsync("DELETE FROM books WHERE isbn = ?", [isbn]);
   deleteCover(isbn);
-}
-
-export async function getSettings(): Promise<Settings> {
-  const raw = await AsyncStorage.getItem(SETTINGS_KEY);
-  const defaults: Settings = { openaiKey: "", geminiKey: "", providers: DEFAULT_PROVIDERS };
-  if (!raw) return defaults;
-  const parsed = JSON.parse(raw);
-  return { ...defaults, ...parsed, providers: parsed.providers ?? defaults.providers };
-}
-
-export async function saveSettings(settings: Settings) {
-  await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
 }

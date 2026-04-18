@@ -1,5 +1,5 @@
 import type { Book, ProviderId } from "../types";
-import { getSettings } from "../storage";
+import { getSettings } from "../data/settings";
 import * as openLibrary from "./open-library";
 import * as googleBooks from "./google-books";
 import * as openai from "./openai";

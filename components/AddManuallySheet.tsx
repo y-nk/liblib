@@ -7,7 +7,7 @@ import CenterModal from "./CenterModal";
 import * as ImagePicker from "expo-image-picker";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { Camera, Search } from "lucide-react-native";
-import { addBook } from "@/lib/storage";
+import { addBook } from "@/lib/data/books";
 import { lookupISBN } from "@/lib/providers";
 import { saveCoverFromDataUri, saveCoverFromUrl } from "@/lib/covers";
 import type { Book } from "@/lib/types";

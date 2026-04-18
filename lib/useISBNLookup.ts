@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { addBook } from "@/lib/storage";
+import { addBook } from "@/lib/data/books";
 import { lookupISBN } from "@/lib/providers";
 import { saveCoverFromUrl } from "@/lib/covers";
 import type { Book } from "@/lib/types";
