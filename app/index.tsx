@@ -89,16 +89,16 @@ export default function BooksScreen() {
               />
             </View>
           }
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 100 }}
+          contentContainerStyle={{ paddingBottom: 100 }}
           ListEmptyComponent={
-            <View className="items-center pt-20">
+            <View className="items-center pt-20 px-4">
               <Text className="text-gray-400 text-base">
                 {query ? 'No matches' : 'No books yet. Tap scan to add one.'}
               </Text>
             </View>
           }
           renderItem={({ item }) => (
-            <View className="flex-row items-center py-3 border-b border-gray-100 dark:border-neutral-800">
+            <View className="flex-row items-center py-3 px-4 border-b border-gray-100 dark:border-neutral-800">
               {item.cover ? (
                 <Image
                   source={{ uri: item.cover }}
