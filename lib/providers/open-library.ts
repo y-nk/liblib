@@ -16,7 +16,16 @@ export async function getBookFromISBN(isbn: string): Promise<Book[]> {
 
     const coverUrl = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
 
-    return [{ isbn, title: entry.title, cover: '', coverUrl, createdAt: new Date() }]
+    return [
+      {
+        isbn,
+        title: entry.title,
+        cover: '',
+        coverUrl,
+        provider: 'openLibrary',
+        createdAt: new Date(),
+      },
+    ]
   } catch (e) {
     console.log('[open-library]', e)
     return []

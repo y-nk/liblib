@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import type { BarcodeScanningResult } from 'expo-camera'
 import { useISBNLookup } from '@/lib/useISBNLookup'
+import { PROVIDER_LABELS } from '@/lib/types'
 
 function computeOverlayRect(
   result: BarcodeScanningResult,
@@ -171,27 +172,33 @@ export default function ScanScreen() {
         <ScrollView className="flex-1 px-4" contentContainerStyle={{ paddingBottom: 40 }}>
           <Text className="text-gray-400 text-center mb-4">{message}</Text>
           {candidates.map((book, i) => (
-            <Pressable
-              key={i}
-              onPress={() => pick(book)}
-              className="flex-row items-center bg-gray-900 rounded-xl p-3 mb-3"
-            >
-              {book.cover || book.coverUrl ? (
-                <Image
-                  source={{ uri: book.cover || book.coverUrl }}
-                  className="w-16 h-22 rounded bg-gray-800"
-                  resizeMode="cover"
-                />
-              ) : (
-                <View className="w-16 h-22 rounded bg-gray-800" />
-              )}
-              <View className="flex-1 ml-3">
-                <Text className="text-white text-base font-medium" numberOfLines={3}>
-                  {book.title}
+            <React.Fragment key={i}>
+              <Pressable
+                onPress={() => pick(book)}
+                className="flex-row items-center bg-gray-900 rounded-xl p-3 mb-1"
+              >
+                {book.cover || book.coverUrl ? (
+                  <Image
+                    source={{ uri: book.cover || book.coverUrl }}
+                    className="w-16 h-22 rounded bg-gray-800"
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View className="w-16 h-22 rounded bg-gray-800" />
+                )}
+                <View className="flex-1 ml-3">
+                  <Text className="text-white text-base font-medium" numberOfLines={3}>
+                    {book.title}
+                  </Text>
+                  <Text className="text-gray-500 text-xs mt-1">{book.isbn}</Text>
+                </View>
+              </Pressable>
+              {book.provider && (
+                <Text className="text-gray-600 text-xs text-right mr-2 mb-2">
+                  {PROVIDER_LABELS[book.provider]}
                 </Text>
-                <Text className="text-gray-500 text-xs mt-1">{book.isbn}</Text>
-              </View>
-            </Pressable>
+              )}
+            </React.Fragment>
           ))}
           <Pressable onPress={reset} className="mt-2">
             <Text className="text-gray-500 text-center text-sm">None of these — cancel</Text>

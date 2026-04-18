@@ -15,7 +15,16 @@ export async function getBookFromISBN(isbn: string): Promise<Book[]> {
     const rawCoverUrl = item.imageLinks?.thumbnail || item.imageLinks?.smallThumbnail
     const coverUrl = rawCoverUrl ? rawCoverUrl.replace('http://', 'https://') : undefined
 
-    return [{ isbn, title: item.title, cover: '', coverUrl, createdAt: new Date() }]
+    return [
+      {
+        isbn,
+        title: item.title,
+        cover: '',
+        coverUrl,
+        provider: 'googleBooks',
+        createdAt: new Date(),
+      },
+    ]
   } catch (e) {
     console.log('[google-books]', e)
     return []

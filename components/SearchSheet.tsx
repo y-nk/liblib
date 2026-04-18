@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 } from 'react-native'
 import CenterModal from './CenterModal'
 import { useISBNLookup } from '@/lib/useISBNLookup'
+import { PROVIDER_LABELS } from '@/lib/types'
 
 export default function SearchSheet({
   visible,
@@ -59,27 +60,33 @@ export default function SearchSheet({
         <ScrollView className="p-4" style={{ maxHeight: 400 }}>
           <Text className="text-gray-400 text-center mb-4">{message}</Text>
           {candidates.map((book, i) => (
-            <Pressable
-              key={i}
-              onPress={() => pick(book)}
-              className="flex-row items-center bg-gray-100 dark:bg-neutral-800 rounded-xl p-3 mb-3"
-            >
-              {book.cover || book.coverUrl ? (
-                <Image
-                  source={{ uri: book.cover || book.coverUrl }}
-                  className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-700"
-                  resizeMode="cover"
-                />
-              ) : (
-                <View className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-700" />
-              )}
-              <View className="flex-1 ml-3">
-                <Text className="text-base font-medium dark:text-white" numberOfLines={2}>
-                  {book.title}
+            <React.Fragment key={i}>
+              <Pressable
+                onPress={() => pick(book)}
+                className="flex-row items-center bg-gray-100 dark:bg-neutral-800 rounded-xl p-3 mb-1"
+              >
+                {book.cover || book.coverUrl ? (
+                  <Image
+                    source={{ uri: book.cover || book.coverUrl }}
+                    className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-700"
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-700" />
+                )}
+                <View className="flex-1 ml-3">
+                  <Text className="text-base font-medium dark:text-white" numberOfLines={2}>
+                    {book.title}
+                  </Text>
+                  <Text className="text-gray-400 text-xs mt-1">{book.isbn}</Text>
+                </View>
+              </Pressable>
+              {book.provider && (
+                <Text className="text-gray-400 text-xs text-right mr-2 -mt-2 mb-2">
+                  {PROVIDER_LABELS[book.provider]}
                 </Text>
-                <Text className="text-gray-400 text-xs mt-1">{book.isbn}</Text>
-              </View>
-            </Pressable>
+              )}
+            </React.Fragment>
           ))}
           <Pressable onPress={reset} className="mt-1 mb-2">
             <Text className="text-gray-500 text-center text-sm">None of these</Text>

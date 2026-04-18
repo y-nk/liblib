@@ -25,7 +25,16 @@ export async function getBookFromISBN(isbn: string): Promise<Book[]> {
 
     const coverUrl = $('div.image img').first().attr('src') || ''
 
-    return [{ isbn, title, cover: '', coverUrl: coverUrl || undefined, createdAt: new Date() }]
+    return [
+      {
+        isbn,
+        title,
+        cover: '',
+        coverUrl: coverUrl || undefined,
+        provider: 'isbnSearch',
+        createdAt: new Date(),
+      },
+    ]
   } catch (e) {
     console.log('[isbn-search]', e)
 
