@@ -146,8 +146,8 @@ const styles = StyleSheet.create({
   overlay: {
     position: "absolute",
     borderWidth: 2,
-    borderColor: "#22c55e",
-    borderRadius: 4,
-    backgroundColor: "rgba(34, 197, 94, 0.15)",
+    borderColor: "#fff",
+    borderStyle: "dashed",
+    borderRadius: 8,
   },
 });
