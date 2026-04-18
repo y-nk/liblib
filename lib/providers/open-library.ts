@@ -1,5 +1,4 @@
 import type { Book } from "../types";
-import { fetchCoverAsBase64 } from "./cover";
 
 export async function getBookFromISBN(isbn: string): Promise<Book[]> {
   try {
@@ -11,12 +10,9 @@ export async function getBookFromISBN(isbn: string): Promise<Book[]> {
     const entry = data[`ISBN:${isbn}`];
     if (!entry?.title) return [];
 
-    let cover = "";
-    try {
-      cover = await fetchCoverAsBase64(`https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`);
-    } catch {}
+    const coverUrl = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`;
 
-    return [{ isbn, title: entry.title, cover, addedAt: Date.now() }];
+    return [{ isbn, title: entry.title, cover: "", coverUrl, createdAt: new Date() }];
   } catch (e) {
     console.log("[open-library]", e);
     return [];

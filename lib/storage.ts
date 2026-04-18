@@ -1,35 +1,75 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import type { Book, Settings } from "./types";
 import { DEFAULT_PROVIDERS } from "./types";
+import { getDb } from "./db";
+import { deleteCover } from "./covers";
 
-const BOOKS_KEY = "liblib:books";
 const SETTINGS_KEY = "liblib:settings";
 
+type BookRow = {
+  isbn: string;
+  title: string;
+  cover: string;
+  createdAt: number;
+  syncedAt: number | null;
+  collectionId: string | null;
+  metadata: string;
+};
+
+function rowToBook(row: BookRow): Book {
+  const meta = row.metadata ? JSON.parse(row.metadata) : {};
+  return {
+    isbn: row.isbn,
+    title: row.title,
+    cover: row.cover,
+    createdAt: new Date(row.createdAt),
+    ...(row.syncedAt != null ? { syncedAt: new Date(row.syncedAt) } : {}),
+    ...(row.collectionId != null ? { collectionId: row.collectionId } : {}),
+    ...(meta.coverUrl ? { coverUrl: meta.coverUrl } : {}),
+  };
+}
+
 export async function getBooks(): Promise<Book[]> {
-  const raw = await AsyncStorage.getItem(BOOKS_KEY);
-  return raw ? JSON.parse(raw) : [];
+  const db = await getDb();
+  const rows = await db.getAllAsync<BookRow>(
+    "SELECT isbn, title, cover, createdAt, syncedAt, collectionId, metadata FROM books ORDER BY createdAt DESC"
+  );
+  return rows.map(rowToBook);
 }
 
 export async function saveBooks(books: Book[]) {
-  await AsyncStorage.setItem(BOOKS_KEY, JSON.stringify(books));
+  const db = await getDb();
+  await db.withTransactionAsync(async () => {
+    await db.execAsync("DELETE FROM books");
+    for (const b of books) await insert(db, b);
+  });
 }
 
 export async function addBook(book: Book) {
-  const books = await getBooks();
-  const safeCover = book.cover && book.cover.length > 500_000 ? "" : book.cover;
-  const safeBook = { ...book, cover: safeCover };
-  const idx = books.findIndex((b) => b.isbn === book.isbn);
-  if (idx >= 0) {
-    books[idx] = { ...books[idx], title: safeBook.title || books[idx].title, cover: safeBook.cover || books[idx].cover };
-  } else {
-    books.unshift(safeBook);
-  }
-  await saveBooks(books);
+  const db = await getDb();
+  await insert(db, book);
+}
+
+async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
+  const metadata = JSON.stringify(book.coverUrl ? { coverUrl: book.coverUrl } : {});
+  await db.runAsync(
+    "INSERT OR REPLACE INTO books (isbn, title, cover, createdAt, syncedAt, collectionId, metadata) VALUES (?, ?, ?, ?, ?, ?, ?)",
+    [
+      book.isbn,
+      book.title,
+      book.cover ?? "",
+      book.createdAt.getTime(),
+      book.syncedAt ? book.syncedAt.getTime() : null,
+      book.collectionId ?? null,
+      metadata,
+    ]
+  );
 }
 
 export async function removeBook(isbn: string) {
-  const books = await getBooks();
-  await saveBooks(books.filter((b) => b.isbn !== isbn));
+  const db = await getDb();
+  await db.runAsync("DELETE FROM books WHERE isbn = ?", [isbn]);
+  deleteCover(isbn);
 }
 
 export async function getSettings(): Promise<Settings> {

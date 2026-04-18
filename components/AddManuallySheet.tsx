@@ -9,7 +9,7 @@ import { CameraView, useCameraPermissions } from "expo-camera";
 import { Camera, Search } from "lucide-react-native";
 import { addBook } from "@/lib/storage";
 import { lookupISBN } from "@/lib/providers";
-import { fetchCoverAsBase64 } from "@/lib/providers/cover";
+import { saveCoverFromDataUri, saveCoverFromUrl } from "@/lib/covers";
 import type { Book } from "@/lib/types";
 
 const isWeb = Platform.OS === "web";
@@ -52,11 +52,7 @@ export default function AddManuallySheet({
 
   const setCoverFromAsset = (a: ImagePicker.ImagePickerAsset) => {
     const dataUrl = a.base64 ? `data:${a.mimeType || "image/jpeg"};base64,${a.base64}` : "";
-    if (dataUrl && dataUrl.length < 500_000) {
-      setCover(dataUrl);
-    } else if (a.uri) {
-      setCover(a.uri);
-    }
+    setCover(dataUrl || a.uri || "");
   };
 
   const pickImage = async () => {
@@ -125,10 +121,7 @@ export default function AddManuallySheet({
 
   const prefillFromBook = async (book: Book) => {
     setTitle(book.title);
-    let c = book.cover;
-    if (!c && book.coverUrl) {
-      try { c = await fetchCoverAsBase64(book.coverUrl); } catch {}
-    }
+    const c = book.cover || book.coverUrl || "";
     if (c) setCover(c);
     setPicks([]);
     setSearching(false);
@@ -143,11 +136,20 @@ export default function AddManuallySheet({
     setSaving(true);
     setError("");
     try {
+      const trimmedIsbn = isbn.trim();
+      let coverPath = "";
+      if (cover.startsWith("data:")) {
+        coverPath = await saveCoverFromDataUri(trimmedIsbn, cover);
+      } else if (cover.startsWith("http://") || cover.startsWith("https://")) {
+        coverPath = await saveCoverFromUrl(trimmedIsbn, cover);
+      } else if (cover.startsWith("file://")) {
+        coverPath = cover;
+      }
       const book: Book = {
-        isbn: isbn.trim(),
+        isbn: trimmedIsbn,
         title: title.trim(),
-        cover,
-        addedAt: Date.now(),
+        cover: coverPath,
+        createdAt: new Date(),
       };
       await addBook(book);
       setSaving(false);

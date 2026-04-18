@@ -46,7 +46,7 @@ If you can't find anything, return []`;
         title: item.title,
         cover: "",
         coverUrl: item.cover,
-        addedAt: Date.now(),
+        createdAt: new Date(),
       }));
   } catch (e) {
     console.log("[gemini]", e);

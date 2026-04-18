@@ -1,5 +1,4 @@
 import type { Book } from "../types";
-import { fetchCoverAsBase64 } from "./cover";
 
 export async function getBookFromISBN(isbn: string): Promise<Book[]> {
   try {
@@ -11,15 +10,10 @@ export async function getBookFromISBN(isbn: string): Promise<Book[]> {
     const item = data.items?.[0]?.volumeInfo;
     if (!item?.title) return [];
 
-    let cover = "";
-    const coverUrl = item.imageLinks?.thumbnail || item.imageLinks?.smallThumbnail;
-    if (coverUrl) {
-      try {
-        cover = await fetchCoverAsBase64(coverUrl.replace("http://", "https://"));
-      } catch {}
-    }
+    const rawCoverUrl = item.imageLinks?.thumbnail || item.imageLinks?.smallThumbnail;
+    const coverUrl = rawCoverUrl ? rawCoverUrl.replace("http://", "https://") : undefined;
 
-    return [{ isbn, title: item.title, cover, addedAt: Date.now() }];
+    return [{ isbn, title: item.title, cover: "", coverUrl, createdAt: new Date() }];
   } catch (e) {
     console.log("[google-books]", e);
     return [];

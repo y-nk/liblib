@@ -1,9 +1,11 @@
 export type Book = {
   isbn: string;
   title: string;
-  cover: string; // data:image/... base64
-  coverUrl?: string; // original URL, used for lazy loading
-  addedAt: number;
+  cover: string; // file:// URI of the cover on disk; '' if none
+  coverUrl?: string; // remote URL, used as the source to download from
+  createdAt: Date;
+  syncedAt?: Date;
+  collectionId?: string;
 };
 
 export type ProviderId = "openLibrary" | "googleBooks" | "openai" | "gemini";

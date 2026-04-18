@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback } from "react";
 import { addBook } from "@/lib/storage";
 import { lookupISBN } from "@/lib/providers";
-import { fetchCoverAsBase64 } from "@/lib/providers/cover";
+import { saveCoverFromUrl } from "@/lib/covers";
 import type { Book } from "@/lib/types";
 
 export type LookupStatus = "idle" | "loading" | "picking" | "saving" | "success" | "error";
@@ -45,11 +45,11 @@ export function useISBNLookup(onDone?: () => void) {
     let cover = book.cover;
     if (!cover && book.coverUrl) {
       try {
-        cover = await fetchCoverAsBase64(book.coverUrl);
+        cover = await saveCoverFromUrl(book.isbn, book.coverUrl);
       } catch {}
     }
 
-    const toSave = { ...book, cover, coverUrl: undefined };
+    const toSave: Book = { ...book, cover, coverUrl: undefined, createdAt: new Date() };
     await addBook(toSave);
     setStatus("success");
     setCandidates([]);
