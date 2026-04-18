@@ -14,6 +14,7 @@ import { useFocusEffect, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Settings } from "lucide-react-native";
 import { getBooks, removeBook } from "@/lib/storage";
+import Header from "@/components/Header";
 import SettingsSheet from "@/components/SettingsSheet";
 import AddManuallySheet from "@/components/AddManuallySheet";
 import SearchSheet from "@/components/SearchSheet";
@@ -65,14 +66,17 @@ export default function BooksScreen() {
         stickyHeaderIndices={[0]}
         ListHeaderComponent={
           <View className="px-4 py-4 bg-white dark:bg-neutral-950">
-            <View className="flex-row items-center justify-between mb-3">
-              <Text className="text-2xl font-bold dark:text-white">LibLib</Text>
-              <Pressable onPress={() => setShowSettings(true)} hitSlop={8}>
-                <Settings size={22} color={dark ? "#aaa" : "#666"} />
-              </Pressable>
-            </View>
+            <Header
+              action={
+                <Pressable onPress={() => setShowSettings(true)} hitSlop={8}>
+                  <Settings size={22} color={dark ? "#aaa" : "#666"} />
+                </Pressable>
+              }
+            >
+              LibLib
+            </Header>
             <TextInput
-              className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-3 text-base dark:text-white"
+              className="mt-3 bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-3 text-base dark:text-white"
               placeholder="Search by title or ISBN..."
               placeholderTextColor={dark ? "#666" : "#999"}
               value={query}
