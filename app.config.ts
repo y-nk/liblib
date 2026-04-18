@@ -44,6 +44,27 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
         cameraPermission: "LibLib needs camera access to scan book barcodes",
       },
     ],
+    [
+      "expo-image-picker",
+      {
+        colors: {
+          cropToolbarColor: "#ffffff",
+          cropToolbarIconColor: "#000000",
+          cropToolbarActionTextColor: "#000000",
+          cropBackButtonIconColor: "#000000",
+          cropBackgroundColor: "#000000",
+        },
+        dark: {
+          colors: {
+            cropToolbarColor: "#1a1a1a",
+            cropToolbarIconColor: "#ffffff",
+            cropToolbarActionTextColor: "#ffffff",
+            cropBackButtonIconColor: "#ffffff",
+            cropBackgroundColor: "#000000",
+          },
+        },
+      },
+    ],
   ],
   experiments: {
     baseUrl,
