@@ -64,13 +64,13 @@ export default function BooksScreen() {
 
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
-      <SafeAreaView className="flex-1 px-4">
+      <SafeAreaView className="flex-1 px-3">
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.isbn}
           stickyHeaderIndices={[0]}
           ListHeaderComponent={
-            <View className="py-4 bg-white dark:bg-neutral-950">
+            <View className="py-3 bg-white dark:bg-neutral-950">
               <Header
                 action={
                   <Pressable onPress={() => setShowSettings(true)} hitSlop={8}>
