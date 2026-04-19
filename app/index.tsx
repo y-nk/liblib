@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
   View,
   Text,
@@ -9,10 +9,12 @@ import {
   Alert,
   Platform,
   useColorScheme,
+  Animated,
 } from 'react-native'
 import { useFocusEffect } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Settings } from 'lucide-react-native'
+import * as Clipboard from 'expo-clipboard'
 import { getBooks, removeBook } from '@/lib/data/books'
 import Header from '@/components/Header'
 import SettingsSheet from '@/components/SettingsSheet'
@@ -29,8 +31,19 @@ export default function BooksScreen() {
   const [manualIsbn, setManualIsbn] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const dark = useColorScheme() === 'dark'
+  const toastOpacity = useRef(new Animated.Value(0)).current
 
   const reload = () => getBooks().then(setBooks)
+
+  const copyIsbn = async (isbn: string) => {
+    await Clipboard.setStringAsync(isbn)
+
+    Animated.sequence([
+      Animated.timing(toastOpacity, { toValue: 1, duration: 150, useNativeDriver: true }),
+      Animated.delay(1200),
+      Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
+    ]).start()
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -98,7 +111,11 @@ export default function BooksScreen() {
             </View>
           }
           renderItem={({ item }) => (
-            <View className="flex-row items-center py-3 border-b border-gray-100 dark:border-neutral-800">
+            <Pressable
+              onLongPress={() => copyIsbn(item.isbn)}
+              delayLongPress={150}
+              className="flex-row items-center py-3 border-b border-gray-100 dark:border-neutral-800"
+            >
               {item.cover ? (
                 <Image
                   source={{ uri: item.cover }}
@@ -123,7 +140,7 @@ export default function BooksScreen() {
               >
                 <Text className="text-red-500 text-sm font-medium">Delete</Text>
               </Pressable>
-            </View>
+            </Pressable>
           )}
         />
       </SafeAreaView>
@@ -135,6 +152,16 @@ export default function BooksScreen() {
           setShowAddManual(true)
         }}
       />
+
+      <Animated.View
+        pointerEvents="none"
+        className="absolute bottom-28 left-0 right-0 items-center"
+        style={{ opacity: toastOpacity }}
+      >
+        <View className="bg-neutral-800 dark:bg-neutral-200 rounded-full px-5 py-2">
+          <Text className="text-white dark:text-black text-sm font-medium">ISBN copied</Text>
+        </View>
+      </Animated.View>
 
       <SettingsSheet visible={showSettings} onClose={() => setShowSettings(false)} />
       <AddManuallySheet
