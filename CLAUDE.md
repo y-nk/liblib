@@ -8,6 +8,7 @@ Always run these checks and fix any errors before committing:
 pnpm format        # auto-format with oxfmt
 pnpm lint          # lint with oxlint (0 errors required, warnings ok)
 npx tsc --noEmit   # typecheck
+npx expo export --platform android  # verify JS bundle builds
 ```
 
 ## Before pushing Android changes
