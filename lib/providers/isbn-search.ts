@@ -1,4 +1,3 @@
-import * as cheerio from 'cheerio'
 import type { Book } from '../types'
 
 export async function getBookFromISBN(isbn: string): Promise<Book[]> {
@@ -15,15 +14,16 @@ export async function getBookFromISBN(isbn: string): Promise<Book[]> {
     }
 
     const html = await res.text()
-    const $ = cheerio.load(html)
 
-    const title = $('div.bookinfo h1').first().text().trim()
+    const titleMatch = html.match(/<div class="bookinfo">\s*<h1>([^<]+)<\/h1>/)
+    const title = titleMatch?.[1]?.trim()
 
     if (!title) {
       return []
     }
 
-    const coverUrl = $('div.image img').first().attr('src') || ''
+    const imgMatch = html.match(/<div class="image">\s*<img src="([^"]+)"/)
+    const coverUrl = imgMatch?.[1] || ''
 
     return [
       {
