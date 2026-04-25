@@ -45,6 +45,7 @@ export function createDomProvider(config: DomProviderConfig) {
           cover: '',
           coverUrl: coverUrl || undefined,
           provider: config.id,
+          tags: [],
           createdAt: new Date(),
         },
       ]

@@ -22,6 +22,7 @@ export async function getBookFromISBN(isbn: string): Promise<Book[]> {
         cover: '',
         coverUrl,
         provider: 'googleBooks',
+        tags: [],
         createdAt: new Date(),
       },
     ]

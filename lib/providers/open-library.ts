@@ -23,6 +23,7 @@ export async function getBookFromISBN(isbn: string): Promise<Book[]> {
         cover: '',
         coverUrl,
         provider: 'openLibrary',
+        tags: [],
         createdAt: new Date(),
       },
     ]

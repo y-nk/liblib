@@ -54,6 +54,7 @@ If you can't find anything, return []`
         cover: '',
         coverUrl: item.cover,
         provider: 'openai' as const,
+        tags: [],
         createdAt: new Date(),
       }))
   } catch (e) {

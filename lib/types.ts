@@ -4,6 +4,7 @@ export type Book = {
   cover: string // file:// URI of the cover on disk; '' if none
   coverUrl?: string // remote URL, used as the source to download from
   provider?: ProviderId
+  tags: string[]
   createdAt: Date
   syncedAt?: Date
   collectionId?: string

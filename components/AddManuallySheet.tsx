@@ -167,6 +167,7 @@ export default function AddManuallySheet({
         isbn: trimmedIsbn,
         title: title.trim(),
         cover: coverPath,
+        tags: [],
         createdAt: new Date(),
       }
       await addBook(book)
