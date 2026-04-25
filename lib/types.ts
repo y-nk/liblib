@@ -9,7 +9,13 @@ export type Book = {
   collectionId?: string
 }
 
-export type ProviderId = 'openLibrary' | 'googleBooks' | 'isbnSearch' | 'openai' | 'gemini'
+export type ProviderId =
+  | 'openLibrary'
+  | 'googleBooks'
+  | 'isbnSearch'
+  | 'amazon'
+  | 'openai'
+  | 'gemini'
 
 export type ProviderConfig = {
   id: ProviderId
@@ -24,6 +30,7 @@ export type Settings = {
 
 export const DEFAULT_PROVIDERS: ProviderConfig[] = [
   { id: 'isbnSearch', enabled: true },
+  { id: 'amazon', enabled: true },
   { id: 'openLibrary', enabled: true },
   { id: 'googleBooks', enabled: true },
   { id: 'gemini', enabled: false },
@@ -34,6 +41,7 @@ export const PROVIDER_LABELS: Record<ProviderId, string> = {
   openLibrary: 'Open Library',
   googleBooks: 'Google Books',
   isbnSearch: 'ISBN Search',
+  amazon: 'Amazon',
   gemini: 'Gemini',
   openai: 'OpenAI (GPT-5)',
 }
