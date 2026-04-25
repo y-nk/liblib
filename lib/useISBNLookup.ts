@@ -3,12 +3,14 @@ import { addBook } from '@/lib/data/books'
 import { lookupISBN } from '@/lib/providers'
 import { saveCoverFromUrl } from '@/lib/covers'
 import type { Book } from '@/lib/types'
+import { PROVIDER_LABELS } from '@/lib/types'
 
 export type LookupStatus = 'idle' | 'loading' | 'picking' | 'saving' | 'success' | 'error'
 
 export function useISBNLookup(onDone?: () => void) {
   const [status, setStatus] = useState<LookupStatus>('idle')
   const [message, setMessage] = useState('')
+  const [providerName, setProviderName] = useState('')
   const [candidates, setCandidates] = useState<Book[]>([])
   const lockRef = useRef(false)
 
@@ -57,6 +59,7 @@ export function useISBNLookup(onDone?: () => void) {
       setStatus('success')
       setCandidates([])
       setMessage(`Added: ${book.title}`)
+      setProviderName(book.provider ? PROVIDER_LABELS[book.provider] : '')
       onDone?.()
     },
     [onDone],
@@ -65,11 +68,12 @@ export function useISBNLookup(onDone?: () => void) {
   const reset = useCallback(() => {
     setStatus('idle')
     setMessage('')
+    setProviderName('')
     setCandidates([])
     lockRef.current = false
   }, [])
 
   const isBusy = status === 'loading' || status === 'saving' || status === 'success'
 
-  return { status, message, candidates, isBusy, search, pick, reset }
+  return { status, message, providerName, candidates, isBusy, search, pick, reset }
 }

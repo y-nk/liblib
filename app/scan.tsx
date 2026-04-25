@@ -123,9 +123,11 @@ export default function ScanScreen() {
     }
   }, [])
 
-  const { status, message, candidates, isBusy, pick, reset, search } = useISBNLookup(() => {
-    exitTimer.current = setTimeout(() => router.back(), 1000)
-  })
+  const { status, message, providerName, candidates, isBusy, pick, reset, search } = useISBNLookup(
+    () => {
+      exitTimer.current = setTimeout(() => router.back(), 1000)
+    },
+  )
 
   const keepScanning = () => {
     if (exitTimer.current) {
@@ -270,6 +272,10 @@ export default function ScanScreen() {
           >
             {message}
           </Text>
+
+          {status === 'success' && providerName ? (
+            <Text className="text-gray-500 text-center text-xs mt-1">({providerName})</Text>
+          ) : null}
 
           {status === 'success' && (
             <Pressable onPress={keepScanning} className="mt-3">

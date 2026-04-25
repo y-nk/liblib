@@ -26,12 +26,14 @@ export default function SearchSheet({
 }) {
   const [isbn, setIsbn] = useState('')
   const dark = useColorScheme() === 'dark'
-  const { status, message, candidates, isBusy, search, pick, reset } = useISBNLookup(() => {
-    setTimeout(() => {
-      onAdded()
-      onClose()
-    }, 1500)
-  })
+  const { status, message, providerName, candidates, isBusy, search, pick, reset } = useISBNLookup(
+    () => {
+      setTimeout(() => {
+        onAdded()
+        onClose()
+      }, 1500)
+    },
+  )
 
   useEffect(() => {
     if (visible) {
@@ -125,6 +127,9 @@ export default function SearchSheet({
               >
                 {message}
               </Text>
+              {status === 'success' && providerName ? (
+                <Text className="text-gray-400 text-center text-xs mt-1">({providerName})</Text>
+              ) : null}
             </View>
           ) : null}
 
