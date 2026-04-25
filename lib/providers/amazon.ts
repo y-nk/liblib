@@ -1,3 +1,4 @@
+import { parse } from 'node-html-parser'
 import type { Book } from '../types'
 
 export async function getBookFromISBN(isbn: string): Promise<Book[]> {
@@ -18,21 +19,18 @@ export async function getBookFromISBN(isbn: string): Promise<Book[]> {
     }
 
     const html = await res.text()
+    const doc = parse(html)
 
-    const titleMatch = html.match(
-      /data-cy="title-recipe"[^>]*>[\s\S]*?<h2[^>]*aria-label="([^"]+)"/,
-    )
-    const title = titleMatch?.[1]?.trim()
+    const title = doc
+      .querySelector('[data-cy="title-recipe"] h2')
+      ?.getAttribute('aria-label')
+      ?.trim()
 
     if (!title) {
       return []
     }
 
-    const imgBlock = html.match(/s-product-image[\s\S]*?<img([^>]*)>/)
-    const imgAttrs = imgBlock?.[1] || ''
-    const srcMatch = imgAttrs.match(/src="([^"]+)"/)
-    const hasImageClass = imgAttrs.includes('s-image')
-    const coverUrl = hasImageClass && srcMatch ? srcMatch[1] : ''
+    const coverUrl = doc.querySelector('.s-product-image img.s-image')?.getAttribute('src') || ''
 
     return [
       {
