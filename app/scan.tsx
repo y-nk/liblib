@@ -106,6 +106,8 @@ export default function ScanScreen() {
   const [permissionRequested, setPermissionRequested] = useState(false)
   const [cameraReady, setCameraReady] = useState(false)
   const [viewSize, setViewSize] = useState({ width: 0, height: 0 })
+  const [scannedIsbn, setScannedIsbn] = useState('')
+  const exitTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const overlayAnim = useRef({
     x: new Animated.Value(0),
     y: new Animated.Value(0),
@@ -122,8 +124,18 @@ export default function ScanScreen() {
   }, [])
 
   const { status, message, candidates, isBusy, pick, reset, search } = useISBNLookup(() => {
-    setTimeout(() => router.back(), 1500)
+    exitTimer.current = setTimeout(() => router.back(), 1000)
   })
+
+  const keepScanning = () => {
+    if (exitTimer.current) {
+      clearTimeout(exitTimer.current)
+      exitTimer.current = null
+    }
+
+    setScannedIsbn('')
+    reset()
+  }
 
   const onCameraLayout = (e: LayoutChangeEvent) => {
     const { width, height } = e.nativeEvent.layout
@@ -155,6 +167,7 @@ export default function ScanScreen() {
       }
     }
 
+    setScannedIsbn(result.data)
     search(result.data)
   }
 
@@ -241,8 +254,13 @@ export default function ScanScreen() {
         status === 'error') && (
         <View className="absolute bottom-20 left-4 right-4 bg-gray-900 rounded-xl p-4">
           {(status === 'loading' || status === 'saving') && <ActivityIndicator color="#fff" />}
+
+          {scannedIsbn ? (
+            <Text className="text-gray-500 text-center text-xs mb-1">ISBN: {scannedIsbn}</Text>
+          ) : null}
+
           <Text
-            className={`text-center mt-1 ${
+            className={`text-center ${
               status === 'error'
                 ? 'text-red-400'
                 : status === 'success'
@@ -252,6 +270,14 @@ export default function ScanScreen() {
           >
             {message}
           </Text>
+
+          {status === 'success' && (
+            <Pressable onPress={keepScanning} className="mt-3">
+              <Text className="text-white text-center text-sm font-medium underline">
+                Keep scanning
+              </Text>
+            </Pressable>
+          )}
         </View>
       )}
     </View>
