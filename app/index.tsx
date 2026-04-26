@@ -17,6 +17,7 @@ import { Settings } from 'lucide-react-native'
 import * as Clipboard from 'expo-clipboard'
 import { getBooks, removeBook } from '@/lib/data/books'
 import Header from '@/components/Header'
+import SwipeableRow from '@/components/SwipeableRow'
 import SettingsSheet from '@/components/SettingsSheet'
 import AddManuallySheet from '@/components/AddManuallySheet'
 import SearchSheet from '@/components/SearchSheet'
@@ -111,36 +112,32 @@ export default function BooksScreen() {
             </View>
           }
           renderItem={({ item }) => (
-            <Pressable
-              onLongPress={() => copyIsbn(item.isbn)}
-              delayLongPress={150}
-              className="flex-row items-center py-3 border-b border-gray-100 dark:border-neutral-800"
-            >
-              {item.cover ? (
-                <Image
-                  source={{ uri: item.cover }}
-                  className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-800"
-                  resizeMode="cover"
-                />
-              ) : (
-                <View className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-800 items-center justify-center">
-                  <Text className="text-gray-400 text-xs">No img</Text>
-                </View>
-              )}
-              <View className="flex-1 ml-3">
-                <Text className="text-base font-medium dark:text-white" numberOfLines={2}>
-                  {item.title}
-                </Text>
-                <Text className="text-sm text-gray-400 mt-0.5">{item.isbn}</Text>
-              </View>
+            <SwipeableRow onDelete={() => confirmDelete(item.isbn, item.title)}>
               <Pressable
-                onPress={() => confirmDelete(item.isbn, item.title)}
-                className="p-2"
-                hitSlop={8}
+                onLongPress={() => copyIsbn(item.isbn)}
+                delayLongPress={150}
+                className="flex-row items-center py-3 border-b border-gray-100 dark:border-neutral-800"
               >
-                <Text className="text-red-500 text-sm font-medium">Delete</Text>
+                {item.cover ? (
+                  <Image
+                    source={{ uri: item.cover }}
+                    className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-800"
+                    resizeMode="cover"
+                  />
+                ) : (
+                  <View className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-800 items-center justify-center">
+                    <Text className="text-gray-400 text-xs">No img</Text>
+                  </View>
+                )}
+
+                <View className="flex-1 ml-3">
+                  <Text className="text-base font-medium dark:text-white" numberOfLines={2}>
+                    {item.title}
+                  </Text>
+                  <Text className="text-sm text-gray-400 mt-0.5">{item.isbn}</Text>
+                </View>
               </Pressable>
-            </Pressable>
+            </SwipeableRow>
           )}
         />
       </SafeAreaView>
