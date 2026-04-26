@@ -116,25 +116,25 @@ export default function BooksScreen() {
               <Pressable
                 onLongPress={() => copyIsbn(item.isbn)}
                 delayLongPress={150}
-                className="flex-row items-center py-3 border-b border-gray-100 dark:border-neutral-800"
+                className="flex-row items-center p-3 mb-2 rounded-xl bg-gray-100 dark:bg-neutral-800"
               >
                 {item.cover ? (
                   <Image
                     source={{ uri: item.cover }}
-                    className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-800"
+                    className="w-16 h-22 rounded-lg bg-gray-200 dark:bg-neutral-700"
                     resizeMode="cover"
                   />
                 ) : (
-                  <View className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-800 items-center justify-center">
+                  <View className="w-16 h-22 rounded-lg bg-gray-200 dark:bg-neutral-700 items-center justify-center">
                     <Text className="text-gray-400 text-xs">No img</Text>
                   </View>
                 )}
 
                 <View className="flex-1 ml-3">
-                  <Text className="text-base font-medium dark:text-white" numberOfLines={2}>
+                  <Text className="text-base font-semibold dark:text-white" numberOfLines={2}>
                     {item.title}
                   </Text>
-                  <Text className="text-sm text-gray-400 mt-0.5">{item.isbn}</Text>
+                  <Text className="text-sm text-gray-400 mt-1">{item.isbn}</Text>
                 </View>
               </Pressable>
             </SwipeableRow>
