@@ -5,6 +5,8 @@ export type Book = {
   coverUrl?: string // remote URL, used as the source to download from
   provider?: ProviderId
   tags: string[]
+  note?: string
+  favorite?: boolean
   createdAt: Date
   updatedAt?: Date
   syncedAt?: Date

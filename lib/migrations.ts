@@ -35,6 +35,13 @@ const migrations: Migration[] = [
       await db.execAsync(`ALTER TABLE books ADD COLUMN updatedAt INTEGER`)
     },
   },
+  {
+    version: 4,
+    up: async (db) => {
+      await db.execAsync(`ALTER TABLE books ADD COLUMN note TEXT NOT NULL DEFAULT ''`)
+      await db.execAsync(`ALTER TABLE books ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0`)
+    },
+  },
 ]
 
 export async function runMigrations(db: SQLiteDatabase) {

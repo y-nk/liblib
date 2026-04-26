@@ -13,9 +13,9 @@ import {
 } from 'react-native'
 import { useFocusEffect } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Settings } from 'lucide-react-native'
+import { Settings, Star } from 'lucide-react-native'
 import * as Clipboard from 'expo-clipboard'
-import { getBooks, removeBook } from '@/lib/data/books'
+import { getBooks, removeBook, toggleFavorite } from '@/lib/data/books'
 import Header from '@/components/Header'
 import SwipeableRow from '@/components/SwipeableRow'
 import SettingsSheet from '@/components/SettingsSheet'
@@ -44,6 +44,11 @@ export default function BooksScreen() {
       Animated.delay(1200),
       Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
     ]).start()
+  }
+
+  const handleToggleFavorite = async (isbn: string) => {
+    await toggleFavorite(isbn)
+    reload()
   }
 
   useFocusEffect(
@@ -136,6 +141,18 @@ export default function BooksScreen() {
                   </Text>
                   <Text className="text-sm text-gray-400 mt-1">{item.isbn}</Text>
                 </View>
+
+                <Pressable
+                  onPress={() => handleToggleFavorite(item.isbn)}
+                  className="p-2"
+                  hitSlop={8}
+                >
+                  <Star
+                    size={20}
+                    color="#facc15"
+                    fill={item.favorite ? '#facc15' : 'transparent'}
+                  />
+                </Pressable>
               </Pressable>
             </SwipeableRow>
           )}
