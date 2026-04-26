@@ -8,6 +8,7 @@ type BookRow = {
   cover: string
   tags: string
   createdAt: number
+  updatedAt: number | null
   syncedAt: number | null
   collectionId: string | null
   metadata: string
@@ -23,6 +24,7 @@ function rowToBook(row: BookRow): Book {
     cover: row.cover,
     tags,
     createdAt: new Date(row.createdAt),
+    ...(row.updatedAt != null ? { updatedAt: new Date(row.updatedAt) } : {}),
     ...(row.syncedAt != null ? { syncedAt: new Date(row.syncedAt) } : {}),
     ...(row.collectionId != null ? { collectionId: row.collectionId } : {}),
     ...(meta.coverUrl ? { coverUrl: meta.coverUrl } : {}),
@@ -34,13 +36,14 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
   const tags = JSON.stringify(book.tags ?? [])
 
   await db.runAsync(
-    'INSERT OR REPLACE INTO books (isbn, title, cover, tags, createdAt, syncedAt, collectionId, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT OR REPLACE INTO books (isbn, title, cover, tags, createdAt, updatedAt, syncedAt, collectionId, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
       book.isbn,
       book.title,
       book.cover ?? '',
       tags,
       book.createdAt.getTime(),
+      book.updatedAt ? book.updatedAt.getTime() : null,
       book.syncedAt ? book.syncedAt.getTime() : null,
       book.collectionId ?? null,
       metadata,
@@ -51,7 +54,7 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
 export async function getBooks(): Promise<Book[]> {
   const db = await getDb()
   const rows = await db.getAllAsync<BookRow>(
-    'SELECT isbn, title, cover, tags, createdAt, syncedAt, collectionId, metadata FROM books ORDER BY createdAt DESC',
+    'SELECT isbn, title, cover, tags, createdAt, updatedAt, syncedAt, collectionId, metadata FROM books ORDER BY createdAt DESC',
   )
   return rows.map(rowToBook)
 }

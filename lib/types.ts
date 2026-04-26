@@ -6,6 +6,7 @@ export type Book = {
   provider?: ProviderId
   tags: string[]
   createdAt: Date
+  updatedAt?: Date
   syncedAt?: Date
   collectionId?: string
 }

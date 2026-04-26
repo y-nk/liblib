@@ -29,6 +29,12 @@ const migrations: Migration[] = [
       await db.execAsync(`ALTER TABLE books ADD COLUMN tags TEXT NOT NULL DEFAULT '[]'`)
     },
   },
+  {
+    version: 3,
+    up: async (db) => {
+      await db.execAsync(`ALTER TABLE books ADD COLUMN updatedAt INTEGER`)
+    },
+  },
 ]
 
 export async function runMigrations(db: SQLiteDatabase) {
