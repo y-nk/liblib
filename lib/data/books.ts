@@ -89,6 +89,26 @@ export async function toggleFavorite(isbn: string) {
   )
 }
 
+export async function updateBookTitle(isbn: string, title: string) {
+  const db = await getDb()
+
+  await db.runAsync('UPDATE books SET title = ?, updatedAt = ? WHERE isbn = ?', [
+    title,
+    Date.now(),
+    isbn,
+  ])
+}
+
+export async function updateBookNote(isbn: string, note: string) {
+  const db = await getDb()
+
+  await db.runAsync('UPDATE books SET note = ?, updatedAt = ? WHERE isbn = ?', [
+    note,
+    Date.now(),
+    isbn,
+  ])
+}
+
 export async function removeBook(isbn: string) {
   const db = await getDb()
   await db.runAsync('DELETE FROM books WHERE isbn = ?', [isbn])

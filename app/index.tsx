@@ -13,15 +13,17 @@ import {
 } from 'react-native'
 import { useFocusEffect } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Settings, Star } from 'lucide-react-native'
+import { Settings } from 'lucide-react-native'
 import * as Clipboard from 'expo-clipboard'
 import { getBooks, removeBook, toggleFavorite } from '@/lib/data/books'
+import FavoriteButton from '@/components/FavoriteButton'
 import Header from '@/components/Header'
 import SwipeableRow from '@/components/SwipeableRow'
 import SettingsSheet from '@/components/SettingsSheet'
 import AddManuallySheet from '@/components/AddManuallySheet'
 import SearchSheet from '@/components/SearchSheet'
 import ActionToolbar from '@/components/ActionToolbar'
+import BookDetailSheet from '@/components/BookDetailSheet'
 import type { Book } from '@/lib/types'
 
 export default function BooksScreen() {
@@ -31,6 +33,7 @@ export default function BooksScreen() {
   const [showAddManual, setShowAddManual] = useState(false)
   const [manualIsbn, setManualIsbn] = useState('')
   const [showSearch, setShowSearch] = useState(false)
+  const [selectedBook, setSelectedBook] = useState<Book | null>(null)
   const dark = useColorScheme() === 'dark'
   const toastOpacity = useRef(new Animated.Value(0)).current
 
@@ -119,6 +122,7 @@ export default function BooksScreen() {
           renderItem={({ item }) => (
             <SwipeableRow onDelete={() => confirmDelete(item.isbn, item.title)}>
               <Pressable
+                onPress={() => setSelectedBook(item)}
                 onLongPress={() => copyIsbn(item.isbn)}
                 delayLongPress={150}
                 className="flex-row items-center p-3 mb-2 rounded-xl bg-gray-100 dark:bg-neutral-800"
@@ -142,17 +146,10 @@ export default function BooksScreen() {
                   <Text className="text-sm text-gray-400 mt-1">{item.isbn}</Text>
                 </View>
 
-                <Pressable
-                  onPress={() => handleToggleFavorite(item.isbn)}
-                  className="p-2"
-                  hitSlop={8}
-                >
-                  <Star
-                    size={20}
-                    color="#facc15"
-                    fill={item.favorite ? '#facc15' : 'transparent'}
-                  />
-                </Pressable>
+                <FavoriteButton
+                  active={item.favorite}
+                  onToggle={() => handleToggleFavorite(item.isbn)}
+                />
               </Pressable>
             </SwipeableRow>
           )}
@@ -176,6 +173,13 @@ export default function BooksScreen() {
           <Text className="text-white dark:text-black text-sm font-medium">ISBN copied</Text>
         </View>
       </Animated.View>
+
+      <BookDetailSheet
+        book={selectedBook}
+        visible={!!selectedBook}
+        onClose={() => setSelectedBook(null)}
+        onChanged={reload}
+      />
 
       <SettingsSheet visible={showSettings} onClose={() => setShowSettings(false)} />
       <AddManuallySheet
