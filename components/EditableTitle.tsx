@@ -11,21 +11,23 @@ export default function EditableTitle({
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(value)
+  const [displayValue, setDisplayValue] = useState(value)
   const inputRef = useRef<TextInput>(null)
   const dark = useColorScheme() === 'dark'
 
   const startEditing = () => {
-    setDraft(value)
+    setDraft(displayValue)
     setEditing(true)
 
     setTimeout(() => inputRef.current?.focus(), 100)
   }
 
-  const handleBlur = () => {
+  const commit = () => {
     setEditing(false)
     const trimmed = draft.trim()
 
-    if (trimmed && trimmed !== value) {
+    if (trimmed && trimmed !== displayValue) {
+      setDisplayValue(trimmed)
       onSave(trimmed)
     }
   }
@@ -37,8 +39,10 @@ export default function EditableTitle({
         className="text-2xl font-bold dark:text-white"
         value={draft}
         onChangeText={setDraft}
-        onBlur={handleBlur}
-        multiline
+        onBlur={commit}
+        onSubmitEditing={commit}
+        returnKeyType="done"
+        blurOnSubmit
         autoFocus
       />
     )
@@ -46,7 +50,7 @@ export default function EditableTitle({
 
   return (
     <Pressable onPress={startEditing} className="flex-row items-start">
-      <Text className="text-2xl font-bold dark:text-white flex-1">{value}</Text>
+      <Text className="text-2xl font-bold dark:text-white flex-1">{displayValue}</Text>
 
       <View className="ml-2 mt-1">
         <Pencil size={18} color={dark ? '#666' : '#9ca3af'} />
