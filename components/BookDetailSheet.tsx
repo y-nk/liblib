@@ -3,7 +3,9 @@ import { View, Text, TextInput, Image, ScrollView, useColorScheme } from 'react-
 import BottomDrawer from './BottomDrawer'
 import FavoriteButton from './FavoriteButton'
 import EditableTitle from './EditableTitle'
-import { toggleFavorite, updateBookTitle, updateBookNote } from '@/lib/data/books'
+import CoverPicker from './CoverPicker'
+import { toggleFavorite, updateBookTitle, updateBookNote, updateBookCover } from '@/lib/data/books'
+import { saveCoverFromDataUri } from '@/lib/covers'
 import type { Book } from '@/lib/types'
 
 function formatRelativeTime(date?: Date) {
@@ -97,6 +99,19 @@ export default function BookDetailSheet({
     onChanged()
   }, [book?.isbn, onChanged])
 
+  const handleCoverChange = useCallback(
+    async (dataUri: string) => {
+      if (!book) {
+        return
+      }
+
+      const coverPath = await saveCoverFromDataUri(book.isbn, dataUri)
+      await updateBookCover(book.isbn, coverPath)
+      onChanged()
+    },
+    [book?.isbn, onChanged],
+  )
+
   if (!book) {
     return null
   }
@@ -113,9 +128,7 @@ export default function BookDetailSheet({
                 resizeMode="cover"
               />
             ) : (
-              <View className="w-48 h-64 rounded-lg bg-gray-200 dark:bg-neutral-700 items-center justify-center">
-                <Text className="text-gray-400">No cover</Text>
-              </View>
+              <CoverPicker value="" onChange={handleCoverChange} width={192} aspectRatio={3 / 4} />
             )}
 
             <View className="absolute top-1 right-1">

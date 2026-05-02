@@ -89,6 +89,16 @@ export async function toggleFavorite(isbn: string) {
   )
 }
 
+export async function updateBookCover(isbn: string, cover: string) {
+  const db = await getDb()
+
+  await db.runAsync('UPDATE books SET cover = ?, updatedAt = ? WHERE isbn = ?', [
+    cover,
+    Date.now(),
+    isbn,
+  ])
+}
+
 export async function updateBookTitle(isbn: string, title: string) {
   const db = await getDb()
 
