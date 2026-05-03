@@ -12,7 +12,7 @@ function coverFile(isbn: string): File {
   return new File(COVERS_DIR, `${isbn}.jpg`)
 }
 
-export async function saveCoverFromUrl(isbn: string, url: string): Promise<string> {
+export async function saveCoverFromUrl(isbn: string, url: string) {
   ensureDir()
   const dest = coverFile(isbn)
   if (dest.exists) {
@@ -22,7 +22,7 @@ export async function saveCoverFromUrl(isbn: string, url: string): Promise<strin
   return downloaded.uri
 }
 
-export async function saveCoverFromDataUri(isbn: string, dataUri: string): Promise<string> {
+export async function saveCoverFromDataUri(isbn: string, dataUri: string) {
   ensureDir()
   const comma = dataUri.indexOf(',')
   const base64 = comma >= 0 ? dataUri.slice(comma + 1) : dataUri
@@ -35,7 +35,7 @@ export async function saveCoverFromDataUri(isbn: string, dataUri: string): Promi
   return dest.uri
 }
 
-export function deleteCover(isbn: string): void {
+export function deleteCover(isbn: string) {
   const f = coverFile(isbn)
   if (f.exists) {
     f.delete()

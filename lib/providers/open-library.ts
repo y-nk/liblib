@@ -1,6 +1,4 @@
-import type { Book } from '../types'
-
-export async function getBookFromISBN(isbn: string): Promise<Book[]> {
+export async function getBookFromISBN(isbn: string) {
   try {
     const res = await fetch(
       `https://openlibrary.org/api/books?bibkeys=ISBN:${isbn}&jscmd=data&format=json`,
@@ -22,7 +20,7 @@ export async function getBookFromISBN(isbn: string): Promise<Book[]> {
         title: entry.title,
         cover: '',
         coverUrl,
-        provider: 'openLibrary',
+        provider: 'openLibrary' as const,
         tags: [],
         createdAt: new Date(),
       },

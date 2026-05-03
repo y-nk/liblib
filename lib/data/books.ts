@@ -16,7 +16,7 @@ type BookRow = {
   metadata: string
 }
 
-function rowToBook(row: BookRow): Book {
+function rowToBook(row: BookRow) {
   const meta = row.metadata ? JSON.parse(row.metadata) : {}
   const tags = row.tags ? JSON.parse(row.tags) : []
 
@@ -57,7 +57,7 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
   )
 }
 
-export async function getBooks(): Promise<Book[]> {
+export async function getBooks() {
   const db = await getDb()
   const rows = await db.getAllAsync<BookRow>(
     'SELECT isbn, title, cover, tags, note, favorite, createdAt, updatedAt, syncedAt, collectionId, metadata FROM books ORDER BY createdAt DESC',

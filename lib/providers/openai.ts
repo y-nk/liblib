@@ -1,7 +1,6 @@
-import type { Book } from '../types'
 import { getSettings } from '../data/settings'
 
-export async function getBookFromISBN(isbn: string): Promise<Book[]> {
+export async function getBookFromISBN(isbn: string) {
   try {
     const { openaiKey } = await getSettings()
     if (!openaiKey) {

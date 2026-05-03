@@ -1,6 +1,6 @@
 import { parse } from 'node-html-parser'
 import type { HTMLElement } from 'node-html-parser'
-import type { Book, ProviderId } from '../types'
+import type { ProviderId } from '../types'
 
 type DomProviderConfig = {
   id: ProviderId
@@ -10,7 +10,7 @@ type DomProviderConfig = {
 }
 
 export function createDomProvider(config: DomProviderConfig) {
-  return async function getBookFromISBN(isbn: string): Promise<Book[]> {
+  return async function getBookFromISBN(isbn: string) {
     try {
       const url = config.urlTemplate.replace('{isbn}', isbn)
 

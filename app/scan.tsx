@@ -125,7 +125,7 @@ export default function ScanScreen() {
 
   const { status, message, providerName, candidates, isBusy, pick, reset, search } = useISBNLookup(
     () => {
-      exitTimer.current = setTimeout(() => router.back(), 1000)
+      exitTimer.current = setTimeout(() => router.back(), 3000)
     },
   )
 
@@ -278,10 +278,8 @@ export default function ScanScreen() {
           ) : null}
 
           {status === 'success' && (
-            <Pressable onPress={keepScanning} className="mt-3">
-              <Text className="text-white text-center text-sm font-medium underline">
-                Keep scanning
-              </Text>
+            <Pressable onPress={keepScanning} className="mt-4 bg-white rounded-lg py-3 px-6">
+              <Text className="text-black text-center text-base font-semibold">Keep scanning</Text>
             </Pressable>
           )}
         </View>

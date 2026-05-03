@@ -3,7 +3,7 @@ import { runMigrations } from './migrations'
 
 let dbPromise: Promise<SQLiteDatabase> | null = null
 
-export function getDb(): Promise<SQLiteDatabase> {
+export function getDb() {
   if (!dbPromise) {
     dbPromise = openDatabaseAsync('liblib.db').then(async (db) => {
       await runMigrations(db)

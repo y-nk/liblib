@@ -19,7 +19,7 @@ const providerMap: Record<ProviderId, { getBookFromISBN: (isbn: string) => Promi
   gemini,
 }
 
-export async function lookupISBN(isbn: string): Promise<Book[]> {
+export async function lookupISBN(isbn: string) {
   const { providers } = await getSettings()
 
   const freeProviders = providers.filter((p) => p.enabled && !AI_PROVIDERS.includes(p.id))

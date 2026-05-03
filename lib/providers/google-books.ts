@@ -1,6 +1,4 @@
-import type { Book } from '../types'
-
-export async function getBookFromISBN(isbn: string): Promise<Book[]> {
+export async function getBookFromISBN(isbn: string) {
   try {
     const res = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`)
     if (!res.ok) {
@@ -21,7 +19,7 @@ export async function getBookFromISBN(isbn: string): Promise<Book[]> {
         title: item.title,
         cover: '',
         coverUrl,
-        provider: 'googleBooks',
+        provider: 'googleBooks' as const,
         tags: [],
         createdAt: new Date(),
       },
