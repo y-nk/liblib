@@ -1,36 +1,10 @@
-export type Book = {
-  isbn: string
-  title: string
-  cover: string // file:// URI of the cover on disk; '' if none
-  coverUrl?: string // remote URL, used as the source to download from
-  provider?: ProviderId
-  tags: string[]
-  note?: string
-  favorite?: boolean
-  createdAt: Date
-  updatedAt?: Date
-  syncedAt?: Date
-  collectionId?: string
-}
+import type { z } from 'zod'
+import type { bookSchema, providerIdSchema, providerConfigSchema, settingsSchema } from './schemas'
 
-export type ProviderId =
-  | 'openLibrary'
-  | 'googleBooks'
-  | 'isbnSearch'
-  | 'amazon'
-  | 'openai'
-  | 'gemini'
-
-export type ProviderConfig = {
-  id: ProviderId
-  enabled: boolean
-}
-
-export type Settings = {
-  openaiKey: string
-  geminiKey: string
-  providers: ProviderConfig[]
-}
+export type Book = z.infer<typeof bookSchema>
+export type ProviderId = z.infer<typeof providerIdSchema>
+export type ProviderConfig = z.infer<typeof providerConfigSchema>
+export type Settings = z.infer<typeof settingsSchema>
 
 export const DEFAULT_PROVIDERS: ProviderConfig[] = [
   { id: 'isbnSearch', enabled: true },

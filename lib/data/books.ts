@@ -1,36 +1,24 @@
 import type { Book } from '../types'
 import { getDb } from '../db'
 import { deleteCover } from '../covers'
+import { bookRowSchema, metadataSchema } from '../schemas'
 
-type BookRow = {
-  isbn: string
-  title: string
-  cover: string
-  tags: string
-  note: string
-  favorite: number
-  createdAt: number
-  updatedAt: number | null
-  syncedAt: number | null
-  collectionId: string | null
-  metadata: string
-}
-
-function rowToBook(row: BookRow) {
-  const meta = row.metadata ? JSON.parse(row.metadata) : {}
-  const tags = row.tags ? JSON.parse(row.tags) : []
+function rowToBook(row: unknown): Book {
+  const r = bookRowSchema.parse(row)
+  const meta = metadataSchema.parse(r.metadata ? JSON.parse(r.metadata) : {})
+  const tags = JSON.parse(r.tags) as string[]
 
   return {
-    isbn: row.isbn,
-    title: row.title,
-    cover: row.cover,
+    isbn: r.isbn,
+    title: r.title,
+    cover: r.cover,
     tags,
-    ...(row.note ? { note: row.note } : {}),
-    ...(row.favorite ? { favorite: true } : {}),
-    createdAt: new Date(row.createdAt),
-    ...(row.updatedAt != null ? { updatedAt: new Date(row.updatedAt) } : {}),
-    ...(row.syncedAt != null ? { syncedAt: new Date(row.syncedAt) } : {}),
-    ...(row.collectionId != null ? { collectionId: row.collectionId } : {}),
+    ...(r.note ? { note: r.note } : {}),
+    ...(r.favorite ? { favorite: true } : {}),
+    createdAt: new Date(r.createdAt),
+    ...(r.updatedAt != null ? { updatedAt: new Date(r.updatedAt) } : {}),
+    ...(r.syncedAt != null ? { syncedAt: new Date(r.syncedAt) } : {}),
+    ...(r.collectionId != null ? { collectionId: r.collectionId } : {}),
     ...(meta.coverUrl ? { coverUrl: meta.coverUrl } : {}),
   }
 }
@@ -59,7 +47,7 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
 
 export async function getBooks() {
   const db = await getDb()
-  const rows = await db.getAllAsync<BookRow>(
+  const rows = await db.getAllAsync(
     'SELECT isbn, title, cover, tags, note, favorite, createdAt, updatedAt, syncedAt, collectionId, metadata FROM books ORDER BY createdAt DESC',
   )
   return rows.map(rowToBook)

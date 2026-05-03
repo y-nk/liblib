@@ -1,6 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import type { Settings, ProviderConfig } from '../types'
 import { DEFAULT_PROVIDERS } from '../types'
+import { settingsSchema, providerConfigSchema } from '../schemas'
+import { z } from 'zod'
 
 const SETTINGS_KEY = 'liblib:settings'
 
@@ -20,9 +22,24 @@ export async function getSettings(): Promise<Settings> {
   }
 
   const parsed = JSON.parse(raw)
-  const providers = parsed.providers ? mergeProviders(parsed.providers) : defaults.providers
 
-  return { ...defaults, ...parsed, providers }
+  const partialResult = settingsSchema
+    .extend({ providers: z.array(providerConfigSchema).optional() })
+    .safeParse(parsed)
+
+  if (!partialResult.success) {
+    return defaults
+  }
+
+  const providers = partialResult.data.providers
+    ? mergeProviders(partialResult.data.providers)
+    : defaults.providers
+
+  return {
+    openaiKey: partialResult.data.openaiKey,
+    geminiKey: partialResult.data.geminiKey,
+    providers,
+  }
 }
 
 export async function saveSettings(settings: Settings) {
