@@ -111,7 +111,7 @@ export default function BooksScreen() {
               />
             </View>
           }
-          contentContainerStyle={{ paddingBottom: 100 }}
+          contentContainerStyle={{ paddingBottom: 80 }}
           ListEmptyComponent={
             <View className="items-center pt-20">
               <Text className="text-gray-400 text-base">
