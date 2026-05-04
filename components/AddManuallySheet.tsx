@@ -151,7 +151,7 @@ export default function AddManuallySheet({
             >
               {book.cover || book.coverUrl ? (
                 <Image
-                  source={{ uri: book.cover || book.coverUrl }}
+                  source={{ uri: book.cover || book.coverUrl || undefined }}
                   className="w-12 h-16 rounded bg-gray-200 dark:bg-neutral-700"
                   resizeMode="cover"
                 />

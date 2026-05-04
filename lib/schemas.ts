@@ -26,49 +26,31 @@ export const bookSchema = z.object({
   isbn: z.string(),
   title: z.string(),
   cover: z.string(),
-  coverUrl: z.string().optional(),
+  coverUrl: z.string().nullish(),
   provider: providerIdSchema.optional(),
   tags: z.array(z.string()),
   note: z.string().optional(),
   favorite: z.boolean().optional(),
   createdAt: z.date(),
-  updatedAt: z.date().optional(),
-  syncedAt: z.date().optional(),
-  collectionId: z.string().optional(),
+  updatedAt: z.date().nullish(),
+  syncedAt: z.date().nullish(),
+  collectionId: z.string().nullish(),
 })
 
 export const metadataSchema = z.object({
   coverUrl: z.string().optional(),
 })
 
-export const bookRowSchema = z
-  .object({
-    isbn: z.string(),
-    title: z.string(),
-    cover: z.string(),
-    tags: z.string(),
-    note: z.string(),
-    favorite: z.number(),
-    createdAt: z.number(),
-    updatedAt: z.number().nullable(),
-    syncedAt: z.number().nullable(),
-    collectionId: z.string().nullable(),
-    metadata: z.string(),
-  })
-  .transform((r) => {
-    const meta = metadataSchema.parse(r.metadata ? JSON.parse(r.metadata) : {})
-
-    return {
-      isbn: r.isbn,
-      title: r.title,
-      cover: r.cover,
-      tags: JSON.parse(r.tags) as string[],
-      ...(r.note ? { note: r.note } : {}),
-      ...(r.favorite ? { favorite: true } : {}),
-      createdAt: new Date(r.createdAt),
-      ...(r.updatedAt != null ? { updatedAt: new Date(r.updatedAt) } : {}),
-      ...(r.syncedAt != null ? { syncedAt: new Date(r.syncedAt) } : {}),
-      ...(r.collectionId != null ? { collectionId: r.collectionId } : {}),
-      ...(meta.coverUrl ? { coverUrl: meta.coverUrl } : {}),
-    }
-  })
+export const bookRowSchema = z.object({
+  isbn: z.string(),
+  title: z.string(),
+  cover: z.string(),
+  tags: z.string().transform((s) => JSON.parse(s) as string[]),
+  note: z.string().optional().default(''),
+  favorite: z.coerce.boolean().optional().default(false),
+  createdAt: z.coerce.date(),
+  updatedAt: z.coerce.date().nullish(),
+  syncedAt: z.coerce.date().nullish(),
+  collectionId: z.string().nullish(),
+  coverUrl: z.string().nullish(),
+})

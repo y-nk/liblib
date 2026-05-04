@@ -194,7 +194,7 @@ export default function ScanScreen() {
               >
                 {book.cover || book.coverUrl ? (
                   <Image
-                    source={{ uri: book.cover || book.coverUrl }}
+                    source={{ uri: book.cover || book.coverUrl || undefined }}
                     className="w-16 h-22 rounded bg-gray-800"
                     resizeMode="cover"
                   />

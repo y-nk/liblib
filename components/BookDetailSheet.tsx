@@ -20,7 +20,7 @@ import { saveCoverFromDataUri, saveCoverFromUrl } from '@/lib/covers'
 import { lookupISBN } from '@/lib/providers'
 import type { Book } from '@/lib/types'
 
-function formatRelativeTime(date?: Date) {
+function formatRelativeTime(date?: Date | null) {
   if (!date) {
     return 'never'
   }
