@@ -1,10 +1,15 @@
 import { getSettings } from '../data/settings'
+import { log } from '../log'
 
 export async function getBookFromISBN(isbn: string) {
+  const tag = 'gemini'
+
   try {
     const { geminiKey } = await getSettings()
+
     if (!geminiKey) {
-      console.log('[gemini] no API key configured')
+      log.warn(tag, 'no API key configured')
+
       return []
     }
 
@@ -18,6 +23,10 @@ Every entry MUST have a cover image URL — skip entries without one.
 No markdown, no explanation, just the JSON array.
 If you can't find anything, return []`
 
+    const start = Date.now()
+
+    log.info(tag, `searching for ISBN ${isbn}`)
+
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`,
       {
@@ -29,22 +38,40 @@ If you can't find anything, return []`
         }),
       },
     )
+
+    const duration = Date.now() - start
+
     if (!res.ok) {
-      throw new Error(`API error: ${res.status}`)
+      const body = await res.text().catch(() => '')
+
+      log.error(tag, `HTTP ${res.status} in ${duration}ms`, { isbn, body: body.slice(0, 1000) })
+
+      return []
     }
+
     const data = await res.json()
     const text = data.candidates?.[0]?.content?.parts?.[0]?.text ?? ''
 
     const arrMatch = text.match(/\[[\s\S]*\]/)
+
     if (!arrMatch) {
-      return []
-    }
-    const arr = JSON.parse(arrMatch[0])
-    if (!Array.isArray(arr) || arr.length === 0) {
+      log.warn(tag, `no JSON array in response in ${duration}ms`, {
+        isbn,
+        responseSnippet: text.slice(0, 500),
+      })
+
       return []
     }
 
-    return arr
+    const arr = JSON.parse(arrMatch[0])
+
+    if (!Array.isArray(arr) || arr.length === 0) {
+      log.info(tag, `empty results in ${duration}ms`, { isbn })
+
+      return []
+    }
+
+    const results = arr
       .filter((item: any) => item.title && item.cover)
       .map((item: any) => ({
         isbn,
@@ -55,8 +82,13 @@ If you can't find anything, return []`
         tags: [],
         createdAt: new Date(),
       }))
+
+    log.info(tag, `found ${results.length} results in ${duration}ms`, { isbn })
+
+    return results
   } catch (e) {
-    console.log('[gemini]', e)
+    log.error(tag, `exception: ${e instanceof Error ? e.message : String(e)}`, { isbn })
+
     return []
   }
 }

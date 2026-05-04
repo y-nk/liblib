@@ -17,6 +17,8 @@ import DraggableFlatList, {
 } from 'react-native-draggable-flatlist'
 import { GripVertical, ChevronDown, ChevronRight, TriangleAlert } from 'lucide-react-native'
 import { getSettings, saveSettings } from '@/lib/data/settings'
+import { getLogs, clearLogs } from '@/lib/log'
+import * as Clipboard from 'expo-clipboard'
 import { openai, gemini } from '@/lib/providers'
 import type { Settings, ProviderConfig, ProviderId } from '@/lib/types'
 import {
@@ -217,6 +219,21 @@ export default function SettingsSheet({
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: bottom + 16 }}
         ListFooterComponent={
           <View className="mt-6">
+            <View className="flex-row justify-center gap-4 mb-3">
+              <Pressable
+                onPress={async () => {
+                  const logs = await getLogs()
+                  await Clipboard.setStringAsync(logs || '(empty)')
+                }}
+              >
+                <Text className="text-xs text-blue-500">Copy logs</Text>
+              </Pressable>
+
+              <Pressable onPress={clearLogs}>
+                <Text className="text-xs text-red-400">Clear logs</Text>
+              </Pressable>
+            </View>
+
             <Text className="text-xs text-gray-400 text-center">
               Version: {process.env.EXPO_PUBLIC_COMMIT_SHA?.slice(0, 7) || 'dev'}
             </Text>

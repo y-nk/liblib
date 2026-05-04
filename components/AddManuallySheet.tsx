@@ -15,6 +15,7 @@ import { Search } from 'lucide-react-native'
 import { addBook } from '@/lib/data/books'
 import { lookupISBN } from '@/lib/providers'
 import { saveCoverFromDataUri, saveCoverFromUrl } from '@/lib/covers'
+import { log } from '@/lib/log'
 import type { Book } from '@/lib/types'
 
 export default function AddManuallySheet({
@@ -126,7 +127,7 @@ export default function AddManuallySheet({
       onAdded()
       onClose()
     } catch (e) {
-      console.log('[manual-add] save failed:', e)
+      log.error('manual-add', `save failed: ${e instanceof Error ? e.message : String(e)}`)
       setSaving(false)
       setError('Failed to save')
     }
