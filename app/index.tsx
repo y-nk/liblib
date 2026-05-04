@@ -125,7 +125,7 @@ export default function BooksScreen() {
                 onPress={() => setSelectedBook(item)}
                 onLongPress={() => copyIsbn(item.isbn)}
                 delayLongPress={150}
-                className="flex-row items-center py-3"
+                className="flex-row items-center py-3 bg-white dark:bg-neutral-950"
               >
                 {item.cover ? (
                   <Image
