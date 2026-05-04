@@ -125,7 +125,7 @@ export default function BooksScreen() {
                 onPress={() => setSelectedBook(item)}
                 onLongPress={() => copyIsbn(item.isbn)}
                 delayLongPress={150}
-                className="flex-row items-center p-3 bg-gray-100 dark:bg-neutral-800"
+                className="flex-row items-center py-3"
               >
                 {item.cover ? (
                   <Image
@@ -144,7 +144,7 @@ export default function BooksScreen() {
                 )}
 
                 <View className="flex-1 ml-3">
-                  <Text className="text-base font-semibold dark:text-white" numberOfLines={2}>
+                  <Text className="text-lg font-semibold dark:text-white" numberOfLines={2}>
                     {item.title}
                   </Text>
                   <Text className="text-sm text-gray-400 mt-1">{item.isbn}</Text>

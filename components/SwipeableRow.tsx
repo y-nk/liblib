@@ -21,7 +21,7 @@ export default function SwipeableRow({
   }
 
   return (
-    <View className="mb-2 rounded-xl overflow-hidden">
+    <View className="overflow-hidden">
       <ReanimatedSwipeable
         ref={swipeableRef as any}
         renderRightActions={() => (
