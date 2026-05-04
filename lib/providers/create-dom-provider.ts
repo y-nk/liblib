@@ -45,9 +45,12 @@ export function createDomProvider(config: DomProviderConfig) {
       const title = config.getTitle(doc)?.trim()
 
       if (!title) {
+        const bodyStart = html.indexOf('<body')
+        const bodyContent = bodyStart >= 0 ? html.slice(bodyStart) : html
+
         log.warn(tag, 'title selector returned nothing — dumping body', {
           isbn,
-          bodySnippet: html.slice(0, 2000),
+          bodySnippet: bodyContent.slice(0, 3000),
         })
 
         return []
