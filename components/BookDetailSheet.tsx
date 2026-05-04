@@ -1,11 +1,23 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { View, Text, TextInput, Image, ScrollView, useColorScheme } from 'react-native'
+import {
+  View,
+  Text,
+  TextInput,
+  Image,
+  ScrollView,
+  Pressable,
+  Modal,
+  ActivityIndicator,
+  useColorScheme,
+} from 'react-native'
+import * as ImagePicker from 'expo-image-picker'
+import { Camera, Search } from 'lucide-react-native'
 import BottomDrawer from './BottomDrawer'
 import FavoriteButton from './FavoriteButton'
 import EditableTitle from './EditableTitle'
-import CoverPicker from './CoverPicker'
 import { toggleFavorite, updateBookTitle, updateBookNote, updateBookCover } from '@/lib/data/books'
-import { saveCoverFromDataUri } from '@/lib/covers'
+import { saveCoverFromDataUri, saveCoverFromUrl } from '@/lib/covers'
+import { lookupISBN } from '@/lib/providers'
 import type { Book } from '@/lib/types'
 
 function formatRelativeTime(date?: Date) {
@@ -49,6 +61,8 @@ export default function BookDetailSheet({
 }) {
   const [note, setNote] = useState('')
   const [favorite, setFavorite] = useState(false)
+  const [showCoverMenu, setShowCoverMenu] = useState(false)
+  const [searchingCover, setSearchingCover] = useState(false)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const dark = useColorScheme() === 'dark'
 
@@ -112,6 +126,46 @@ export default function BookDetailSheet({
     [book?.isbn, onChanged],
   )
 
+  const searchCover = useCallback(async () => {
+    if (!book) {
+      return
+    }
+
+    setShowCoverMenu(false)
+    setSearchingCover(true)
+
+    try {
+      const results = await lookupISBN(book.isbn)
+      const match = results.find((r) => r.coverUrl)
+
+      if (match?.coverUrl) {
+        const localPath = await saveCoverFromUrl(book.isbn, match.coverUrl)
+        await updateBookCover(book.isbn, localPath)
+        onChanged()
+      }
+    } finally {
+      setSearchingCover(false)
+    }
+  }, [book?.isbn, onChanged])
+
+  const takePhoto = useCallback(async () => {
+    setShowCoverMenu(false)
+
+    const result = await ImagePicker.launchCameraAsync({
+      quality: 0.3,
+      base64: true,
+      allowsEditing: true,
+    })
+
+    if (!result.canceled && result.assets[0]) {
+      const asset = result.assets[0]
+      const dataUri = asset.base64
+        ? `data:${asset.mimeType || 'image/jpeg'};base64,${asset.base64}`
+        : asset.uri || ''
+      await handleCoverChange(dataUri)
+    }
+  }, [handleCoverChange])
+
   if (!book) {
     return null
   }
@@ -121,15 +175,28 @@ export default function BookDetailSheet({
       <ScrollView className="px-4 pt-2 pb-6" style={{ maxHeight: 600 }}>
         <View className="items-center mb-4">
           <View className="relative">
-            {book.cover ? (
-              <Image
-                source={{ uri: book.cover }}
-                className="w-48 h-64 rounded-lg bg-gray-200 dark:bg-neutral-700"
-                resizeMode="cover"
-              />
-            ) : (
-              <CoverPicker value="" onChange={handleCoverChange} width={192} aspectRatio={3 / 4} />
-            )}
+            <Pressable onPress={() => setShowCoverMenu(true)}>
+              {book.cover ? (
+                <Image
+                  source={{ uri: book.cover }}
+                  className="w-48 h-64 rounded-lg bg-gray-200 dark:bg-neutral-700"
+                  resizeMode="cover"
+                />
+              ) : (
+                <View
+                  className="w-48 rounded-lg bg-gray-200 dark:bg-neutral-700 items-center justify-center"
+                  style={{ height: 256 }}
+                >
+                  <Camera size={24} color={dark ? '#666' : '#9ca3af'} />
+                </View>
+              )}
+
+              {searchingCover && (
+                <View className="absolute inset-0 rounded-lg bg-black/40 items-center justify-center">
+                  <ActivityIndicator color="white" />
+                </View>
+              )}
+            </Pressable>
 
             <View className="absolute top-1 right-1">
               <FavoriteButton active={favorite} onToggle={handleToggleFavorite} size={24} />
@@ -172,6 +239,36 @@ export default function BookDetailSheet({
           </Text>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={showCoverMenu}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowCoverMenu(false)}
+      >
+        <Pressable
+          className="flex-1 justify-center items-center"
+          style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
+          onPress={() => setShowCoverMenu(false)}
+        >
+          <View
+            className="bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden"
+            style={{ width: 260 }}
+          >
+            <Pressable onPress={searchCover} className="px-5 py-4 flex-row items-center">
+              <Search size={18} color={dark ? '#ccc' : '#333'} />
+              <Text className="text-base dark:text-white ml-3">Search the web</Text>
+            </Pressable>
+
+            <View className="h-px bg-gray-100 dark:bg-neutral-700" />
+
+            <Pressable onPress={takePhoto} className="px-5 py-4 flex-row items-center">
+              <Camera size={18} color={dark ? '#ccc' : '#333'} />
+              <Text className="text-base dark:text-white ml-3">Take a photo</Text>
+            </Pressable>
+          </View>
+        </Pressable>
+      </Modal>
     </BottomDrawer>
   )
 }
