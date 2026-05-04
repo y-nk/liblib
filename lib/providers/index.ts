@@ -8,14 +8,16 @@ import * as openai from './openai'
 import * as gemini from './gemini'
 import * as isbnSearch from './isbn-search'
 import * as amazon from './amazon'
+import * as cultura from './cultura'
 
-export { openLibrary, googleBooks, openai, gemini, isbnSearch, amazon }
+export { openLibrary, googleBooks, openai, gemini, isbnSearch, amazon, cultura }
 
 const providerMap: Record<ProviderId, { getBookFromISBN: (isbn: string) => Promise<Book[]> }> = {
   openLibrary,
   googleBooks,
   isbnSearch,
   amazon,
+  cultura,
   openai,
   gemini,
 }

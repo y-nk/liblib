@@ -5,6 +5,7 @@ export const providerIdSchema = z.enum([
   'googleBooks',
   'isbnSearch',
   'amazon',
+  'cultura',
   'openai',
   'gemini',
 ])
