@@ -1,26 +1,10 @@
 import type { Book } from '../types'
 import { getDb } from '../db'
 import { deleteCover } from '../covers'
-import { bookRowSchema, metadataSchema } from '../schemas'
+import { bookRowSchema } from '../schemas'
 
-function rowToBook(row: unknown): Book {
-  const r = bookRowSchema.parse(row)
-  const meta = metadataSchema.parse(r.metadata ? JSON.parse(r.metadata) : {})
-  const tags = JSON.parse(r.tags) as string[]
-
-  return {
-    isbn: r.isbn,
-    title: r.title,
-    cover: r.cover,
-    tags,
-    ...(r.note ? { note: r.note } : {}),
-    ...(r.favorite ? { favorite: true } : {}),
-    createdAt: new Date(r.createdAt),
-    ...(r.updatedAt != null ? { updatedAt: new Date(r.updatedAt) } : {}),
-    ...(r.syncedAt != null ? { syncedAt: new Date(r.syncedAt) } : {}),
-    ...(r.collectionId != null ? { collectionId: r.collectionId } : {}),
-    ...(meta.coverUrl ? { coverUrl: meta.coverUrl } : {}),
-  }
+function rowToBook(row: unknown) {
+  return bookRowSchema.parse(row)
 }
 
 async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
