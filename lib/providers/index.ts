@@ -9,8 +9,9 @@ import * as gemini from './gemini'
 import * as isbnSearch from './isbn-search'
 import * as amazon from './amazon'
 import * as cultura from './cultura'
+import * as kinokuniya from './kinokuniya'
 
-export { openLibrary, googleBooks, openai, gemini, isbnSearch, amazon, cultura }
+export { openLibrary, googleBooks, openai, gemini, isbnSearch, amazon, cultura, kinokuniya }
 
 const providerMap: Record<ProviderId, { getBookFromISBN: (isbn: string) => Promise<Book[]> }> = {
   openLibrary,
@@ -18,6 +19,7 @@ const providerMap: Record<ProviderId, { getBookFromISBN: (isbn: string) => Promi
   isbnSearch,
   amazon,
   cultura,
+  kinokuniya,
   openai,
   gemini,
 }

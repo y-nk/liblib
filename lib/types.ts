@@ -12,6 +12,7 @@ export const DEFAULT_PROVIDERS: ProviderConfig[] = [
   { id: 'openLibrary', enabled: true },
   { id: 'googleBooks', enabled: true },
   { id: 'cultura', enabled: true },
+  { id: 'kinokuniya', enabled: true },
   { id: 'gemini', enabled: false },
   { id: 'openai', enabled: false },
 ]
@@ -22,6 +23,7 @@ export const PROVIDER_LABELS: Record<ProviderId, string> = {
   isbnSearch: 'ISBN Search',
   amazon: 'Amazon',
   cultura: 'Cultura',
+  kinokuniya: 'Kinokuniya',
   gemini: 'Gemini',
   openai: 'OpenAI (GPT-5)',
 }
