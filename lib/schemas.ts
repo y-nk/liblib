@@ -45,7 +45,10 @@ export const bookRowSchema = z.object({
   isbn: z.string(),
   title: z.string(),
   cover: z.string(),
-  tags: z.string().transform((s) => JSON.parse(s) as string[]),
+  tags: z
+    .string()
+    .transform((s) => JSON.parse(s))
+    .pipe(z.array(z.string())),
   note: z.string().optional().default(''),
   favorite: z.coerce.boolean().optional().default(false),
   createdAt: z.coerce.date(),

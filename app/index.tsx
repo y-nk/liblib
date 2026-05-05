@@ -38,7 +38,11 @@ export default function BooksScreen() {
   const dark = useColorScheme() === 'dark'
   const toastOpacity = useRef(new Animated.Value(0)).current
 
-  const reload = () => getBooks().then(setBooks)
+  const reload = async () => {
+    const updated = await getBooks()
+    setBooks(updated)
+    setSelectedBook((prev) => (prev ? (updated.find((b) => b.isbn === prev.isbn) ?? null) : null))
+  }
 
   const copyIsbn = async (isbn: string) => {
     await Clipboard.setStringAsync(isbn)
