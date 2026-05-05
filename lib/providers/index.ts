@@ -30,10 +30,7 @@ export const providers = Object.fromEntries(
 export async function lookupISBN(isbn: string) {
   const { providers: config } = await getSettings()
 
-  const enabled = config
-    .filter((p) => p.enabled)
-    .map((p) => providers[p.id])
-    .filter((p) => !!p)
+  const enabled = config.flatMap((p) => (p.enabled ? [providers[p.id]!] : []))
 
   const freeProviders = enabled.filter((p) => !(p instanceof AiProvider))
   const aiProviders = enabled.filter((p) => p instanceof AiProvider)
