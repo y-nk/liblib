@@ -11,7 +11,7 @@ import {
 } from 'react-native'
 import CenterModal from './CenterModal'
 import { useISBNLookup } from '@/lib/useISBNLookup'
-import { PROVIDER_LABELS } from '@/lib/types'
+import { providers } from '@/lib/providers'
 
 export default function SearchSheet({
   visible,
@@ -85,7 +85,7 @@ export default function SearchSheet({
               </Pressable>
               {book.provider && (
                 <Text className="text-gray-400 text-xs text-right mr-2 -mt-2 mb-2">
-                  {PROVIDER_LABELS[book.provider]}
+                  {providers.find((p) => p.id === book.provider)?.name}
                 </Text>
               )}
             </React.Fragment>

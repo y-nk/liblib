@@ -1,34 +1,40 @@
-import type { Book, ProviderId } from '../types'
-import { AI_PROVIDERS } from '../types'
+import type { Book } from '../types'
 import { getSettings } from '../data/settings'
 import { log } from '../log'
-import * as openLibrary from './open-library'
-import * as googleBooks from './google-books'
-import * as openai from './openai'
-import * as gemini from './gemini'
-import * as isbnSearch from './isbn-search'
-import * as amazon from './amazon'
-import * as cultura from './cultura'
-import * as kinokuniya from './kinokuniya'
+import { AiProvider } from './ai-provider'
+import { OpenLibraryProvider } from './open-library'
+import { GoogleBooksProvider } from './google-books'
+import { IsbnSearchProvider } from './isbn-search'
+import { AmazonProvider } from './amazon'
+import { CulturaProvider } from './cultura'
+import { KinokuniyaProvider } from './kinokuniya'
+import { OpenAiProvider } from './openai'
+import { GeminiProvider } from './gemini'
 
-export { openLibrary, googleBooks, openai, gemini, isbnSearch, amazon, cultura, kinokuniya }
+export { Provider } from './provider'
+export { AiProvider } from './ai-provider'
 
-const providerMap: Record<ProviderId, { getBookFromISBN: (isbn: string) => Promise<Book[]> }> = {
-  openLibrary,
-  googleBooks,
-  isbnSearch,
-  amazon,
-  cultura,
-  kinokuniya,
-  openai,
-  gemini,
-}
+export const providers = [
+  new IsbnSearchProvider(),
+  new AmazonProvider(),
+  new OpenLibraryProvider(),
+  new GoogleBooksProvider(),
+  new CulturaProvider(),
+  new KinokuniyaProvider(),
+  new OpenAiProvider(),
+  new GeminiProvider(),
+]
 
 export async function lookupISBN(isbn: string) {
-  const { providers } = await getSettings()
+  const { providers: config } = await getSettings()
 
-  const freeProviders = providers.filter((p) => p.enabled && !AI_PROVIDERS.includes(p.id))
-  const aiProviders = providers.filter((p) => p.enabled && AI_PROVIDERS.includes(p.id))
+  const enabled = config
+    .filter((p) => p.enabled)
+    .map((p) => providers.find((provider) => provider.id === p.id))
+    .filter((p) => !!p)
+
+  const freeProviders = enabled.filter((p) => !(p instanceof AiProvider))
+  const aiProviders = enabled.filter((p) => p instanceof AiProvider)
 
   log.info(
     'lookup',
@@ -37,9 +43,8 @@ export async function lookupISBN(isbn: string) {
 
   const start = Date.now()
 
-  // Launch all free providers in parallel
   const freeResults = await Promise.all(
-    freeProviders.map((p) => providerMap[p.id].getBookFromISBN(isbn).catch(() => [] as Book[])),
+    freeProviders.map((p) => p.getBookFromISBN(isbn).catch(() => [] as Book[])),
   )
 
   const allBooks = freeResults.flat()
@@ -74,11 +79,10 @@ export async function lookupISBN(isbn: string) {
     return [withoutCover[0]]
   }
 
-  // No free results → fall back to AI providers sequentially
   for (const p of aiProviders) {
     log.info('lookup', `trying AI provider ${p.id}`, { isbn })
 
-    const results = await providerMap[p.id].getBookFromISBN(isbn)
+    const results = await p.getBookFromISBN(isbn)
 
     if (results.length > 0) {
       log.info('lookup', `AI ${p.id} returned ${results.length} results`, { isbn })

@@ -19,18 +19,18 @@ import { GripVertical, ChevronDown, ChevronRight, TriangleAlert } from 'lucide-r
 import { getSettings, saveSettings } from '@/lib/data/settings'
 import { getLogs, clearLogs } from '@/lib/log'
 import * as Clipboard from 'expo-clipboard'
-import { openai, gemini } from '@/lib/providers'
+import { providers, AiProvider } from '@/lib/providers'
 import type { Settings, ProviderConfig, ProviderId } from '@/lib/types'
-import {
-  DEFAULT_PROVIDERS,
-  PROVIDER_LABELS,
-  PROVIDER_KEY_FIELD,
-  PROVIDER_KEY_PLACEHOLDER,
-} from '@/lib/types'
+import { DEFAULT_PROVIDERS } from '@/lib/types'
 
-const testableProviders: Record<string, { getBookFromISBN: (isbn: string) => Promise<any[]> }> = {
-  openai,
-  gemini,
+function findProvider(id: string) {
+  return providers.find((p) => p.id === id)
+}
+
+function findAiProvider(id: string) {
+  const p = findProvider(id)
+
+  return p instanceof AiProvider ? p : null
 }
 
 export default function SettingsSheet({
@@ -70,8 +70,8 @@ export default function SettingsSheet({
 
   const toggleProvider = (id: string) => {
     const s = settingsRef.current
-    const providers = s.providers.map((p) => (p.id === id ? { ...p, enabled: !p.enabled } : p))
-    update({ ...s, providers })
+    const provs = s.providers.map((p) => (p.id === id ? { ...p, enabled: !p.enabled } : p))
+    update({ ...s, providers: provs })
   }
 
   const toggleExpanded = (id: string) => {
@@ -81,10 +81,17 @@ export default function SettingsSheet({
   const testProvider = async (id: ProviderId) => {
     setTesting((prev) => ({ ...prev, [id]: 'loading' }))
     setTestMsg((prev) => ({ ...prev, [id]: '' }))
+
     try {
       await saveSettings(settingsRef.current)
-      const provider = testableProviders[id]
+      const provider = findProvider(id)
+
+      if (!provider) {
+        return
+      }
+
       const results = await provider.getBookFromISBN('9780345391803')
+
       if (results.length > 0) {
         setTesting((prev) => ({ ...prev, [id]: 'success' }))
         setTestMsg((prev) => ({ ...prev, [id]: `Found: ${results[0].title}` }))
@@ -99,13 +106,14 @@ export default function SettingsSheet({
   }
 
   const needsKey = (p: ProviderConfig) => {
-    const keyField = PROVIDER_KEY_FIELD[p.id]
-    return keyField ? !settings[keyField] : false
+    const ai = findAiProvider(p.id)
+
+    return ai ? !settings[ai.keyField] : false
   }
 
   const renderItem = ({ item, drag, isActive }: RenderItemParams<ProviderConfig>) => {
-    const keyField = PROVIDER_KEY_FIELD[item.id]
-    const hasExpander = !!keyField
+    const ai = findAiProvider(item.id)
+    const hasExpander = !!ai
     const isExpanded_ = !!expanded[item.id]
     const missingKey = needsKey(item)
     const status = testing[item.id] || 'idle'
@@ -141,7 +149,7 @@ export default function SettingsSheet({
               <Text
                 className={`text-base font-medium dark:text-white ${!item.enabled ? 'opacity-50' : ''}`}
               >
-                {PROVIDER_LABELS[item.id]}
+                {findProvider(item.id)?.name ?? item.id}
               </Text>
               {item.enabled && missingKey && (
                 <View className="ml-2">
@@ -159,15 +167,15 @@ export default function SettingsSheet({
             />
           </View>
 
-          {hasExpander && isExpanded_ && keyField && (
+          {hasExpander && isExpanded_ && ai && (
             <View className="pb-3 pl-12 pr-3">
               <Text className="text-xs font-medium text-gray-500 mb-1 uppercase">API Key</Text>
               <TextInput
                 className="bg-white dark:bg-neutral-700 rounded-lg px-4 py-3 text-base dark:text-white mb-3 border border-gray-200 dark:border-neutral-600"
-                placeholder={PROVIDER_KEY_PLACEHOLDER[keyField] || 'API key...'}
+                placeholder={ai.keyPlaceholder}
                 placeholderTextColor={dark ? '#666' : '#999'}
-                value={settings[keyField] as string}
-                onChangeText={(t) => setSettings({ ...settings, [keyField]: t })}
+                value={settings[ai.keyField] as string}
+                onChangeText={(t) => setSettings({ ...settings, [ai.keyField]: t })}
                 onBlur={save}
                 secureTextEntry
                 autoCapitalize="none"
@@ -175,14 +183,14 @@ export default function SettingsSheet({
               />
               <Pressable
                 onPress={() => testProvider(item.id)}
-                disabled={status === 'loading' || !settings[keyField]}
-                className={`border rounded-lg py-2 ${!settings[keyField] ? 'border-gray-200 dark:border-neutral-700' : 'border-gray-300 dark:border-neutral-500'}`}
+                disabled={status === 'loading' || !settings[ai.keyField]}
+                className={`border rounded-lg py-2 ${!settings[ai.keyField] ? 'border-gray-200 dark:border-neutral-700' : 'border-gray-300 dark:border-neutral-500'}`}
               >
                 {status === 'loading' ? (
                   <ActivityIndicator color={dark ? '#fff' : '#000'} size="small" />
                 ) : (
                   <Text
-                    className={`text-center text-sm font-medium ${!settings[keyField] ? 'text-gray-300 dark:text-neutral-600' : 'text-black dark:text-white'}`}
+                    className={`text-center text-sm font-medium ${!settings[ai.keyField] ? 'text-gray-300 dark:text-neutral-600' : 'text-black dark:text-white'}`}
                   >
                     Test
                   </Text>

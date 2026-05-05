@@ -1,10 +1,13 @@
-import { createDomProvider } from './create-dom-provider'
+import { DomProvider } from './dom-provider'
 
-export const getBookFromISBN = createDomProvider({
-  id: 'cultura',
-  urlTemplate: 'https://www.cultura.com/search/results?search_query={isbn}',
-  getTitle: (doc) =>
-    doc.querySelector('#navGlobalReferer .one-product__img img')?.getAttribute('alt'),
-  getCover: (doc) =>
-    doc.querySelector('#navGlobalReferer .one-product__img img')?.getAttribute('src'),
-})
+export class CulturaProvider extends DomProvider {
+  constructor() {
+    super(
+      'cultura',
+      'Cultura',
+      'https://www.cultura.com/search/results?search_query={isbn}',
+      (doc) => doc.querySelector('#navGlobalReferer .one-product__img img')?.getAttribute('alt'),
+      (doc) => doc.querySelector('#navGlobalReferer .one-product__img img')?.getAttribute('src'),
+    )
+  }
+}

@@ -2,23 +2,32 @@ import { parse } from 'node-html-parser'
 import type { HTMLElement } from 'node-html-parser'
 import type { ProviderId } from '../types'
 import { log } from '../log'
+import { Provider } from './provider'
 
-type DomProviderConfig = {
-  id: ProviderId
-  urlTemplate: string
-  getTitle: (doc: HTMLElement) => string | undefined
-  getCover: (doc: HTMLElement) => string | undefined
-}
+export class DomProvider extends Provider {
+  private urlTemplate: string
+  private getTitle: (doc: HTMLElement) => string | undefined
+  private getCover: (doc: HTMLElement) => string | undefined
 
-export function createDomProvider(config: DomProviderConfig) {
-  return async function getBookFromISBN(isbn: string) {
-    const tag = config.id
+  constructor(
+    id: string,
+    name: string,
+    urlTemplate: string,
+    getTitle: (doc: HTMLElement) => string | undefined,
+    getCover: (doc: HTMLElement) => string | undefined,
+  ) {
+    super(id, name)
+    this.urlTemplate = urlTemplate
+    this.getTitle = getTitle
+    this.getCover = getCover
+  }
 
+  async getBookFromISBN(isbn: string) {
     try {
-      const url = config.urlTemplate.replace('{isbn}', isbn)
+      const url = this.urlTemplate.replace('{isbn}', isbn)
       const start = Date.now()
 
-      log.info(tag, `fetching ${url}`)
+      log.info(this.id, `fetching ${url}`)
 
       const res = await fetch(url, {
         headers: {
@@ -32,23 +41,23 @@ export function createDomProvider(config: DomProviderConfig) {
       const duration = Date.now() - start
 
       if (!res.ok) {
-        log.error(tag, `HTTP ${res.status} in ${duration}ms`, { isbn, status: res.status })
+        log.error(this.id, `HTTP ${res.status} in ${duration}ms`, { isbn, status: res.status })
 
         return []
       }
 
       const html = await res.text()
 
-      log.info(tag, `got ${html.length} bytes in ${duration}ms`, { isbn })
+      log.info(this.id, `got ${html.length} bytes in ${duration}ms`, { isbn })
 
       const doc = parse(html)
-      const title = config.getTitle(doc)?.trim()
+      const title = this.getTitle(doc)?.trim()
 
       if (!title) {
         const bodyStart = html.indexOf('<body')
         const bodyContent = bodyStart >= 0 ? html.slice(bodyStart) : html
 
-        log.warn(tag, 'title selector returned nothing — dumping body', {
+        log.warn(this.id, 'title selector returned nothing — dumping body', {
           isbn,
           bodySnippet: bodyContent.slice(0, 3000),
         })
@@ -56,9 +65,9 @@ export function createDomProvider(config: DomProviderConfig) {
         return []
       }
 
-      const coverUrl = config.getCover(doc)?.trim() || ''
+      const coverUrl = this.getCover(doc)?.trim() || ''
 
-      log.info(tag, `found: ${title}`, {
+      log.info(this.id, `found: ${title}`, {
         isbn,
         coverUrl: coverUrl || '(none)',
         duration,
@@ -70,13 +79,13 @@ export function createDomProvider(config: DomProviderConfig) {
           title,
           cover: '',
           coverUrl: coverUrl || undefined,
-          provider: config.id,
+          provider: this.id as ProviderId,
           tags: [],
           createdAt: new Date(),
         },
       ]
     } catch (e) {
-      log.error(tag, `exception: ${e instanceof Error ? e.message : String(e)}`, { isbn })
+      log.error(this.id, `exception: ${e instanceof Error ? e.message : String(e)}`, { isbn })
 
       return []
     }

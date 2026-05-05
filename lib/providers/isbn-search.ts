@@ -1,8 +1,13 @@
-import { createDomProvider } from './create-dom-provider'
+import { DomProvider } from './dom-provider'
 
-export const getBookFromISBN = createDomProvider({
-  id: 'isbnSearch',
-  urlTemplate: 'https://isbnsearch.org/isbn/{isbn}',
-  getTitle: (doc) => doc.querySelector('div.bookinfo h1')?.textContent,
-  getCover: (doc) => doc.querySelector('div.image img')?.getAttribute('src'),
-})
+export class IsbnSearchProvider extends DomProvider {
+  constructor() {
+    super(
+      'isbnSearch',
+      'ISBN Search',
+      'https://isbnsearch.org/isbn/{isbn}',
+      (doc) => doc.querySelector('div.bookinfo h1')?.textContent,
+      (doc) => doc.querySelector('div.image img')?.getAttribute('src'),
+    )
+  }
+}

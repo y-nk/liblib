@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import type { BarcodeScanningResult } from 'expo-camera'
 import { useISBNLookup } from '@/lib/useISBNLookup'
-import { PROVIDER_LABELS } from '@/lib/types'
+import { providers } from '@/lib/providers'
 
 export default function ScanScreen() {
   const router = useRouter()
@@ -89,7 +89,7 @@ export default function ScanScreen() {
               </Pressable>
               {book.provider && (
                 <Text className="text-gray-600 text-xs text-right mr-2 mb-2">
-                  {PROVIDER_LABELS[book.provider]}
+                  {providers.find((p) => p.id === book.provider)?.name}
                 </Text>
               )}
             </React.Fragment>

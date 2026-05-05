@@ -1,9 +1,8 @@
 import { useState, useRef, useCallback } from 'react'
 import { addBook } from '@/lib/data/books'
-import { lookupISBN } from '@/lib/providers'
+import { lookupISBN, providers } from '@/lib/providers'
 import { saveCoverFromUrl } from '@/lib/covers'
 import type { Book } from '@/lib/types'
-import { PROVIDER_LABELS } from '@/lib/types'
 
 export type LookupStatus = 'idle' | 'loading' | 'picking' | 'saving' | 'success' | 'error'
 
@@ -59,7 +58,9 @@ export function useISBNLookup(onDone?: () => void) {
       setStatus('success')
       setCandidates([])
       setMessage(`Added: ${book.title}`)
-      setProviderName(book.provider ? PROVIDER_LABELS[book.provider] : '')
+      setProviderName(
+        book.provider ? (providers.find((p) => p.id === book.provider)?.name ?? '') : '',
+      )
       onDone?.()
     },
     [onDone],
