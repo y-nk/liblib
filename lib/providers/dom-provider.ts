@@ -5,21 +5,14 @@ import { log } from '../log'
 import { Provider } from './provider'
 
 export class DomProvider extends Provider {
-  private urlTemplate: string
-  private getTitle: (doc: HTMLElement) => string | undefined
-  private getCover: (doc: HTMLElement) => string | undefined
-
   constructor(
     id: string,
     name: string,
-    urlTemplate: string,
-    getTitle: (doc: HTMLElement) => string | undefined,
-    getCover: (doc: HTMLElement) => string | undefined,
+    private urlTemplate: string,
+    private getTitle: (doc: HTMLElement) => string | undefined,
+    private getCover: (doc: HTMLElement) => string | undefined,
   ) {
     super(id, name)
-    this.urlTemplate = urlTemplate
-    this.getTitle = getTitle
-    this.getCover = getCover
   }
 
   async getBookFromISBN(isbn: string) {
