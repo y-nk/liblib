@@ -89,7 +89,7 @@ export default function ScanScreen() {
               </Pressable>
               {book.provider && (
                 <Text className="text-gray-600 text-xs text-right mr-2 mb-2">
-                  {providers.find((p) => p.id === book.provider)?.name}
+                  {providers[book.provider]?.name}
                 </Text>
               )}
             </React.Fragment>

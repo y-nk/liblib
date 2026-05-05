@@ -58,9 +58,7 @@ export function useISBNLookup(onDone?: () => void) {
       setStatus('success')
       setCandidates([])
       setMessage(`Added: ${book.title}`)
-      setProviderName(
-        book.provider ? (providers.find((p) => p.id === book.provider)?.name ?? '') : '',
-      )
+      setProviderName(book.provider ? (providers[book.provider]?.name ?? '') : '')
       onDone?.()
     },
     [onDone],

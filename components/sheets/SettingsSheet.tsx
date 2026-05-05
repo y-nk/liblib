@@ -24,7 +24,7 @@ import type { Settings, ProviderConfig, ProviderId } from '@/lib/types'
 import { DEFAULT_PROVIDERS } from '@/lib/types'
 
 function findProvider(id: string) {
-  return providers.find((p) => p.id === id)
+  return providers[id]
 }
 
 function findAiProvider(id: string) {

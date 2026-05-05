@@ -85,7 +85,7 @@ export default function SearchSheet({
               </Pressable>
               {book.provider && (
                 <Text className="text-gray-400 text-xs text-right mr-2 -mt-2 mb-2">
-                  {providers.find((p) => p.id === book.provider)?.name}
+                  {providers[book.provider]?.name}
                 </Text>
               )}
             </React.Fragment>

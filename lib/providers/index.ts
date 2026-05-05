@@ -14,23 +14,25 @@ import { GeminiProvider } from './gemini'
 export { Provider } from './provider'
 export { AiProvider } from './ai-provider'
 
-export const providers = [
-  new IsbnSearchProvider(),
-  new AmazonProvider(),
-  new OpenLibraryProvider(),
-  new GoogleBooksProvider(),
-  new CulturaProvider(),
-  new KinokuniyaProvider(),
-  new OpenAiProvider(),
-  new GeminiProvider(),
-]
+export const providers = Object.fromEntries(
+  [
+    new IsbnSearchProvider(),
+    new AmazonProvider(),
+    new OpenLibraryProvider(),
+    new GoogleBooksProvider(),
+    new CulturaProvider(),
+    new KinokuniyaProvider(),
+    new OpenAiProvider(),
+    new GeminiProvider(),
+  ].map((p) => [p.id, p]),
+)
 
 export async function lookupISBN(isbn: string) {
   const { providers: config } = await getSettings()
 
   const enabled = config
     .filter((p) => p.enabled)
-    .map((p) => providers.find((provider) => provider.id === p.id))
+    .map((p) => providers[p.id])
     .filter((p) => !!p)
 
   const freeProviders = enabled.filter((p) => !(p instanceof AiProvider))
