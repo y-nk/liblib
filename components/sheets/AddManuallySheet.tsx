@@ -9,8 +9,8 @@ import {
   ActivityIndicator,
   useColorScheme,
 } from 'react-native'
-import CenterModal from './CenterModal'
-import CoverPicker from './CoverPicker'
+import CenterModal from '../CenterModal'
+import CoverPicker from '../CoverPicker'
 import { Search } from 'lucide-react-native'
 import { addBook } from '@/lib/data/books'
 import { lookupISBN } from '@/lib/providers'
