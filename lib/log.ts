@@ -3,20 +3,13 @@ import { File, Directory, Paths } from 'expo-file-system'
 const LOG_DIR = new Directory(Paths.document, 'logs')
 const MAX_SIZE = 512_000
 
-function ensureDir() {
-  if (!LOG_DIR.exists) {
-    LOG_DIR.create({ intermediates: true, idempotent: true })
-  }
-}
-
-function logFile() {
-  return new File(LOG_DIR, 'liblib.log')
-}
-
 async function write(level: string, tag: string, msg: string, extra?: Record<string, unknown>) {
   try {
-    ensureDir()
-    const f = logFile()
+    if (!LOG_DIR.exists) {
+      LOG_DIR.create({ intermediates: true, idempotent: true })
+    }
+
+    const f = new File(LOG_DIR, 'liblib.log')
     const entry = JSON.stringify({ t: new Date().toISOString(), l: level, tag, msg, ...extra })
 
     if (!f.exists) {
@@ -55,8 +48,11 @@ export const log = {
 
 export async function getLogs() {
   try {
-    ensureDir()
-    const f = logFile()
+    if (!LOG_DIR.exists) {
+      LOG_DIR.create({ intermediates: true, idempotent: true })
+    }
+
+    const f = new File(LOG_DIR, 'liblib.log')
 
     if (!f.exists) {
       return ''
@@ -70,7 +66,7 @@ export async function getLogs() {
 
 export function clearLogs() {
   try {
-    const f = logFile()
+    const f = new File(LOG_DIR, 'liblib.log')
 
     if (f.exists) {
       f.delete()
