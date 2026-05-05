@@ -10,7 +10,7 @@ import {
   useColorScheme,
 } from 'react-native'
 import CenterModal from './CenterModal'
-import { useISBNLookup } from '@/lib/useISBNLookup'
+import { useISBNLookup } from '@/hooks/useISBNLookup'
 import { providers } from '@/lib/providers'
 
 export default function SearchSheet({

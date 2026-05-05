@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import type { BarcodeScanningResult } from 'expo-camera'
-import { useISBNLookup } from '@/lib/useISBNLookup'
+import { useISBNLookup } from '@/hooks/useISBNLookup'
 import { providers } from '@/lib/providers'
 
 export default function ScanScreen() {
