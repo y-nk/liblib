@@ -63,8 +63,17 @@ export default function BookDetailSheet({
   const [favorite, setFavorite] = useState(false)
   const [showCoverMenu, setShowCoverMenu] = useState(false)
   const [searchingCover, setSearchingCover] = useState(false)
+  const [coverRatio, setCoverRatio] = useState(3 / 4)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const dark = useColorScheme() === 'dark'
+
+  useEffect(() => {
+    if (book?.cover) {
+      Image.getSize(book.cover, (w, h) => setCoverRatio(w / h))
+    } else {
+      setCoverRatio(3 / 4)
+    }
+  }, [book?.cover])
 
   useEffect(() => {
     if (visible && book) {
@@ -179,8 +188,9 @@ export default function BookDetailSheet({
               {book.cover ? (
                 <Image
                   source={{ uri: book.cover }}
-                  className="w-48 h-64 rounded-lg bg-gray-200 dark:bg-neutral-700"
-                  resizeMode="cover"
+                  className="rounded-lg bg-gray-200 dark:bg-neutral-700"
+                  style={{ height: 256, aspectRatio: coverRatio }}
+                  resizeMode="contain"
                 />
               ) : (
                 <View
