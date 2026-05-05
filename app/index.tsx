@@ -34,7 +34,6 @@ export default function BooksScreen() {
   const [manualIsbn, setManualIsbn] = useState('')
   const [showSearch, setShowSearch] = useState(false)
   const [selectedBook, setSelectedBook] = useState<Book | null>(null)
-  const [toolbarInset, setToolbarInset] = useState(0)
   const dark = useColorScheme() === 'dark'
   const toastOpacity = useRef(new Animated.Value(0)).current
 
@@ -116,7 +115,6 @@ export default function BooksScreen() {
               />
             </View>
           }
-          contentContainerStyle={toolbarInset ? { paddingBottom: toolbarInset } : undefined}
           ListEmptyComponent={
             <View className="items-center pt-20">
               <Text className="text-gray-400 text-base">
@@ -171,7 +169,6 @@ export default function BooksScreen() {
           setManualIsbn('')
           setShowAddManual(true)
         }}
-        onLayout={(e) => setToolbarInset(e.nativeEvent.layout.height)}
       />
 
       <Animated.View

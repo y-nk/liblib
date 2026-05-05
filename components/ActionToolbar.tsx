@@ -1,5 +1,4 @@
 import { Pressable, View, useColorScheme } from 'react-native'
-import type { LayoutChangeEvent } from 'react-native'
 import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { ScanBarcode, Plus, Search } from 'lucide-react-native'
@@ -7,22 +6,16 @@ import { ScanBarcode, Plus, Search } from 'lucide-react-native'
 export default function ActionToolbar({
   onSearch,
   onAdd,
-  onLayout,
 }: {
   onSearch: () => void
   onAdd: () => void
-  onLayout?: (event: LayoutChangeEvent) => void
 }) {
   const router = useRouter()
   const dark = useColorScheme() === 'dark'
   const { bottom } = useSafeAreaInsets()
 
   return (
-    <View
-      onLayout={onLayout}
-      className="absolute right-5 items-center gap-5"
-      style={{ bottom: bottom + 16 }}
-    >
+    <View className="absolute right-5 items-center gap-5" style={{ bottom: bottom + 16 }}>
       <View className="items-center gap-3">
         <Pressable
           onPress={onSearch}
