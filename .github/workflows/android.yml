@@ -6,8 +6,12 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
     steps:
       - run: echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
+        working-directory: .
 
       - uses: actions/checkout@v4
 
@@ -19,6 +23,7 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+          cache-dependency-path: app/pnpm-lock.yaml
 
       - uses: actions/setup-java@v4
         with:
@@ -30,7 +35,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-${{ hashFiles('app/**/*.gradle*', 'app/**/gradle-wrapper.properties') }}
           restore-keys: gradle-
 
       - run: pnpm install --frozen-lockfile
@@ -45,7 +50,7 @@ jobs:
         id: upload
         with:
           name: app-release.apk
-          path: android/app/build/outputs/apk/release/app-release.apk
+          path: app/android/app/build/outputs/apk/release/app-release.apk
 
       - if: always()
         run: |
