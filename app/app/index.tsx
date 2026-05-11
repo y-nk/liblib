@@ -1,24 +1,20 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
   View,
   Text,
   TextInput,
   FlatList,
-  Image,
   Pressable,
   Alert,
   Platform,
   useColorScheme,
-  Animated,
 } from 'react-native'
 import { useFocusEffect } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Settings } from 'lucide-react-native'
-import * as Clipboard from 'expo-clipboard'
 import { getBooks, removeBook, toggleFavorite } from '@/lib/data/books'
-import FavoriteButton from '@/components/FavoriteButton'
 import Header from '@/components/Header'
-import SwipeableRow from '@/components/SwipeableRow'
+import BookCard from '@/components/BookCard'
 import SettingsSheet from '@/components/sheets/SettingsSheet'
 import AddManuallySheet from '@/components/sheets/AddManuallySheet'
 import SearchSheet from '@/components/sheets/SearchSheet'
@@ -35,22 +31,11 @@ export default function BooksScreen() {
   const [showSearch, setShowSearch] = useState(false)
   const [selectedBook, setSelectedBook] = useState<Book | null>(null)
   const dark = useColorScheme() === 'dark'
-  const toastOpacity = useRef(new Animated.Value(0)).current
 
   const reload = async () => {
     const updated = await getBooks()
     setBooks(updated)
     setSelectedBook((prev) => (prev ? (updated.find((b) => b.isbn === prev.isbn) ?? null) : null))
-  }
-
-  const copyIsbn = async (isbn: string) => {
-    await Clipboard.setStringAsync(isbn)
-
-    Animated.sequence([
-      Animated.timing(toastOpacity, { toValue: 1, duration: 150, useNativeDriver: true }),
-      Animated.delay(1200),
-      Animated.timing(toastOpacity, { toValue: 0, duration: 300, useNativeDriver: true }),
-    ]).start()
   }
 
   const handleToggleFavorite = async (isbn: string) => {
@@ -72,8 +57,7 @@ export default function BooksScreen() {
   const confirmDelete = (isbn: string, title: string) => {
     const doDelete = async () => {
       await removeBook(isbn)
-      const updated = await getBooks()
-      setBooks(updated)
+      reload()
     }
 
     if (Platform.OS === 'web') {
@@ -94,6 +78,7 @@ export default function BooksScreen() {
         <FlatList
           data={filtered}
           keyExtractor={(item) => item.isbn}
+          numColumns={2}
           stickyHeaderIndices={[0]}
           ListHeaderComponent={
             <View className="py-3 bg-white dark:bg-neutral-950">
@@ -123,42 +108,12 @@ export default function BooksScreen() {
             </View>
           }
           renderItem={({ item }) => (
-            <SwipeableRow onDelete={() => confirmDelete(item.isbn, item.title)}>
-              <Pressable
-                onPress={() => setSelectedBook(item)}
-                onLongPress={() => copyIsbn(item.isbn)}
-                delayLongPress={150}
-                className="flex-row items-center py-3 bg-white dark:bg-neutral-950"
-              >
-                {item.cover ? (
-                  <Image
-                    source={{ uri: item.cover }}
-                    className="w-16 rounded-lg bg-gray-200 dark:bg-neutral-700"
-                    style={{ height: 88 }}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View
-                    className="w-16 rounded-lg bg-gray-200 dark:bg-neutral-700 items-center justify-center"
-                    style={{ height: 88 }}
-                  >
-                    <Text className="text-gray-400 text-xs">No img</Text>
-                  </View>
-                )}
-
-                <View className="flex-1 ml-3">
-                  <Text className="text-lg font-semibold dark:text-white" numberOfLines={2}>
-                    {item.title}
-                  </Text>
-                  <Text className="text-sm text-gray-400 mt-1">{item.isbn}</Text>
-                </View>
-
-                <FavoriteButton
-                  active={item.favorite}
-                  onToggle={() => handleToggleFavorite(item.isbn)}
-                />
-              </Pressable>
-            </SwipeableRow>
+            <BookCard
+              book={item}
+              onPress={() => setSelectedBook(item)}
+              onToggleFavorite={() => handleToggleFavorite(item.isbn)}
+              onDelete={() => confirmDelete(item.isbn, item.title)}
+            />
           )}
         />
       </SafeAreaView>
@@ -171,21 +126,15 @@ export default function BooksScreen() {
         }}
       />
 
-      <Animated.View
-        pointerEvents="none"
-        className="absolute bottom-28 left-0 right-0 items-center"
-        style={{ opacity: toastOpacity }}
-      >
-        <View className="bg-neutral-800 dark:bg-neutral-200 rounded-full px-5 py-2">
-          <Text className="text-white dark:text-black text-sm font-medium">ISBN copied</Text>
-        </View>
-      </Animated.View>
-
       <BookDetailSheet
         book={selectedBook}
         visible={!!selectedBook}
         onClose={() => setSelectedBook(null)}
         onChanged={reload}
+        onDelete={(isbn, title) => {
+          setSelectedBook(null)
+          confirmDelete(isbn, title)
+        }}
       />
 
       <SettingsSheet visible={showSettings} onClose={() => setShowSettings(false)} />
