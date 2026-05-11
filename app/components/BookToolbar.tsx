@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { View, Text, Pressable, useColorScheme } from 'react-native'
 import { Star, EllipsisVertical, Trash2 } from 'lucide-react-native'
-import BottomDrawer from './sheets/BottomDrawer'
+import BottomDrawer from './sheets/BottomDrawerV2'
 
 export default function BookToolbar({
   favorite,
