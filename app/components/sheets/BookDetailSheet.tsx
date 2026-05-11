@@ -210,7 +210,7 @@ export default function BookDetailSheet({
               )}
             </Pressable>
 
-            <View className="absolute top-1 right-1">
+            <View className="absolute top-0 right-0">
               <BookToolbar
                 favorite={favorite}
                 onToggleFavorite={handleToggleFavorite}
