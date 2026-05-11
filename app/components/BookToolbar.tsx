@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState } from 'react'
-import { View, Text, Pressable, Modal, Animated, useColorScheme, Dimensions } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useState } from 'react'
+import { View, Text, Pressable, useColorScheme } from 'react-native'
 import { Star, EllipsisVertical, Trash2 } from 'lucide-react-native'
-
-const SCREEN_HEIGHT = Dimensions.get('window').height
+import BottomDrawer from './sheets/BottomDrawer'
 
 export default function BookToolbar({
   favorite,
@@ -17,28 +15,7 @@ export default function BookToolbar({
   size?: number
 }) {
   const [showMenu, setShowMenu] = useState(false)
-  const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current
   const dark = useColorScheme() === 'dark'
-  const { bottom } = useSafeAreaInsets()
-
-  useEffect(() => {
-    if (showMenu) {
-      Animated.spring(slideAnim, {
-        toValue: 0,
-        useNativeDriver: true,
-        damping: 20,
-        stiffness: 200,
-      }).start()
-    }
-  }, [showMenu])
-
-  const close = () => {
-    Animated.timing(slideAnim, {
-      toValue: SCREEN_HEIGHT,
-      duration: 200,
-      useNativeDriver: true,
-    }).start(() => setShowMenu(false))
-  }
 
   return (
     <View className="flex-row items-center rounded-bl-lg bg-white dark:bg-neutral-950 p-1">
@@ -50,31 +27,18 @@ export default function BookToolbar({
         <EllipsisVertical size={size} color={dark ? '#aaa' : '#666'} />
       </Pressable>
 
-      <Modal visible={showMenu} transparent animationType="fade" onRequestClose={close}>
-        <View className="flex-1 justify-end">
-          <Pressable className="flex-1" onPress={close} />
-
-          <Animated.View
-            className="bg-white dark:bg-neutral-900 rounded-t-2xl"
-            style={{ paddingBottom: bottom, transform: [{ translateY: slideAnim }] }}
-          >
-            <View className="items-center pt-3 pb-1">
-              <View className="w-10 h-1 rounded-full bg-gray-300 dark:bg-neutral-600" />
-            </View>
-
-            <Pressable
-              onPress={() => {
-                close()
-                onDelete()
-              }}
-              className="flex-row items-center px-5 py-4"
-            >
-              <Trash2 size={18} color="#ef4444" />
-              <Text className="text-red-500 text-base font-medium ml-3">Delete</Text>
-            </Pressable>
-          </Animated.View>
-        </View>
-      </Modal>
+      <BottomDrawer visible={showMenu} onClose={() => setShowMenu(false)}>
+        <Pressable
+          onPress={() => {
+            setShowMenu(false)
+            onDelete()
+          }}
+          className="flex-row items-center px-5 py-4"
+        >
+          <Trash2 size={18} color="#ef4444" />
+          <Text className="text-red-500 text-base font-medium ml-3">Delete</Text>
+        </Pressable>
+      </BottomDrawer>
     </View>
   )
 }
