@@ -12,7 +12,7 @@ import {
 } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
 import { Camera, Search } from 'lucide-react-native'
-import BottomDrawer from './BottomDrawer'
+import BottomDrawer from './BottomDrawerV2'
 import BookToolbar from '../BookToolbar'
 import EditableTitle from '../EditableTitle'
 import { toggleFavorite, updateBookTitle, updateBookNote, updateBookCover } from '@/lib/data/books'
