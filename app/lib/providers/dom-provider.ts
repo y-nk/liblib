@@ -2,6 +2,7 @@ import { parse } from 'node-html-parser'
 import type { HTMLElement } from 'node-html-parser'
 import type { ProviderId } from '../types'
 import { log } from '../log'
+import { isValidCover } from '../covers'
 import { Provider } from './provider'
 
 export class DomProvider extends Provider {
@@ -58,7 +59,12 @@ export class DomProvider extends Provider {
         return []
       }
 
-      const coverUrl = this.getCover(doc)?.trim() || ''
+      let coverUrl = this.getCover(doc)?.trim() || ''
+
+      if (coverUrl && !(await isValidCover(coverUrl))) {
+        log.info(this.id, `cover too small, discarding`, { isbn, coverUrl })
+        coverUrl = ''
+      }
 
       log.info(this.id, `found: ${title}`, {
         isbn,

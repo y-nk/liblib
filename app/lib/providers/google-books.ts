@@ -1,4 +1,5 @@
 import { log } from '../log'
+import { isValidCover } from '../covers'
 import { Provider } from './provider'
 
 export class GoogleBooksProvider extends Provider {
@@ -30,7 +31,8 @@ export class GoogleBooksProvider extends Provider {
       }
 
       const rawCoverUrl = item.imageLinks?.thumbnail || item.imageLinks?.smallThumbnail
-      const coverUrl = rawCoverUrl ? rawCoverUrl.replace('http://', 'https://') : undefined
+      const candidateUrl = rawCoverUrl ? rawCoverUrl.replace('http://', 'https://') : undefined
+      const coverUrl = candidateUrl && (await isValidCover(candidateUrl)) ? candidateUrl : undefined
 
       log.info(this.id, `found: ${item.title} in ${duration}ms`, {
         isbn,

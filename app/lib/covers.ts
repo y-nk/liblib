@@ -2,6 +2,25 @@ import { File, Directory, Paths } from 'expo-file-system'
 
 const COVERS_DIR = new Directory(Paths.document, 'covers')
 
+export const MIN_COVER_SIZE = 1024
+
+export async function fetchFileSize(url: string) {
+  try {
+    const res = await fetch(url, { method: 'HEAD' })
+    const length = res.headers.get('content-length')
+
+    return length ? parseInt(length, 10) : 0
+  } catch {
+    return 0
+  }
+}
+
+export async function isValidCover(url: string) {
+  const size = await fetchFileSize(url)
+
+  return size >= MIN_COVER_SIZE
+}
+
 export async function saveCoverFromUrl(isbn: string, url: string) {
   if (!COVERS_DIR.exists) {
     COVERS_DIR.create({ intermediates: true, idempotent: true })

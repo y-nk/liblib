@@ -1,4 +1,5 @@
 import { log } from '../log'
+import { isValidCover } from '../covers'
 import { Provider } from './provider'
 
 export class OpenLibraryProvider extends Provider {
@@ -29,9 +30,13 @@ export class OpenLibraryProvider extends Provider {
         return []
       }
 
-      const coverUrl = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
+      const candidateUrl = `https://covers.openlibrary.org/b/isbn/${isbn}-M.jpg`
+      const coverUrl = (await isValidCover(candidateUrl)) ? candidateUrl : undefined
 
-      log.info(this.id, `found: ${entry.title} in ${duration}ms`, { isbn })
+      log.info(this.id, `found: ${entry.title} in ${duration}ms`, {
+        isbn,
+        coverUrl: coverUrl || '(none)',
+      })
 
       return [
         {
