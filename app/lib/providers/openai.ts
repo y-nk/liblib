@@ -1,5 +1,6 @@
 import { getSettings } from '../data/settings'
 import { log } from '../log'
+import { isValidCover } from '../covers'
 import { AiProvider } from './ai-provider'
 
 export class OpenAiProvider extends AiProvider {
@@ -79,17 +80,21 @@ If you can't find anything, return []`
         return []
       }
 
-      const results = arr
-        .filter((item: any) => item.title && item.cover)
-        .map((item: any) => ({
-          isbn,
-          title: item.title,
-          cover: '',
-          coverUrl: item.cover,
-          provider: 'openai' as const,
-          tags: [],
-          createdAt: new Date(),
-        }))
+      const validated = await Promise.all(
+        arr
+          .filter((item: any) => item.title && item.cover)
+          .map(async (item: any) => ({
+            isbn,
+            title: item.title,
+            cover: '',
+            coverUrl: (await isValidCover(item.cover)) ? item.cover : undefined,
+            provider: 'openai' as const,
+            tags: [],
+            createdAt: new Date(),
+          })),
+      )
+
+      const results = validated.filter((r) => r.coverUrl)
 
       log.info(this.id, `found ${results.length} results in ${duration}ms`, { isbn })
 
