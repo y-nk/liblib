@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { View, Text, Pressable, Modal, useColorScheme } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Star, EllipsisVertical, Trash2 } from 'lucide-react-native'
 
 export default function BookToolbar({
@@ -15,9 +16,10 @@ export default function BookToolbar({
 }) {
   const [showMenu, setShowMenu] = useState(false)
   const dark = useColorScheme() === 'dark'
+  const { bottom } = useSafeAreaInsets()
 
   return (
-    <View className="flex-row items-center">
+    <View className="flex-row items-center rounded-bl-lg bg-white dark:bg-neutral-950 p-1">
       <Pressable onPress={onToggleFavorite} className="p-1" hitSlop={4}>
         <Star size={size} color="#facc15" fill={favorite ? '#facc15' : 'transparent'} />
       </Pressable>
@@ -29,30 +31,32 @@ export default function BookToolbar({
       <Modal
         visible={showMenu}
         transparent
-        animationType="fade"
+        animationType="slide"
         onRequestClose={() => setShowMenu(false)}
       >
-        <Pressable
-          className="flex-1 justify-center items-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
-          onPress={() => setShowMenu(false)}
-        >
+        <View className="flex-1 bg-black/50 justify-end">
+          <Pressable className="flex-1" onPress={() => setShowMenu(false)} />
+
           <View
-            className="bg-white dark:bg-neutral-800 rounded-2xl overflow-hidden"
-            style={{ width: 200 }}
+            className="bg-white dark:bg-neutral-900 rounded-t-2xl"
+            style={{ paddingBottom: bottom }}
           >
+            <View className="items-center pt-3 pb-1">
+              <View className="w-10 h-1 rounded-full bg-gray-300 dark:bg-neutral-600" />
+            </View>
+
             <Pressable
               onPress={() => {
                 setShowMenu(false)
                 onDelete()
               }}
-              className="px-4 py-3 flex-row items-center"
+              className="flex-row items-center px-5 py-4"
             >
-              <Trash2 size={16} color="#ef4444" />
-              <Text className="text-red-500 text-base ml-3">Delete</Text>
+              <Trash2 size={18} color="#ef4444" />
+              <Text className="text-red-500 text-base font-medium ml-3">Delete</Text>
             </Pressable>
           </View>
-        </Pressable>
+        </View>
       </Modal>
     </View>
   )
