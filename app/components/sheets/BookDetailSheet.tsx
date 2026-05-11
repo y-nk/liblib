@@ -59,7 +59,7 @@ export default function BookDetailSheet({
   visible: boolean
   onClose: () => void
   onChanged: () => void
-  onDelete: (isbn: string, title: string) => void
+  onDelete: () => void
 }) {
   const [note, setNote] = useState('')
   const [favorite, setFavorite] = useState(false)
@@ -214,7 +214,7 @@ export default function BookDetailSheet({
               <BookToolbar
                 favorite={favorite}
                 onToggleFavorite={handleToggleFavorite}
-                onDelete={() => onDelete(book.isbn, book.title)}
+                onDelete={onDelete}
                 size={22}
               />
             </View>
