@@ -5,6 +5,7 @@ import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
 import type { ReactNode } from 'react'
 
 const SCREEN_HEIGHT = Dimensions.get('window').height
+const DURATION = 4000
 
 export default function BottomDrawer({
   visible,
@@ -25,26 +26,25 @@ export default function BottomDrawer({
       Animated.parallel([
         Animated.timing(backdropAnim, {
           toValue: 1,
-          duration: 250,
+          duration: DURATION,
           useNativeDriver: true,
         }),
-        Animated.spring(slideAnim, {
+        Animated.timing(slideAnim, {
           toValue: 0,
+          duration: DURATION,
           useNativeDriver: true,
-          damping: 20,
-          stiffness: 200,
         }),
       ]).start()
     } else if (modalVisible) {
       Animated.parallel([
         Animated.timing(backdropAnim, {
           toValue: 0,
-          duration: 200,
+          duration: DURATION,
           useNativeDriver: true,
         }),
         Animated.timing(slideAnim, {
           toValue: SCREEN_HEIGHT,
-          duration: 200,
+          duration: DURATION,
           useNativeDriver: true,
         }),
       ]).start(() => setModalVisible(false))
@@ -56,7 +56,7 @@ export default function BottomDrawer({
   }
 
   return (
-    <Modal transparent visible onRequestClose={onClose}>
+    <Modal transparent visible animationType="none" onRequestClose={onClose}>
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardAvoidingView className="flex-1" behavior="padding">
           <View className="flex-1 justify-end">
