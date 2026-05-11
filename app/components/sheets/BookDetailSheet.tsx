@@ -13,7 +13,7 @@ import {
 import * as ImagePicker from 'expo-image-picker'
 import { Camera, Search } from 'lucide-react-native'
 import BottomDrawer from './BottomDrawer'
-import FavoriteButton from '../FavoriteButton'
+import BookToolbar from '../BookToolbar'
 import EditableTitle from '../EditableTitle'
 import { toggleFavorite, updateBookTitle, updateBookNote, updateBookCover } from '@/lib/data/books'
 import { saveCoverFromDataUri, saveCoverFromUrl } from '@/lib/covers'
@@ -53,11 +53,13 @@ export default function BookDetailSheet({
   visible,
   onClose,
   onChanged,
+  onDelete,
 }: {
   book: Book | null
   visible: boolean
   onClose: () => void
   onChanged: () => void
+  onDelete: (isbn: string, title: string) => void
 }) {
   const [note, setNote] = useState('')
   const [favorite, setFavorite] = useState(false)
@@ -209,7 +211,12 @@ export default function BookDetailSheet({
             </Pressable>
 
             <View className="absolute top-1 right-1">
-              <FavoriteButton active={favorite} onToggle={handleToggleFavorite} size={24} />
+              <BookToolbar
+                favorite={favorite}
+                onToggleFavorite={handleToggleFavorite}
+                onDelete={() => onDelete(book.isbn, book.title)}
+                size={22}
+              />
             </View>
           </View>
 
