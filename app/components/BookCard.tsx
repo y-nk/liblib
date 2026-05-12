@@ -1,4 +1,5 @@
 import { View, Text, Image, Pressable } from 'react-native'
+import * as Clipboard from 'expo-clipboard'
 import BookToolbar from './BookToolbar'
 import type { Book } from '@/lib/types'
 
@@ -16,7 +17,12 @@ export default function BookCard({
   onDelete: () => void
 }) {
   return (
-    <Pressable onPress={onPress} className="flex-1 p-1.5">
+    <Pressable
+      onPress={onPress}
+      onLongPress={() => Clipboard.setStringAsync(book.isbn)}
+      delayLongPress={150}
+      className="flex-1 p-1.5"
+    >
       <View className="relative">
         {book.cover ? (
           <Image

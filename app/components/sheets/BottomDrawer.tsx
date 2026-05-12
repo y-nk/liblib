@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { Modal, View, Pressable, Animated, Dimensions } from 'react-native'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { KeyboardAvoidingView } from 'react-native-keyboard-controller'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import type { ReactNode } from 'react'
 
 const SCREEN_HEIGHT = Dimensions.get('window').height
-const DURATION = 4000
 
 export default function BottomDrawer({
   visible,
@@ -18,36 +18,23 @@ export default function BottomDrawer({
 }) {
   const [modalVisible, setModalVisible] = useState(false)
   const slideAnim = useRef(new Animated.Value(SCREEN_HEIGHT)).current
-  const backdropAnim = useRef(new Animated.Value(0)).current
+  const { bottom } = useSafeAreaInsets()
 
   useEffect(() => {
     if (visible) {
       setModalVisible(true)
-      Animated.parallel([
-        Animated.timing(backdropAnim, {
-          toValue: 1,
-          duration: DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: 0,
-          duration: DURATION,
-          useNativeDriver: true,
-        }),
-      ]).start()
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        useNativeDriver: true,
+        damping: 20,
+        stiffness: 200,
+      }).start()
     } else if (modalVisible) {
-      Animated.parallel([
-        Animated.timing(backdropAnim, {
-          toValue: 0,
-          duration: DURATION,
-          useNativeDriver: true,
-        }),
-        Animated.timing(slideAnim, {
-          toValue: SCREEN_HEIGHT,
-          duration: DURATION,
-          useNativeDriver: true,
-        }),
-      ]).start(() => setModalVisible(false))
+      Animated.timing(slideAnim, {
+        toValue: SCREEN_HEIGHT,
+        duration: 200,
+        useNativeDriver: true,
+      }).start(() => setModalVisible(false))
     }
   }, [visible])
 
@@ -56,20 +43,22 @@ export default function BottomDrawer({
   }
 
   return (
-    <Modal transparent visible animationType="none" onRequestClose={onClose}>
+    <Modal
+      visible
+      animationType="fade"
+      backdropColor="rgba(0,0,0,0.5)"
+      statusBarTranslucent
+      navigationBarTranslucent
+      onRequestClose={onClose}
+    >
       <GestureHandlerRootView style={{ flex: 1 }}>
         <KeyboardAvoidingView className="flex-1" behavior="padding">
           <View className="flex-1 justify-end">
-            <Animated.View
-              className="absolute inset-0"
-              style={{ backgroundColor: 'rgba(0,0,0,0.5)', opacity: backdropAnim }}
-            >
-              <Pressable className="flex-1" onPress={onClose} />
-            </Animated.View>
+            <Pressable className="flex-1" onPress={onClose} />
 
             <Animated.View
               className="bg-white dark:bg-neutral-900 rounded-t-2xl"
-              style={{ transform: [{ translateY: slideAnim }] }}
+              style={{ paddingBottom: bottom, transform: [{ translateY: slideAnim }] }}
             >
               <View className="items-center pt-3 pb-1">
                 <View className="w-10 h-1 rounded-full bg-gray-300 dark:bg-neutral-600" />
