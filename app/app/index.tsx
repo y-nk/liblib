@@ -62,10 +62,6 @@ export default function BooksScreen() {
         visible={!!selectedBook}
         onClose={() => setSelectedBook(null)}
         onChanged={reload}
-        onDelete={() => {
-          setSelectedBook(null)
-          listRef.current?.reload()
-        }}
       />
 
       <SettingsSheet visible={showSettings} onClose={() => setShowSettings(false)} />

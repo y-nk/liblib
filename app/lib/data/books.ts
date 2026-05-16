@@ -12,14 +12,13 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
   const tags = JSON.stringify(book.tags ?? [])
 
   await db.runAsync(
-    'INSERT OR REPLACE INTO books (isbn, title, cover, tags, note, favorite, createdAt, updatedAt, syncedAt, collectionId, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT OR REPLACE INTO books (isbn, title, cover, tags, note, createdAt, updatedAt, syncedAt, collectionId, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
       book.isbn,
       book.title,
       book.cover ?? '',
       tags,
       book.note ?? '',
-      book.favorite ? 1 : 0,
       book.createdAt.getTime(),
       book.updatedAt ? book.updatedAt.getTime() : null,
       book.syncedAt ? book.syncedAt.getTime() : null,
@@ -32,7 +31,7 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
 export async function getBooks() {
   const db = await getDb()
   const rows = await db.getAllAsync(
-    "SELECT isbn, title, cover, tags, note, favorite, createdAt, updatedAt, syncedAt, collectionId, json_extract(metadata, '$.coverUrl') AS coverUrl FROM books ORDER BY createdAt DESC",
+    "SELECT isbn, title, cover, tags, note, createdAt, updatedAt, syncedAt, collectionId, json_extract(metadata, '$.coverUrl') AS coverUrl FROM books ORDER BY createdAt DESC",
   )
   return rows.map(rowToBook)
 }
@@ -50,15 +49,6 @@ export async function saveBooks(books: Book[]) {
 export async function addBook(book: Book) {
   const db = await getDb()
   await insert(db, book)
-}
-
-export async function toggleFavorite(isbn: string) {
-  const db = await getDb()
-
-  await db.runAsync(
-    'UPDATE books SET favorite = CASE WHEN favorite = 1 THEN 0 ELSE 1 END WHERE isbn = ?',
-    [isbn],
-  )
 }
 
 export async function updateBookCover(isbn: string, cover: string) {

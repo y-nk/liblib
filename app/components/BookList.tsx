@@ -1,7 +1,7 @@
 import { useCallback, useImperativeHandle, useState, forwardRef } from 'react'
-import { View, Text, TextInput, FlatList, Alert, Platform, useColorScheme } from 'react-native'
+import { View, Text, TextInput, FlatList, useColorScheme } from 'react-native'
 import { useFocusEffect } from 'expo-router'
-import { getBooks, removeBook, toggleFavorite } from '@/lib/data/books'
+import { getBooks } from '@/lib/data/books'
 import BookCard from './BookCard'
 import type { Book } from '@/lib/types'
 
@@ -41,29 +41,6 @@ export default forwardRef<
     return b.title.toLowerCase().includes(q) || b.isbn.includes(q)
   })
 
-  const handleToggleFavorite = async (isbn: string) => {
-    await toggleFavorite(isbn)
-    reload()
-  }
-
-  const confirmDelete = (isbn: string, title: string) => {
-    const doDelete = async () => {
-      await removeBook(isbn)
-      reload()
-    }
-
-    if (Platform.OS === 'web') {
-      if (window.confirm(`Delete "${title}"?`)) {
-        doDelete()
-      }
-    } else {
-      Alert.alert('Delete', `Delete "${title}"?`, [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Delete', style: 'destructive', onPress: doDelete },
-      ])
-    }
-  }
-
   return (
     <FlatList
       data={filtered}
@@ -89,14 +66,7 @@ export default forwardRef<
           </Text>
         </View>
       }
-      renderItem={({ item }) => (
-        <BookCard
-          book={item}
-          onPress={() => onSelectBook(item)}
-          onToggleFavorite={() => handleToggleFavorite(item.isbn)}
-          onDelete={() => confirmDelete(item.isbn, item.title)}
-        />
-      )}
+      renderItem={({ item }) => <BookCard book={item} onPress={() => onSelectBook(item)} />}
     />
   )
 })
