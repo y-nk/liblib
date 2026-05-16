@@ -1,10 +1,11 @@
 import { useRef, useState } from 'react'
 import { View, Pressable, useColorScheme } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Settings } from 'lucide-react-native'
+import { Settings, ChevronDown } from 'lucide-react-native'
 import Header from '@/components/Header'
 import BookList from '@/components/BookList'
 import type { BookListRef } from '@/components/BookList'
+import BottomDrawer from '@/components/sheets/BottomDrawer'
 import SettingsSheet from '@/components/sheets/SettingsSheet'
 import AddManuallySheet from '@/components/sheets/AddManuallySheet'
 import SearchSheet from '@/components/sheets/SearchSheet'
@@ -17,6 +18,7 @@ export default function BooksScreen() {
   const [showAddManual, setShowAddManual] = useState(false)
   const [manualIsbn, setManualIsbn] = useState('')
   const [showSearch, setShowSearch] = useState(false)
+  const [showShelfDrawer, setShowShelfDrawer] = useState(false)
   const [selectedBook, setSelectedBook] = useState<Book | null>(null)
   const listRef = useRef<BookListRef>(null)
   const dark = useColorScheme() === 'dark'
@@ -43,6 +45,9 @@ export default function BooksScreen() {
               }
             >
               LibLib
+              <Pressable onPress={() => setShowShelfDrawer(true)} className="ml-1 p-1" hitSlop={8}>
+                <ChevronDown size={20} color={dark ? '#aaa' : '#666'} />
+              </Pressable>
             </Header>
           }
           onSelectBook={setSelectedBook}
@@ -67,6 +72,10 @@ export default function BooksScreen() {
           listRef.current?.reload()
         }}
       />
+
+      <BottomDrawer visible={showShelfDrawer} onClose={() => setShowShelfDrawer(false)}>
+        <View style={{ height: 200 }} />
+      </BottomDrawer>
 
       <SettingsSheet visible={showSettings} onClose={() => setShowSettings(false)} />
       <AddManuallySheet
