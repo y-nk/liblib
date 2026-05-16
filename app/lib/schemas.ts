@@ -30,7 +30,6 @@ export const bookSchema = z.object({
   provider: providerIdSchema.optional(),
   tags: z.array(z.string()),
   note: z.string().optional(),
-  favorite: z.boolean().optional(),
   createdAt: z.date(),
   updatedAt: z.date().nullish(),
   syncedAt: z.date().nullish(),
@@ -50,7 +49,6 @@ export const bookRowSchema = z.object({
     .transform((s) => JSON.parse(s))
     .pipe(z.array(z.string())),
   note: z.string().optional().default(''),
-  favorite: z.coerce.boolean().optional().default(false),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().nullish(),
   syncedAt: z.coerce.date().nullish(),

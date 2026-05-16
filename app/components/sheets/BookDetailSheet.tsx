@@ -7,15 +7,16 @@ import {
   ScrollView,
   Pressable,
   Modal,
+  Alert,
+  Platform,
   ActivityIndicator,
   useColorScheme,
 } from 'react-native'
 import * as ImagePicker from 'expo-image-picker'
-import { Camera, Search } from 'lucide-react-native'
+import { Camera, Search, Trash2 } from 'lucide-react-native'
 import BottomDrawer from './BottomDrawer'
-import BookToolbar from '../BookToolbar'
 import EditableTitle from '../EditableTitle'
-import { toggleFavorite, updateBookTitle, updateBookNote, updateBookCover } from '@/lib/data/books'
+import { updateBookTitle, updateBookNote, updateBookCover, removeBook } from '@/lib/data/books'
 import { saveCoverFromDataUri, saveCoverFromUrl } from '@/lib/covers'
 import { lookupISBN } from '@/lib/providers'
 import type { Book } from '@/lib/types'
@@ -53,16 +54,13 @@ export default function BookDetailSheet({
   visible,
   onClose,
   onChanged,
-  onDelete,
 }: {
   book: Book | null
   visible: boolean
   onClose: () => void
   onChanged: () => void
-  onDelete: () => void
 }) {
   const [note, setNote] = useState('')
-  const [favorite, setFavorite] = useState(false)
   const [showCoverMenu, setShowCoverMenu] = useState(false)
   const [searchingCover, setSearchingCover] = useState(false)
   const [coverRatio, setCoverRatio] = useState(3 / 4)
@@ -80,7 +78,6 @@ export default function BookDetailSheet({
   useEffect(() => {
     if (visible && book) {
       setNote(book.note ?? '')
-      setFavorite(!!book.favorite)
     }
   }, [visible, book?.isbn])
 
@@ -113,16 +110,6 @@ export default function BookDetailSheet({
     },
     [book?.isbn, onChanged],
   )
-
-  const handleToggleFavorite = useCallback(async () => {
-    if (!book) {
-      return
-    }
-
-    setFavorite((prev) => !prev)
-    await toggleFavorite(book.isbn)
-    onChanged()
-  }, [book?.isbn, onChanged])
 
   const handleCoverChange = useCallback(
     async (dataUri: string) => {
@@ -177,6 +164,29 @@ export default function BookDetailSheet({
     }
   }, [handleCoverChange])
 
+  const confirmDelete = useCallback(() => {
+    if (!book) {
+      return
+    }
+
+    const doDelete = async () => {
+      await removeBook(book.isbn)
+      onClose()
+      onChanged()
+    }
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(`Delete "${book.title}"?`)) {
+        doDelete()
+      }
+    } else {
+      Alert.alert('Delete', `Delete "${book.title}"?`, [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: doDelete },
+      ])
+    }
+  }, [book?.isbn, onClose, onChanged])
+
   if (!book) {
     return null
   }
@@ -209,15 +219,6 @@ export default function BookDetailSheet({
                 </View>
               )}
             </Pressable>
-
-            <View className="absolute top-0 right-0">
-              <BookToolbar
-                favorite={favorite}
-                onToggleFavorite={handleToggleFavorite}
-                onDelete={onDelete}
-                size={22}
-              />
-            </View>
           </View>
 
           <View
@@ -255,6 +256,14 @@ export default function BookDetailSheet({
             Last synced: {formatRelativeTime(book.syncedAt)}
           </Text>
         </View>
+
+        <Pressable
+          onPress={confirmDelete}
+          className="flex-row items-center justify-center py-3 mb-2"
+        >
+          <Trash2 size={16} color="#ef4444" />
+          <Text className="text-red-500 text-sm font-medium ml-2">Delete this book</Text>
+        </Pressable>
       </ScrollView>
 
       <Modal
