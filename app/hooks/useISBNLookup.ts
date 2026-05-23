@@ -6,7 +6,7 @@ import type { Book } from '@/lib/types'
 
 export type LookupStatus = 'idle' | 'loading' | 'picking' | 'saving' | 'success' | 'error'
 
-export function useISBNLookup(onDone?: () => void) {
+export function useISBNLookup(shelfId?: string, onDone?: () => void) {
   const [status, setStatus] = useState<LookupStatus>('idle')
   const [message, setMessage] = useState('')
   const [providerName, setProviderName] = useState('')
@@ -53,7 +53,7 @@ export function useISBNLookup(onDone?: () => void) {
         } catch {}
       }
 
-      const toSave: Book = { ...book, cover, coverUrl: undefined, createdAt: new Date() }
+      const toSave: Book = { ...book, cover, coverUrl: undefined, shelfId, createdAt: new Date() }
       await addBook(toSave)
       setStatus('success')
       setCandidates([])

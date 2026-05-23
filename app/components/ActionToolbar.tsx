@@ -6,9 +6,11 @@ import { ScanBarcode, Plus, Search } from 'lucide-react-native'
 export default function ActionToolbar({
   onSearch,
   onAdd,
+  shelfId,
 }: {
   onSearch: () => void
   onAdd: () => void
+  shelfId?: string
 }) {
   const router = useRouter()
   const dark = useColorScheme() === 'dark'
@@ -31,7 +33,7 @@ export default function ActionToolbar({
         </Pressable>
       </View>
       <Pressable
-        onPress={() => router.push('/scan')}
+        onPress={() => router.push(shelfId ? `/scan?shelfId=${shelfId}` : '/scan')}
         className="bg-black dark:bg-white rounded-full p-5 shadow-lg"
       >
         <ScanBarcode size={28} color={dark ? '#000' : '#fff'} />

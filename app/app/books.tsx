@@ -47,6 +47,7 @@ export default function BooksScreen() {
       </View>
 
       <ActionToolbar
+        shelfId={shelfId}
         onSearch={() => setShowSearch(true)}
         onAdd={() => {
           setManualIsbn('')
@@ -67,11 +68,13 @@ export default function BooksScreen() {
         onClose={() => setShowAddManual(false)}
         onAdded={reload}
         initialIsbn={manualIsbn}
+        shelfId={shelfId}
       />
       <SearchSheet
         visible={showSearch}
         onClose={() => setShowSearch(false)}
         onAdded={reload}
+        shelfId={shelfId}
         onManualFallback={(isbn) => {
           setManualIsbn(isbn)
           setShowAddManual(true)

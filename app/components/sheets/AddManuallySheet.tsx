@@ -23,11 +23,13 @@ export default function AddManuallySheet({
   onClose,
   onAdded,
   initialIsbn = '',
+  shelfId,
 }: {
   visible: boolean
   onClose: () => void
   onAdded: () => void
   initialIsbn?: string
+  shelfId?: string
 }) {
   const [isbn, setIsbn] = useState('')
   const [title, setTitle] = useState('')
@@ -119,6 +121,7 @@ export default function AddManuallySheet({
         title: title.trim(),
         cover: coverPath,
         tags: [],
+        shelfId,
         createdAt: new Date(),
       }
 

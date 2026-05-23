@@ -18,15 +18,18 @@ export default function SearchSheet({
   onClose,
   onAdded,
   onManualFallback,
+  shelfId,
 }: {
   visible: boolean
   onClose: () => void
   onAdded: () => void
   onManualFallback: (isbn: string) => void
+  shelfId?: string
 }) {
   const [isbn, setIsbn] = useState('')
   const dark = useColorScheme() === 'dark'
   const { status, message, providerName, candidates, isBusy, search, pick, reset } = useISBNLookup(
+    shelfId,
     () => {
       setTimeout(() => {
         onAdded()

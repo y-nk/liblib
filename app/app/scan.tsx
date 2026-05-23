@@ -12,10 +12,12 @@ import { useRouter } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { CameraView, useCameraPermissions } from 'expo-camera'
 import type { BarcodeScanningResult } from 'expo-camera'
+import { useLocalSearchParams } from 'expo-router'
 import { useISBNLookup } from '@/hooks/useISBNLookup'
 import { providers } from '@/lib/providers'
 
 export default function ScanScreen() {
+  const { shelfId } = useLocalSearchParams<{ shelfId?: string }>()
   const router = useRouter()
   const { top } = useSafeAreaInsets()
   const [permission, requestPermission] = useCameraPermissions()
@@ -32,6 +34,7 @@ export default function ScanScreen() {
   }, [])
 
   const { status, message, providerName, candidates, isBusy, pick, reset, search } = useISBNLookup(
+    shelfId,
     () => {
       exitTimer.current = setTimeout(() => router.back(), 3000)
     },
