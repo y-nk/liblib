@@ -42,6 +42,17 @@ const migrations: Migration[] = [
       await db.execAsync(`ALTER TABLE books ADD COLUMN favorite INTEGER NOT NULL DEFAULT 0`)
     },
   },
+  {
+    version: 5,
+    up: async (db) => {
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS shelves (
+          id   INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL
+        )
+      `)
+    },
+  },
 ]
 
 export async function runMigrations(db: SQLiteDatabase) {
