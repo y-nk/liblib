@@ -17,6 +17,7 @@ import { Camera, Search, Trash2 } from 'lucide-react-native'
 import BottomDrawer from './BottomDrawer'
 import EditableTitle from '../EditableTitle'
 import { updateBookTitle, updateBookNote, updateBookCover, removeBook } from '@/lib/data/books'
+import { getShelfName } from '@/lib/data/shelves'
 import { saveCoverFromDataUri, saveCoverFromUrl } from '@/lib/covers'
 import { lookupISBN } from '@/lib/providers'
 import type { Book } from '@/lib/types'
@@ -64,8 +65,15 @@ export default function BookDetailSheet({
   const [showCoverMenu, setShowCoverMenu] = useState(false)
   const [searchingCover, setSearchingCover] = useState(false)
   const [coverRatio, setCoverRatio] = useState(3 / 4)
+  const [shelfName, setShelfName] = useState('')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const dark = useColorScheme() === 'dark'
+
+  useEffect(() => {
+    if (visible && book) {
+      getShelfName(book.shelfId).then(setShelfName)
+    }
+  }, [visible, book?.shelfId])
 
   useEffect(() => {
     if (book?.cover) {
@@ -231,9 +239,11 @@ export default function BookDetailSheet({
           ISBN: {book.isbn}
         </Text>
 
-        <View className="mb-4">
+        <View className="mb-2">
           <EditableTitle value={book.title} onSave={handleTitleSave} />
         </View>
+
+        <Text className="text-xs text-gray-400 mb-4">{shelfName}</Text>
 
         <Text className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Notes</Text>
 
