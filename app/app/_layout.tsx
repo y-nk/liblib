@@ -12,7 +12,14 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
         <StatusBar style={dark ? 'light' : 'dark'} />
-        <Stack screenOptions={{ headerShown: true }}>
+        <Stack
+          screenOptions={{
+            headerShown: true,
+            headerStyle: { backgroundColor: dark ? '#0a0a0a' : '#ffffff' },
+            headerTintColor: dark ? '#ffffff' : '#000000',
+            headerShadowVisible: false,
+          }}
+        >
           <Stack.Screen name="index" options={{ title: 'Shelves' }} />
           <Stack.Screen
             name="books"
