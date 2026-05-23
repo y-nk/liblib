@@ -1,9 +1,10 @@
 import { useCallback, useState } from 'react'
-import { View, Text, TextInput, ScrollView, Pressable, Modal, useColorScheme } from 'react-native'
+import { View, Text, TextInput, ScrollView, Pressable, useColorScheme } from 'react-native'
 import { useFocusEffect, Stack } from 'expo-router'
 import { Plus } from 'lucide-react-native'
 import { getShelves, createShelf } from '@/lib/data/shelves'
 import type { Shelf } from '@/lib/data/shelves'
+import CenterModal from '@/components/CenterModal'
 import ShelfRow from '@/components/ShelfRow'
 
 export default function ShelvesScreen() {
@@ -56,50 +57,35 @@ export default function ShelvesScreen() {
         ))}
       </ScrollView>
 
-      <Modal
-        visible={showCreate}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowCreate(false)}
-      >
-        <Pressable
-          className="flex-1 justify-center items-center"
-          style={{ backgroundColor: 'rgba(0,0,0,0.4)' }}
-          onPress={() => setShowCreate(false)}
-        >
-          <View
-            className="bg-white dark:bg-neutral-800 rounded-2xl p-5"
-            style={{ width: 300 }}
-            onStartShouldSetResponder={() => true}
-          >
-            <Text className="text-lg font-bold dark:text-white mb-4">New shelf</Text>
+      <CenterModal visible={showCreate} onClose={() => setShowCreate(false)}>
+        <View className="p-5">
+          <Text className="text-lg font-bold dark:text-white mb-4">New shelf</Text>
 
-            <TextInput
-              className="bg-gray-100 dark:bg-neutral-700 rounded-lg px-4 py-3 text-base dark:text-white mb-4"
-              placeholder="Name"
-              placeholderTextColor={dark ? '#666' : '#999'}
-              value={newName}
-              onChangeText={setNewName}
-              autoFocus
-              returnKeyType="done"
-              onSubmitEditing={handleCreate}
-            />
+          <TextInput
+            className="bg-gray-100 dark:bg-neutral-700 rounded-lg px-4 py-3 text-base dark:text-white mb-4"
+            placeholder="Name"
+            placeholderTextColor={dark ? '#666' : '#999'}
+            value={newName}
+            onChangeText={setNewName}
+            autoFocus
+            returnKeyType="done"
+            onSubmitEditing={handleCreate}
+          />
 
-            <View className="flex-row justify-end gap-3">
-              <Pressable onPress={() => setShowCreate(false)} className="px-4 py-2">
-                <Text className="text-gray-500 text-base">Cancel</Text>
-              </Pressable>
+          <View className="flex-row justify-end gap-3">
+            <Pressable onPress={() => setShowCreate(false)} className="px-4 py-2">
+              <Text className="text-gray-500 text-base">Cancel</Text>
+            </Pressable>
 
-              <Pressable
-                onPress={handleCreate}
-                className="bg-black dark:bg-white rounded-lg px-4 py-2"
-              >
-                <Text className="text-white dark:text-black text-base font-medium">Create</Text>
-              </Pressable>
-            </View>
+            <Pressable
+              onPress={handleCreate}
+              className="bg-black dark:bg-white rounded-lg px-4 py-2"
+            >
+              <Text className="text-white dark:text-black text-base font-medium">Create</Text>
+            </Pressable>
           </View>
-        </Pressable>
-      </Modal>
+        </View>
+      </CenterModal>
     </View>
   )
 }
