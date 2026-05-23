@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { View } from 'react-native'
+import { useLocalSearchParams } from 'expo-router'
 import BookList from '@/components/BookList'
 import type { BookListRef } from '@/components/BookList'
 import SettingsSheet from '@/components/sheets/SettingsSheet'
@@ -10,6 +11,7 @@ import BookDetailSheet from '@/components/sheets/BookDetailSheet'
 import type { Book } from '@/lib/types'
 
 export default function BooksScreen() {
+  const { shelfId } = useLocalSearchParams<{ shelfId?: string }>()
   const [showSettings, setShowSettings] = useState(false)
   const [showAddManual, setShowAddManual] = useState(false)
   const [manualIsbn, setManualIsbn] = useState('')
@@ -28,7 +30,7 @@ export default function BooksScreen() {
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
       <View className="flex-1 px-3">
-        <BookList ref={listRef} onSelectBook={setSelectedBook} />
+        <BookList ref={listRef} shelfId={shelfId} onSelectBook={setSelectedBook} />
       </View>
 
       <ActionToolbar

@@ -12,16 +12,17 @@ export type BookListRef = {
 export default forwardRef<
   BookListRef,
   {
+    shelfId?: string
     header?: React.ReactNode
     onSelectBook: (book: Book) => void
   }
->(function BookList({ header, onSelectBook }, ref) {
+>(function BookList({ shelfId, header, onSelectBook }, ref) {
   const [books, setBooks] = useState<Book[]>([])
   const [query, setQuery] = useState('')
   const dark = useColorScheme() === 'dark'
 
   const reload = async () => {
-    const updated = await getBooks()
+    const updated = await getBooks(shelfId)
     setBooks(updated)
 
     return updated

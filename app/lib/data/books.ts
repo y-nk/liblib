@@ -28,10 +28,13 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
   )
 }
 
-export async function getBooks() {
+export async function getBooks(shelfId?: string) {
   const db = await getDb()
   const rows = await db.getAllAsync(
-    "SELECT isbn, shelfId, title, cover, tags, note, createdAt, updatedAt, syncedAt, json_extract(metadata, '$.coverUrl') AS coverUrl FROM books ORDER BY createdAt DESC",
+    shelfId
+      ? "SELECT isbn, shelfId, title, cover, tags, note, createdAt, updatedAt, syncedAt, json_extract(metadata, '$.coverUrl') AS coverUrl FROM books WHERE shelfId = ? ORDER BY createdAt DESC"
+      : "SELECT isbn, shelfId, title, cover, tags, note, createdAt, updatedAt, syncedAt, json_extract(metadata, '$.coverUrl') AS coverUrl FROM books WHERE shelfId IS NULL ORDER BY createdAt DESC",
+    shelfId ? [shelfId] : [],
   )
 
   return rows.map(rowToBook)
