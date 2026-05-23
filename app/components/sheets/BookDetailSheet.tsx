@@ -243,7 +243,14 @@ export default function BookDetailSheet({
           <EditableTitle value={book.title} onSave={handleTitleSave} />
         </View>
 
-        <Text className="text-xs text-gray-400 mb-4">{shelfName}</Text>
+        <Pressable className="mb-4">
+          <Text
+            className="text-xs text-gray-400"
+            style={{ textDecorationLine: 'underline', textDecorationStyle: 'dotted' }}
+          >
+            {shelfName}
+          </Text>
+        </Pressable>
 
         <Text className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Notes</Text>
 
