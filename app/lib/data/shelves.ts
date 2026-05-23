@@ -31,3 +31,14 @@ export async function createShelf(name: string) {
 
   return { id: result.lastInsertRowId, name }
 }
+
+export async function updateShelfName(id: number, name: string) {
+  const db = await getDb()
+  await db.runAsync('UPDATE shelves SET name = ? WHERE id = ?', [name, id])
+}
+
+export async function deleteShelf(id: number) {
+  const db = await getDb()
+  await db.runAsync('UPDATE books SET shelfId = NULL WHERE shelfId = ?', [String(id)])
+  await db.runAsync('DELETE FROM shelves WHERE id = ?', [id])
+}

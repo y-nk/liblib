@@ -6,11 +6,13 @@ import { getShelves, createShelf } from '@/lib/data/shelves'
 import type { Shelf } from '@/lib/data/shelves'
 import CenterModal from '@/components/CenterModal'
 import ShelfRow from '@/components/ShelfRow'
+import ShelfDetailSheet from '@/components/sheets/ShelfDetailSheet'
 
 export default function ShelvesScreen() {
   const [shelves, setShelves] = useState<Shelf[]>([])
   const [showCreate, setShowCreate] = useState(false)
   const [newName, setNewName] = useState('')
+  const [selectedShelf, setSelectedShelf] = useState<Shelf | null>(null)
   const dark = useColorScheme() === 'dark'
 
   const load = () => getShelves().then(setShelves)
@@ -53,7 +55,16 @@ export default function ShelvesScreen() {
 
       <ScrollView>
         {rows.map((shelf) => (
-          <ShelfRow key={shelf.id ?? 'unshelved'} shelfId={shelf.id} name={shelf.name} />
+          <ShelfRow
+            key={shelf.id ?? 'unshelved'}
+            shelfId={shelf.id}
+            name={shelf.name}
+            onLongPress={
+              shelf.id
+                ? () => setSelectedShelf(shelves.find((s) => String(s.id) === shelf.id) ?? null)
+                : undefined
+            }
+          />
         ))}
       </ScrollView>
 
@@ -86,6 +97,13 @@ export default function ShelvesScreen() {
           </View>
         </View>
       </CenterModal>
+
+      <ShelfDetailSheet
+        shelf={selectedShelf}
+        visible={!!selectedShelf}
+        onClose={() => setSelectedShelf(null)}
+        onChanged={load}
+      />
     </View>
   )
 }

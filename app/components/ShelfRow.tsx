@@ -4,7 +4,15 @@ import { useRouter, useFocusEffect } from 'expo-router'
 import { ChevronRight } from 'lucide-react-native'
 import { getBookCount } from '@/lib/data/books'
 
-export default function ShelfRow({ shelfId, name }: { shelfId: string | undefined; name: string }) {
+export default function ShelfRow({
+  shelfId,
+  name,
+  onLongPress,
+}: {
+  shelfId: string | undefined
+  name: string
+  onLongPress?: () => void
+}) {
   const [count, setCount] = useState(0)
   const dark = useColorScheme() === 'dark'
   const router = useRouter()
@@ -18,6 +26,8 @@ export default function ShelfRow({ shelfId, name }: { shelfId: string | undefine
   return (
     <Pressable
       onPress={() => router.push(shelfId ? `/books?shelfId=${shelfId}` : '/books')}
+      onLongPress={onLongPress}
+      delayLongPress={200}
       className="flex-row items-center py-4 px-2"
     >
       <View className="flex-1">
