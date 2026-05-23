@@ -14,6 +14,14 @@ export default function RootLayout() {
         <StatusBar style={dark ? 'light' : 'dark'} />
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="index" />
+          <Stack.Screen
+            name="books"
+            options={{
+              headerShown: true,
+              title: 'Books',
+              headerBackTitle: 'Shelves',
+            }}
+          />
           <Stack.Screen name="scan" options={{ presentation: 'fullScreenModal' }} />
         </Stack>
       </KeyboardProvider>

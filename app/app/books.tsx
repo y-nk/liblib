@@ -1,8 +1,5 @@
 import { useRef, useState } from 'react'
-import { View, Pressable, useColorScheme } from 'react-native'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import { Settings } from 'lucide-react-native'
-import Header from '@/components/Header'
+import { View } from 'react-native'
 import BookList from '@/components/BookList'
 import type { BookListRef } from '@/components/BookList'
 import SettingsSheet from '@/components/sheets/SettingsSheet'
@@ -19,7 +16,6 @@ export default function BooksScreen() {
   const [showSearch, setShowSearch] = useState(false)
   const [selectedBook, setSelectedBook] = useState<Book | null>(null)
   const listRef = useRef<BookListRef>(null)
-  const dark = useColorScheme() === 'dark'
 
   const reload = async () => {
     const updated = await listRef.current?.reload()
@@ -31,23 +27,9 @@ export default function BooksScreen() {
 
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
-      <SafeAreaView className="flex-1 px-3">
-        <BookList
-          ref={listRef}
-          header={
-            <Header
-              action={
-                <Pressable onPress={() => setShowSettings(true)} hitSlop={8}>
-                  <Settings size={22} color={dark ? '#aaa' : '#666'} />
-                </Pressable>
-              }
-            >
-              LibLib
-            </Header>
-          }
-          onSelectBook={setSelectedBook}
-        />
-      </SafeAreaView>
+      <View className="flex-1 px-3">
+        <BookList ref={listRef} onSelectBook={setSelectedBook} />
+      </View>
 
       <ActionToolbar
         onSearch={() => setShowSearch(true)}

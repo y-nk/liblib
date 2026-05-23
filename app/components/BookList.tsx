@@ -12,7 +12,7 @@ export type BookListRef = {
 export default forwardRef<
   BookListRef,
   {
-    header: React.ReactNode
+    header?: React.ReactNode
     onSelectBook: (book: Book) => void
   }
 >(function BookList({ header, onSelectBook }, ref) {
