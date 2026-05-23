@@ -6,6 +6,9 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment:
+      name: android
+      url: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload.outputs.artifact-id }}
     defaults:
       run:
         working-directory: app
