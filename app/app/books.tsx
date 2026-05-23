@@ -42,7 +42,7 @@ export default function BooksScreen() {
         }}
       />
 
-      <View className="flex-1 px-3">
+      <View className="flex-1 px-4">
         <BookList ref={listRef} shelfId={shelfId} onSelectBook={setSelectedBook} />
       </View>
 
