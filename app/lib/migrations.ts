@@ -86,6 +86,34 @@ const migrations: Migration[] = [
       `)
     },
   },
+  {
+    version: 8,
+    up: async (db) => {
+      await db.execAsync(`ALTER TABLE shelves ADD COLUMN syncedAt INTEGER`)
+
+      await db.execAsync(`
+        CREATE TABLE books_v8 (
+          isbn      TEXT NOT NULL,
+          shelfId   TEXT,
+          title     TEXT NOT NULL,
+          cover     TEXT NOT NULL DEFAULT '',
+          tags      TEXT NOT NULL DEFAULT '[]',
+          note      TEXT NOT NULL DEFAULT '',
+          favorite  INTEGER NOT NULL DEFAULT 0,
+          createdAt INTEGER NOT NULL,
+          updatedAt INTEGER,
+          metadata  TEXT NOT NULL DEFAULT '{}',
+          PRIMARY KEY (isbn, shelfId)
+        );
+
+        INSERT INTO books_v8 (isbn, shelfId, title, cover, tags, note, favorite, createdAt, updatedAt, metadata)
+          SELECT isbn, shelfId, title, cover, tags, note, favorite, createdAt, updatedAt, metadata FROM books;
+
+        DROP TABLE books;
+        ALTER TABLE books_v8 RENAME TO books;
+      `)
+    },
+  },
 ]
 
 export async function runMigrations(db: SQLiteDatabase) {

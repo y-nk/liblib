@@ -3,11 +3,12 @@ import { getDb } from '../db'
 export type Shelf = {
   id: number
   name: string
+  syncedAt: number | null
 }
 
 export async function getShelves() {
   const db = await getDb()
-  const rows = await db.getAllAsync<Shelf>('SELECT id, name FROM shelves ORDER BY id ASC')
+  const rows = await db.getAllAsync<Shelf>('SELECT id, name, syncedAt FROM shelves ORDER BY id ASC')
 
   return rows
 }

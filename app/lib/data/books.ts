@@ -12,7 +12,7 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
   const tags = JSON.stringify(book.tags ?? [])
 
   await db.runAsync(
-    'INSERT OR REPLACE INTO books (isbn, shelfId, title, cover, tags, note, createdAt, updatedAt, syncedAt, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT OR REPLACE INTO books (isbn, shelfId, title, cover, tags, note, createdAt, updatedAt, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
       book.isbn,
       book.shelfId ?? null,
@@ -22,7 +22,6 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
       book.note ?? '',
       book.createdAt.getTime(),
       book.updatedAt ? book.updatedAt.getTime() : null,
-      book.syncedAt ? book.syncedAt.getTime() : null,
       metadata,
     ],
   )
@@ -32,8 +31,8 @@ export async function getBooks(shelfId?: string) {
   const db = await getDb()
   const rows = await db.getAllAsync(
     shelfId
-      ? "SELECT isbn, shelfId, title, cover, tags, note, createdAt, updatedAt, syncedAt, json_extract(metadata, '$.coverUrl') AS coverUrl FROM books WHERE shelfId = ? ORDER BY createdAt DESC"
-      : "SELECT isbn, shelfId, title, cover, tags, note, createdAt, updatedAt, syncedAt, json_extract(metadata, '$.coverUrl') AS coverUrl FROM books WHERE shelfId IS NULL ORDER BY createdAt DESC",
+      ? "SELECT isbn, shelfId, title, cover, tags, note, createdAt, updatedAt, json_extract(metadata, '$.coverUrl') AS coverUrl FROM books WHERE shelfId = ? ORDER BY createdAt DESC"
+      : "SELECT isbn, shelfId, title, cover, tags, note, createdAt, updatedAt, json_extract(metadata, '$.coverUrl') AS coverUrl FROM books WHERE shelfId IS NULL ORDER BY createdAt DESC",
     shelfId ? [shelfId] : [],
   )
 

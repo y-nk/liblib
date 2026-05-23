@@ -32,7 +32,6 @@ export const bookSchema = z.object({
   note: z.string().optional(),
   createdAt: z.date(),
   updatedAt: z.date().nullish(),
-  syncedAt: z.date().nullish(),
   shelfId: z.string().nullish(),
 })
 
@@ -51,7 +50,6 @@ export const bookRowSchema = z.object({
   note: z.string().optional().default(''),
   createdAt: z.coerce.date(),
   updatedAt: z.coerce.date().nullish(),
-  syncedAt: z.coerce.date().nullish(),
   shelfId: z.string().nullish(),
   coverUrl: z.string().nullish(),
 })

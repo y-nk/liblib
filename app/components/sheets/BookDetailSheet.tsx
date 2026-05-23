@@ -268,10 +268,6 @@ export default function BookDetailSheet({
           <Text className="text-xs text-gray-400 text-center">
             Last updated: {formatRelativeTime(book.updatedAt)}
           </Text>
-
-          <Text className="text-xs text-gray-400 text-center mt-0.5">
-            Last synced: {formatRelativeTime(book.syncedAt)}
-          </Text>
         </View>
 
         <Pressable
