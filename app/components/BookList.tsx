@@ -49,10 +49,10 @@ export default forwardRef<
       numColumns={2}
       stickyHeaderIndices={[0]}
       ListHeaderComponent={
-        <View className="py-3 bg-white dark:bg-neutral-950">
+        <View className="pb-3 bg-white dark:bg-neutral-950">
           {header}
           <TextInput
-            className="mt-3 bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-3 text-base dark:text-white"
+            className="bg-gray-100 dark:bg-neutral-800 rounded-lg px-4 py-3 text-base dark:text-white"
             placeholder="Search by title or ISBN..."
             placeholderTextColor={dark ? '#666' : '#999'}
             value={query}
