@@ -53,6 +53,26 @@ const migrations: Migration[] = [
       `)
     },
   },
+  {
+    version: 6,
+    up: async (db) => {
+      await db.execAsync(`ALTER TABLE books RENAME COLUMN collectionId TO shelfId`)
+
+      const shelf = await db.getFirstAsync<{ id: number }>('SELECT id FROM shelves LIMIT 1')
+
+      if (!shelf) {
+        await db.runAsync("INSERT INTO shelves (name) VALUES ('Default')")
+      }
+
+      const defaultShelf = await db.getFirstAsync<{ id: number }>('SELECT id FROM shelves LIMIT 1')
+
+      if (defaultShelf) {
+        await db.runAsync('UPDATE books SET shelfId = ? WHERE shelfId IS NULL', [
+          String(defaultShelf.id),
+        ])
+      }
+    },
+  },
 ]
 
 export async function runMigrations(db: SQLiteDatabase) {

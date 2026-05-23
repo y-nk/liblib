@@ -12,7 +12,7 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
   const tags = JSON.stringify(book.tags ?? [])
 
   await db.runAsync(
-    'INSERT OR REPLACE INTO books (isbn, title, cover, tags, note, createdAt, updatedAt, syncedAt, collectionId, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT OR REPLACE INTO books (isbn, title, cover, tags, note, createdAt, updatedAt, syncedAt, shelfId, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
       book.isbn,
       book.title,
@@ -22,7 +22,7 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
       book.createdAt.getTime(),
       book.updatedAt ? book.updatedAt.getTime() : null,
       book.syncedAt ? book.syncedAt.getTime() : null,
-      book.collectionId ?? null,
+      book.shelfId ?? null,
       metadata,
     ],
   )
@@ -31,7 +31,7 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
 export async function getBooks() {
   const db = await getDb()
   const rows = await db.getAllAsync(
-    "SELECT isbn, title, cover, tags, note, createdAt, updatedAt, syncedAt, collectionId, json_extract(metadata, '$.coverUrl') AS coverUrl FROM books ORDER BY createdAt DESC",
+    "SELECT isbn, title, cover, tags, note, createdAt, updatedAt, syncedAt, shelfId, json_extract(metadata, '$.coverUrl') AS coverUrl FROM books ORDER BY createdAt DESC",
   )
   return rows.map(rowToBook)
 }
