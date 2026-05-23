@@ -5,6 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { ChevronRight } from 'lucide-react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { getShelves, createShelf } from '@/lib/data/shelves'
+import { getUnshelvedCount } from '@/lib/data/books'
 import type { Shelf } from '@/lib/data/shelves'
 import Header from '@/components/Header'
 
@@ -12,6 +13,7 @@ const INITIALIZED_KEY = 'shelves_initialized'
 
 export default function ShelvesScreen() {
   const [shelves, setShelves] = useState<Shelf[]>([])
+  const [unshelvedCount, setUnshelvedCount] = useState(0)
   const dark = useColorScheme() === 'dark'
 
   const load = async () => {
@@ -28,6 +30,7 @@ export default function ShelvesScreen() {
     }
 
     setShelves(await getShelves())
+    setUnshelvedCount(await getUnshelvedCount())
   }
 
   useFocusEffect(
@@ -43,8 +46,22 @@ export default function ShelvesScreen() {
           data={shelves}
           keyExtractor={(item) => String(item.id)}
           ListHeaderComponent={
-            <View className="py-3">
-              <Header>Shelves</Header>
+            <View>
+              <View className="py-3">
+                <Header>Shelves</Header>
+              </View>
+
+              {unshelvedCount > 0 && (
+                <Pressable className="flex-row items-center py-4 px-2">
+                  <View className="flex-1">
+                    <Text className="text-base font-bold dark:text-white">Mis-shelved books</Text>
+                    <Text className="text-sm text-gray-400 mt-0.5">
+                      {unshelvedCount} {unshelvedCount === 1 ? 'book' : 'books'}
+                    </Text>
+                  </View>
+                  <ChevronRight size={20} color={dark ? '#666' : '#999'} />
+                </Pressable>
+              )}
             </View>
           }
           renderItem={({ item }) => (

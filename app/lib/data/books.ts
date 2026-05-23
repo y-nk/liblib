@@ -81,6 +81,15 @@ export async function updateBookNote(isbn: string, note: string) {
   ])
 }
 
+export async function getUnshelvedCount() {
+  const db = await getDb()
+  const row = await db.getFirstAsync<{ count: number }>(
+    'SELECT COUNT(*) as count FROM books WHERE shelfId IS NULL',
+  )
+
+  return row?.count ?? 0
+}
+
 export async function removeBook(isbn: string) {
   const db = await getDb()
   await db.runAsync('DELETE FROM books WHERE isbn = ?', [isbn])
