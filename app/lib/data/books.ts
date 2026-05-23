@@ -12,9 +12,10 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
   const tags = JSON.stringify(book.tags ?? [])
 
   await db.runAsync(
-    'INSERT OR REPLACE INTO books (isbn, title, cover, tags, note, createdAt, updatedAt, syncedAt, shelfId, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    'INSERT OR REPLACE INTO books (isbn, shelfId, title, cover, tags, note, createdAt, updatedAt, syncedAt, metadata) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
     [
       book.isbn,
+      book.shelfId ?? null,
       book.title,
       book.cover ?? '',
       tags,
@@ -22,7 +23,6 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
       book.createdAt.getTime(),
       book.updatedAt ? book.updatedAt.getTime() : null,
       book.syncedAt ? book.syncedAt.getTime() : null,
-      book.shelfId ?? null,
       metadata,
     ],
   )
@@ -31,8 +31,9 @@ async function insert(db: Awaited<ReturnType<typeof getDb>>, book: Book) {
 export async function getBooks() {
   const db = await getDb()
   const rows = await db.getAllAsync(
-    "SELECT isbn, title, cover, tags, note, createdAt, updatedAt, syncedAt, shelfId, json_extract(metadata, '$.coverUrl') AS coverUrl FROM books ORDER BY createdAt DESC",
+    "SELECT isbn, shelfId, title, cover, tags, note, createdAt, updatedAt, syncedAt, json_extract(metadata, '$.coverUrl') AS coverUrl FROM books ORDER BY createdAt DESC",
   )
+
   return rows.map(rowToBook)
 }
 
@@ -40,6 +41,7 @@ export async function saveBooks(books: Book[]) {
   const db = await getDb()
   await db.withTransactionAsync(async () => {
     await db.execAsync('DELETE FROM books')
+
     for (const b of books) {
       await insert(db, b)
     }
@@ -51,33 +53,36 @@ export async function addBook(book: Book) {
   await insert(db, book)
 }
 
-export async function updateBookCover(isbn: string, cover: string) {
+export async function updateBookCover(isbn: string, shelfId: string | null, cover: string) {
   const db = await getDb()
 
-  await db.runAsync('UPDATE books SET cover = ?, updatedAt = ? WHERE isbn = ?', [
+  await db.runAsync('UPDATE books SET cover = ?, updatedAt = ? WHERE isbn = ? AND shelfId IS ?', [
     cover,
     Date.now(),
     isbn,
+    shelfId,
   ])
 }
 
-export async function updateBookTitle(isbn: string, title: string) {
+export async function updateBookTitle(isbn: string, shelfId: string | null, title: string) {
   const db = await getDb()
 
-  await db.runAsync('UPDATE books SET title = ?, updatedAt = ? WHERE isbn = ?', [
+  await db.runAsync('UPDATE books SET title = ?, updatedAt = ? WHERE isbn = ? AND shelfId IS ?', [
     title,
     Date.now(),
     isbn,
+    shelfId,
   ])
 }
 
-export async function updateBookNote(isbn: string, note: string) {
+export async function updateBookNote(isbn: string, shelfId: string | null, note: string) {
   const db = await getDb()
 
-  await db.runAsync('UPDATE books SET note = ?, updatedAt = ? WHERE isbn = ?', [
+  await db.runAsync('UPDATE books SET note = ?, updatedAt = ? WHERE isbn = ? AND shelfId IS ?', [
     note,
     Date.now(),
     isbn,
+    shelfId,
   ])
 }
 
@@ -90,8 +95,8 @@ export async function getUnshelvedCount() {
   return row?.count ?? 0
 }
 
-export async function removeBook(isbn: string) {
+export async function removeBook(isbn: string, shelfId: string | null) {
   const db = await getDb()
-  await db.runAsync('DELETE FROM books WHERE isbn = ?', [isbn])
+  await db.runAsync('DELETE FROM books WHERE isbn = ? AND shelfId IS ?', [isbn, shelfId])
   deleteCover(isbn)
 }

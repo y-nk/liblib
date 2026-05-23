@@ -59,6 +59,33 @@ const migrations: Migration[] = [
       await db.execAsync(`ALTER TABLE books RENAME COLUMN collectionId TO shelfId`)
     },
   },
+  {
+    version: 7,
+    up: async (db) => {
+      await db.execAsync(`
+        CREATE TABLE books_new (
+          isbn      TEXT NOT NULL,
+          shelfId   TEXT,
+          title     TEXT NOT NULL,
+          cover     TEXT NOT NULL DEFAULT '',
+          tags      TEXT NOT NULL DEFAULT '[]',
+          note      TEXT NOT NULL DEFAULT '',
+          favorite  INTEGER NOT NULL DEFAULT 0,
+          createdAt INTEGER NOT NULL,
+          updatedAt INTEGER,
+          syncedAt  INTEGER,
+          metadata  TEXT NOT NULL DEFAULT '{}',
+          PRIMARY KEY (isbn, shelfId)
+        );
+
+        INSERT INTO books_new (isbn, shelfId, title, cover, tags, note, favorite, createdAt, updatedAt, syncedAt, metadata)
+          SELECT isbn, shelfId, title, cover, tags, note, favorite, createdAt, updatedAt, syncedAt, metadata FROM books;
+
+        DROP TABLE books;
+        ALTER TABLE books_new RENAME TO books;
+      `)
+    },
+  },
 ]
 
 export async function runMigrations(db: SQLiteDatabase) {

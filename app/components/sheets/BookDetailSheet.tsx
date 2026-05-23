@@ -87,7 +87,7 @@ export default function BookDetailSheet({
         return
       }
 
-      await updateBookTitle(book.isbn, title)
+      await updateBookTitle(book.isbn, book.shelfId ?? null, title)
       onChanged()
     },
     [book?.isbn, onChanged],
@@ -103,7 +103,7 @@ export default function BookDetailSheet({
 
       debounceRef.current = setTimeout(async () => {
         if (book) {
-          await updateBookNote(book.isbn, text)
+          await updateBookNote(book.isbn, book.shelfId ?? null, text)
           onChanged()
         }
       }, 500)
@@ -118,7 +118,7 @@ export default function BookDetailSheet({
       }
 
       const coverPath = await saveCoverFromDataUri(book.isbn, dataUri)
-      await updateBookCover(book.isbn, coverPath)
+      await updateBookCover(book.isbn, book.shelfId ?? null, coverPath)
       onChanged()
     },
     [book?.isbn, onChanged],
@@ -138,7 +138,7 @@ export default function BookDetailSheet({
 
       if (match?.coverUrl) {
         const localPath = await saveCoverFromUrl(book.isbn, match.coverUrl)
-        await updateBookCover(book.isbn, localPath)
+        await updateBookCover(book.isbn, book.shelfId ?? null, localPath)
         onChanged()
       }
     } finally {
@@ -170,7 +170,7 @@ export default function BookDetailSheet({
     }
 
     const doDelete = async () => {
-      await removeBook(book.isbn)
+      await removeBook(book.isbn, book.shelfId ?? null)
       onClose()
       onChanged()
     }
