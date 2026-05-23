@@ -86,10 +86,13 @@ export async function updateBookNote(isbn: string, shelfId: string | null, note:
   ])
 }
 
-export async function getUnshelvedCount() {
+export async function getBookCount(shelfId: string | undefined) {
   const db = await getDb()
   const row = await db.getFirstAsync<{ count: number }>(
-    'SELECT COUNT(*) as count FROM books WHERE shelfId IS NULL',
+    shelfId
+      ? 'SELECT COUNT(*) as count FROM books WHERE shelfId = ?'
+      : 'SELECT COUNT(*) as count FROM books WHERE shelfId IS NULL',
+    shelfId ? [shelfId] : [],
   )
 
   return row?.count ?? 0

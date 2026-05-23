@@ -1,20 +1,17 @@
 import { useCallback, useState } from 'react'
-import { View, Text, FlatList, Pressable, useColorScheme } from 'react-native'
+import { View, ScrollView } from 'react-native'
 import { useFocusEffect } from 'expo-router'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { ChevronRight } from 'lucide-react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { getShelves, createShelf } from '@/lib/data/shelves'
-import { getUnshelvedCount } from '@/lib/data/books'
 import type { Shelf } from '@/lib/data/shelves'
 import Header from '@/components/Header'
+import ShelfRow from '@/components/ShelfRow'
 
 const INITIALIZED_KEY = 'shelves_initialized'
 
 export default function ShelvesScreen() {
   const [shelves, setShelves] = useState<Shelf[]>([])
-  const [unshelvedCount, setUnshelvedCount] = useState(0)
-  const dark = useColorScheme() === 'dark'
 
   const load = async () => {
     const initialized = await AsyncStorage.getItem(INITIALIZED_KEY)
@@ -30,7 +27,6 @@ export default function ShelvesScreen() {
     }
 
     setShelves(await getShelves())
-    setUnshelvedCount(await getUnshelvedCount())
   }
 
   useFocusEffect(
@@ -39,41 +35,23 @@ export default function ShelvesScreen() {
     }, []),
   )
 
+  const rows = [
+    { id: undefined, name: 'Mis-shelved books' },
+    ...shelves.map((s) => ({ id: String(s.id), name: s.name })),
+  ]
+
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
       <SafeAreaView className="flex-1 px-3">
-        <FlatList
-          data={shelves}
-          keyExtractor={(item) => String(item.id)}
-          ListHeaderComponent={
-            <View>
-              <View className="py-3">
-                <Header>Shelves</Header>
-              </View>
+        <ScrollView>
+          <View className="py-3">
+            <Header>Shelves</Header>
+          </View>
 
-              {unshelvedCount > 0 && (
-                <Pressable className="flex-row items-center py-4 px-2">
-                  <View className="flex-1">
-                    <Text className="text-base font-bold dark:text-white">Mis-shelved books</Text>
-                    <Text className="text-sm text-gray-400 mt-0.5">
-                      {unshelvedCount} {unshelvedCount === 1 ? 'book' : 'books'}
-                    </Text>
-                  </View>
-                  <ChevronRight size={20} color={dark ? '#666' : '#999'} />
-                </Pressable>
-              )}
-            </View>
-          }
-          renderItem={({ item }) => (
-            <Pressable className="flex-row items-center py-4 px-2">
-              <View className="flex-1">
-                <Text className="text-base font-bold dark:text-white">{item.name}</Text>
-                <Text className="text-sm text-gray-400 mt-0.5">0 books</Text>
-              </View>
-              <ChevronRight size={20} color={dark ? '#666' : '#999'} />
-            </Pressable>
-          )}
-        />
+          {rows.map((shelf) => (
+            <ShelfRow key={shelf.id ?? 'unshelved'} shelfId={shelf.id} name={shelf.name} />
+          ))}
+        </ScrollView>
       </SafeAreaView>
     </View>
   )
