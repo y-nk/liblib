@@ -1,11 +1,9 @@
 import { useCallback, useState } from 'react'
 import { View, ScrollView } from 'react-native'
 import { useFocusEffect } from 'expo-router'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { getShelves, createShelf } from '@/lib/data/shelves'
 import type { Shelf } from '@/lib/data/shelves'
-import Header from '@/components/Header'
 import ShelfRow from '@/components/ShelfRow'
 
 const INITIALIZED_KEY = 'shelves_initialized'
@@ -41,18 +39,12 @@ export default function ShelvesScreen() {
   ]
 
   return (
-    <View className="flex-1 bg-white dark:bg-neutral-950">
-      <SafeAreaView className="flex-1 px-3">
-        <ScrollView>
-          <View className="py-3">
-            <Header>Shelves</Header>
-          </View>
-
-          {rows.map((shelf) => (
-            <ShelfRow key={shelf.id ?? 'unshelved'} shelfId={shelf.id} name={shelf.name} />
-          ))}
-        </ScrollView>
-      </SafeAreaView>
+    <View className="flex-1 bg-white dark:bg-neutral-950 px-3">
+      <ScrollView>
+        {rows.map((shelf) => (
+          <ShelfRow key={shelf.id ?? 'unshelved'} shelfId={shelf.id} name={shelf.name} />
+        ))}
+      </ScrollView>
     </View>
   )
 }

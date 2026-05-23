@@ -12,17 +12,19 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <KeyboardProvider>
         <StatusBar style={dark ? 'light' : 'dark'} />
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
+        <Stack screenOptions={{ headerShown: true }}>
+          <Stack.Screen name="index" options={{ title: 'Shelves' }} />
           <Stack.Screen
             name="books"
             options={{
-              headerShown: true,
               title: 'Books',
               headerBackTitle: 'Shelves',
             }}
           />
-          <Stack.Screen name="scan" options={{ presentation: 'fullScreenModal' }} />
+          <Stack.Screen
+            name="scan"
+            options={{ headerShown: false, presentation: 'fullScreenModal' }}
+          />
         </Stack>
       </KeyboardProvider>
     </GestureHandlerRootView>
