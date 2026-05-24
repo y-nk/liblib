@@ -63,6 +63,10 @@ export default function ShelfDetailSheet({
           <EditableTitle value={shelf.name} onSave={handleNameSave} />
         </View>
 
+        <Text className="text-xs text-gray-400 text-center mb-6">
+          Last synced: {shelf.syncedAt ? new Date(shelf.syncedAt).toLocaleString() : 'never'}
+        </Text>
+
         <Pressable onPress={confirmDelete} className="flex-row items-center justify-center py-3">
           <Trash2 size={16} color="#ef4444" />
           <Text className="text-red-500 text-sm font-medium ml-2">Delete this shelf</Text>
