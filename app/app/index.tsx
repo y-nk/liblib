@@ -10,12 +10,16 @@ import ShelfDetailSheet from '@/components/sheets/ShelfDetailSheet'
 
 export default function ShelvesScreen() {
   const [shelves, setShelves] = useState<Shelf[]>([])
+  const [refreshKey, setRefreshKey] = useState(0)
   const [showCreate, setShowCreate] = useState(false)
   const [newName, setNewName] = useState('')
   const [selectedShelf, setSelectedShelf] = useState<Shelf | null>(null)
   const dark = useColorScheme() === 'dark'
 
-  const load = () => getShelves().then(setShelves)
+  const load = () => {
+    getShelves().then(setShelves)
+    setRefreshKey((k) => k + 1)
+  }
 
   useFocusEffect(
     useCallback(() => {
@@ -59,6 +63,7 @@ export default function ShelvesScreen() {
             key={shelf.id ?? 'unshelved'}
             shelfId={shelf.id}
             name={shelf.name}
+            refreshKey={refreshKey}
             onLongPress={
               shelf.id
                 ? () => setSelectedShelf(shelves.find((s) => String(s.id) === shelf.id) ?? null)

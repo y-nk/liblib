@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { View, Text, Pressable, useColorScheme } from 'react-native'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { ChevronRight } from 'lucide-react-native'
@@ -8,20 +8,26 @@ export default function ShelfRow({
   shelfId,
   name,
   onLongPress,
+  refreshKey,
 }: {
   shelfId: string | undefined
   name: string
   onLongPress?: () => void
+  refreshKey?: number
 }) {
   const [count, setCount] = useState(0)
   const dark = useColorScheme() === 'dark'
   const router = useRouter()
 
-  useFocusEffect(
-    useCallback(() => {
-      getBookCount(shelfId).then(setCount)
-    }, [shelfId]),
-  )
+  const fetchCount = useCallback(() => {
+    getBookCount(shelfId).then(setCount)
+  }, [shelfId])
+
+  useFocusEffect(fetchCount)
+
+  useEffect(() => {
+    fetchCount()
+  }, [refreshKey])
 
   return (
     <Pressable
