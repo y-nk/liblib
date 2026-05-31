@@ -9,6 +9,7 @@ import {
   type CloudProvider,
 } from '@/lib/cloud/state'
 import { runConfiguredSync } from '@/lib/cloud/syncRunner'
+import { subscribeAutoSyncStatus } from '@/lib/cloud/autoSync'
 import { showSnackbar } from '@/lib/snackbar'
 
 type Status = 'idle' | 'syncing' | 'error'
@@ -30,6 +31,7 @@ export default function SyncButton({ onRequestEnable }: { onRequestEnable: () =>
   const [provider, setProviderState] = useState<CloudProvider | undefined>(undefined)
   const [autoLocked, setAutoLockedState] = useState(false)
   const [status, setStatus] = useState<Status>('idle')
+  const [backedOff, setBackedOff] = useState(false)
   const spin = useRef(new Animated.Value(0)).current
   const spinLoop = useRef<Animated.CompositeAnimation | null>(null)
 
@@ -45,6 +47,12 @@ export default function SyncButton({ onRequestEnable }: { onRequestEnable: () =>
 
     return unsubscribe
   }, [refreshState])
+
+  useEffect(() => {
+    return subscribeAutoSyncStatus((s) => {
+      setBackedOff(s.backedOff)
+    })
+  }, [])
 
   useEffect(() => {
     if (status === 'syncing') {
@@ -134,7 +142,7 @@ export default function SyncButton({ onRequestEnable }: { onRequestEnable: () =>
         <Animated.View style={{ transform: [{ rotate }] }}>
           <RefreshCw size={22} color={iconColor} fill={iconFill} />
         </Animated.View>
-        {autoLocked && (
+        {autoLocked && !backedOff && (
           <View
             style={{
               position: 'absolute',
