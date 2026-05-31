@@ -12,6 +12,13 @@ jobs:
     defaults:
       run:
         working-directory: app
+    env:
+      ANDROID_KEYSTORE_PATH: ${{ github.workspace }}/app/credentials/liblib-release.p12
+      ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID: 552497043706-993mhqs778e3cu1h5i5ovjkl0ue9ncmb.apps.googleusercontent.com
+      GOOGLE_IOS_URL_SCHEME: com.googleusercontent.apps.552497043706-68p2ailtcllhe79c485so0v8rdc1bc79
     steps:
       - run: echo "BUILD_START=$(date +%s)" >> $GITHUB_ENV
         working-directory: .
@@ -33,6 +40,12 @@ jobs:
           distribution: temurin
           java-version: 17
 
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3'
+          bundler-cache: true
+          working-directory: app
+
       - uses: actions/cache@v4
         with:
           path: |
@@ -43,11 +56,20 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - run: npx expo prebuild --clean --platform android --no-install
+      - name: Decode release keystore
+        run: |
+          mkdir -p credentials
+          echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$ANDROID_KEYSTORE_PATH"
+          test -s "$ANDROID_KEYSTORE_PATH" || { echo "keystore decode failed"; exit 1; }
 
-      - run: cd android && ./gradlew assembleRelease -quiet
+      - name: Fastlane build
+        run: bundle exec fastlane android ci
         env:
           EXPO_PUBLIC_COMMIT_SHA: ${{ github.sha }}
+
+      - name: Shred keystore
+        if: always()
+        run: rm -f "$ANDROID_KEYSTORE_PATH"
 
       - uses: actions/upload-artifact@v4
         id: upload

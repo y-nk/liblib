@@ -1,0 +1,54 @@
+default_platform(:android)
+
+platform :android do
+  desc 'Generate native Android project from Expo config'
+  lane :prebuild do
+    sh('cd .. && npx expo prebuild --clean --platform android --no-install')
+  end
+
+  desc 'Build signed release APK (expects keystore + creds in env)'
+  lane :build do
+    keystore = ENV.fetch('ANDROID_KEYSTORE_PATH')
+    UI.user_error!("keystore not found at #{keystore}") unless File.exist?(keystore)
+
+    gradle(
+      project_dir: '../android',
+      task: 'assemble',
+      build_type: 'Release',
+      print_command: false,
+      print_command_output: true,
+      properties: {
+        'android.injected.signing.store.file' => File.expand_path(keystore),
+        'android.injected.signing.store.password' => ENV.fetch('ANDROID_KEYSTORE_PASSWORD'),
+        'android.injected.signing.key.alias' => ENV.fetch('ANDROID_KEY_ALIAS'),
+        'android.injected.signing.key.password' => ENV.fetch('ANDROID_KEY_PASSWORD'),
+      }
+    )
+  end
+
+  desc 'Build signed release AAB (Play Store bundle)'
+  lane :bundle do
+    keystore = ENV.fetch('ANDROID_KEYSTORE_PATH')
+    UI.user_error!("keystore not found at #{keystore}") unless File.exist?(keystore)
+
+    gradle(
+      project_dir: '../android',
+      task: 'bundle',
+      build_type: 'Release',
+      print_command: false,
+      print_command_output: true,
+      properties: {
+        'android.injected.signing.store.file' => File.expand_path(keystore),
+        'android.injected.signing.store.password' => ENV.fetch('ANDROID_KEYSTORE_PASSWORD'),
+        'android.injected.signing.key.alias' => ENV.fetch('ANDROID_KEY_ALIAS'),
+        'android.injected.signing.key.password' => ENV.fetch('ANDROID_KEY_PASSWORD'),
+      }
+    )
+  end
+
+  desc 'CI entrypoint: prebuild + build signed APK'
+  lane :ci do
+    prebuild
+    build
+  end
+end
