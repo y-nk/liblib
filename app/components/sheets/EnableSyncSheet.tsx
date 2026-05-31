@@ -2,15 +2,17 @@ import { useState } from 'react'
 import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import BottomDrawer from './BottomDrawer'
-import { setProvider } from '@/lib/cloud/state'
+import { ICloudNotAvailableError } from '@y_nk/react-native-cloud-sync'
 import { signInWithGoogleDrive } from '@/lib/cloud/googleSync'
+import { enableICloudSync } from '@/lib/cloud/icloudSync'
 import { showSnackbar } from '@/lib/snackbar'
 
 /**
  * Provider chooser. iOS shows Drive + iCloud + Sign in with Apple; Android
- * shows Drive only. In this slice iCloud is a placeholder that stamps
- * `cloud.provider = 'fake'`; Drive runs the real Google sign-in flow
- * (with the `drive.appdata` scope) and persists `cloud.provider = 'google'`.
+ * shows Drive only. Drive runs the Google sign-in flow (with the
+ * `drive.appdata` scope) and persists `cloud.provider = 'google'`; iCloud
+ * pre-flights `ubiquityIdentityToken` via the LiblibICloud native module
+ * and persists `cloud.provider = 'apple'` on success.
  *
  * Sign in with Apple is rendered on iOS solely to satisfy App Store
  * guideline 4.8 for apps offering Google sign-in; it does NOT select a
@@ -54,10 +56,27 @@ export default function EnableSyncSheet({
     }
   }
 
-  const enableFake = async () => {
-    await setProvider('fake')
-    onEnabled?.()
-    onClose()
+  const enableICloud = async () => {
+    if (signingIn) {
+      return
+    }
+
+    setSigningIn(true)
+
+    try {
+      await enableICloudSync()
+      onEnabled?.()
+      onClose()
+    } catch (e) {
+      if (e instanceof ICloudNotAvailableError) {
+        showSnackbar('iCloud not available — sign into iCloud in iOS Settings', 'error')
+      } else {
+        const msg = e instanceof Error ? e.message : String(e)
+        showSnackbar(`iCloud sync failed: ${msg}`, 'error')
+      }
+    } finally {
+      setSigningIn(false)
+    }
   }
 
   return (
@@ -83,10 +102,15 @@ export default function EnableSyncSheet({
 
           {Platform.OS === 'ios' && (
             <Pressable
-              onPress={enableFake}
+              onPress={enableICloud}
+              disabled={signingIn}
               className="bg-gray-100 dark:bg-neutral-800 rounded-lg py-3 px-4"
             >
-              <Text className="text-base text-center dark:text-white">Sync with iCloud</Text>
+              {signingIn ? (
+                <ActivityIndicator size="small" />
+              ) : (
+                <Text className="text-base text-center dark:text-white">Sync with iCloud</Text>
+              )}
             </Pressable>
           )}
         </View>

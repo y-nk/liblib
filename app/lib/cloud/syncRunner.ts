@@ -8,6 +8,7 @@ import { buildDbHandle } from './dbHandle'
 import { createFileSystemCoverStore } from './coverStore'
 import { devFakeAdapter } from './devSync'
 import { createGoogleDriveAdapter } from './googleSync'
+import { createICloudAdapter } from './icloudSync'
 import { getLastEtag, getProvider, setLastEtag, setLastSyncAt } from './state'
 
 /** Highest known migration version — see `lib/migrations.ts`. */
@@ -49,13 +50,21 @@ export async function runConfiguredSync(): Promise<SyncResult> {
       throw new Error('Sync is not enabled')
     }
 
-    // `'apple'` (iCloud) ships in a later slice.
-    if (provider === 'apple') {
-      throw new Error(`Provider not yet implemented: ${provider}`)
-    }
+    let adapter: CloudAdapter
 
-    const adapter: CloudAdapter =
-      provider === 'google' ? createGoogleDriveAdapter() : devFakeAdapter
+    if (provider === 'google') {
+      adapter = createGoogleDriveAdapter()
+    } else if (provider === 'apple') {
+      const icloud = createICloudAdapter()
+
+      if (!icloud) {
+        throw new Error('iCloud native module is not available in this build')
+      }
+
+      adapter = icloud
+    } else {
+      adapter = devFakeAdapter
+    }
     const { handle } = await buildDbHandle()
     const covers = createFileSystemCoverStore()
 

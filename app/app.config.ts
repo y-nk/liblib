@@ -69,6 +69,17 @@ export default ({ config: _config }: ConfigContext): ExpoConfig => ({
         iosUrlScheme: process.env.GOOGLE_IOS_URL_SCHEME || 'com.googleusercontent.apps.placeholder',
       },
     ],
+    [
+      // iCloud container identifier is intentionally configurable rather than
+      // hardcoded — the dev-client build needs a real provisioned container
+      // (`iCloud.com.liblib.app`), but tsc / prebuild / `expo export` all work
+      // against the placeholder so the JS workflow is unblocked.
+      './packages/cloud-sync/app.plugin.js',
+      {
+        containerIdentifier:
+          process.env.LIBLIB_ICLOUD_CONTAINER || 'iCloud.com.example.placeholder',
+      },
+    ],
   ],
   experiments: {
     baseUrl,

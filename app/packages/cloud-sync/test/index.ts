@@ -11,6 +11,7 @@
  */
 import './SyncEngine.test'
 import './GoogleDriveAdapter.test'
+import './ICloudAdapter.test'
 import { runAll } from './harness'
 
 async function main() {

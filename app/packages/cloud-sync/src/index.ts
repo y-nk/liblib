@@ -7,5 +7,11 @@ export {
   type GoogleDriveAdapterOptions,
   type GoogleTokenProvider,
 } from './GoogleDriveAdapter'
+export {
+  ICloudAdapter,
+  ICloudNotAvailableError,
+  type ICloudAdapterOptions,
+  type ICloudNativeModule,
+} from './ICloudAdapter'
 export { sync, type SyncOptions, type SyncResult, type SyncState } from './SyncEngine'
 export { EtagMismatchError, NotFoundError, SchemaTooNewError, SyncConflictError } from './errors'
