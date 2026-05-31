@@ -74,7 +74,7 @@ export default ({ config: _config }: ConfigContext): ExpoConfig => ({
       // hardcoded — the dev-client build needs a real provisioned container
       // (`iCloud.com.liblib.app`), but tsc / prebuild / `expo export` all work
       // against the placeholder so the JS workflow is unblocked.
-      './packages/cloud-sync/app.plugin.js',
+      '@y_nk/react-native-cloud-sync',
       {
         containerIdentifier:
           process.env.LIBLIB_ICLOUD_CONTAINER || 'iCloud.com.example.placeholder',

@@ -14,10 +14,10 @@
     "format:check": "oxfmt --check ."
   },
   "dependencies": {
-    "@expo/config-plugins": "^54.0.0",
     "@expo/react-native-action-sheet": "^4.1.1",
     "@react-native-async-storage/async-storage": "^2.2.0",
     "@react-native-google-signin/google-signin": "^16.1.2",
+    "@y_nk/react-native-cloud-sync": "workspace:*",
     "expo": "~54.0.33",
     "expo-apple-authentication": "^56.0.4",
     "expo-camera": "^17.0.10",

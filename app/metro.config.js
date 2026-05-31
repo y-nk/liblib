@@ -2,32 +2,20 @@ const path = require('path')
 const { getDefaultConfig } = require('expo/metro-config')
 const { withNativeWind } = require('nativewind/metro')
 
-const config = getDefaultConfig(__dirname)
+const projectRoot = __dirname
+const monorepoRoot = path.resolve(projectRoot, '..')
 
-// Resolve `@y_nk/react-native-cloud-sync` to the local in-repo package so
-// Metro can bundle it without a real npm install.
-const aliases = {
-  '@y_nk/react-native-cloud-sync': path.resolve(__dirname, 'packages/cloud-sync/src/index.ts'),
-}
+const config = getDefaultConfig(projectRoot)
 
-const originalResolveRequest = config.resolver.resolveRequest
+// Watch the whole monorepo so changes in sibling workspaces (cloud-sync)
+// trigger reloads during dev.
+config.watchFolders = [monorepoRoot]
 
-config.resolver.resolveRequest = (context, moduleName, platform) => {
-  if (aliases[moduleName]) {
-    return {
-      filePath: aliases[moduleName],
-      type: 'sourceFile',
-    }
-  }
-
-  if (originalResolveRequest) {
-    return originalResolveRequest(context, moduleName, platform)
-  }
-
-  return context.resolveRequest(context, moduleName, platform)
-}
-
-// Watch the packages directory so Metro picks up changes during dev.
-config.watchFolders = [...(config.watchFolders ?? []), path.resolve(__dirname, 'packages')]
+// With nodeLinker=hoisted, deps live in the root `node_modules`; keep the
+// app's own folder first so locally-declared versions win on resolution.
+config.resolver.nodeModulesPaths = [
+  path.resolve(projectRoot, 'node_modules'),
+  path.resolve(monorepoRoot, 'node_modules'),
+]
 
 module.exports = withNativeWind(config, { input: './global.css' })

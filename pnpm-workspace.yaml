@@ -1,0 +1,15 @@
+packages:
+  - app
+  - cloud-sync
+
+# Flat node_modules layout — required by Metro / Expo, which historically
+# trips over pnpm's default symlinked store.
+nodeLinker: hoisted
+
+# Local workspace packages take precedence over the registry, so
+# `"@y_nk/react-native-cloud-sync": "workspace:*"` in app/package.json
+# resolves to ../cloud-sync rather than a published version.
+linkWorkspacePackages: true
+
+autoInstallPeers: true
+strictPeerDependencies: false

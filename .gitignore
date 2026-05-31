@@ -41,4 +41,4 @@ yarn-error.*
 /app/ios
 /app/android
 
-/docs
+/app/docs
