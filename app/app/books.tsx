@@ -8,8 +8,10 @@ import type { BookListRef } from '@/components/BookList'
 import SettingsSheet from '@/components/sheets/SettingsSheet'
 import AddManuallySheet from '@/components/sheets/AddManuallySheet'
 import SearchSheet from '@/components/sheets/SearchSheet'
+import EnableSyncSheet from '@/components/sheets/EnableSyncSheet'
 import ActionToolbar from '@/components/ActionToolbar'
 import BookDetailSheet from '@/components/sheets/BookDetailSheet'
+import SyncButton from '@/components/SyncButton'
 import type { Book } from '@/lib/types'
 
 export default function BooksScreen() {
@@ -18,6 +20,7 @@ export default function BooksScreen() {
   const [showAddManual, setShowAddManual] = useState(false)
   const [manualIsbn, setManualIsbn] = useState('')
   const [showSearch, setShowSearch] = useState(false)
+  const [showEnableSync, setShowEnableSync] = useState(false)
   const [selectedBook, setSelectedBook] = useState<Book | null>(null)
   const listRef = useRef<BookListRef>(null)
   const dark = useColorScheme() === 'dark'
@@ -35,9 +38,12 @@ export default function BooksScreen() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <Pressable onPress={() => setShowSettings(true)} hitSlop={8}>
-              <Settings size={22} color={dark ? '#aaa' : '#666'} />
-            </Pressable>
+            <View className="flex-row items-center">
+              <SyncButton onRequestEnable={() => setShowEnableSync(true)} />
+              <Pressable onPress={() => setShowSettings(true)} hitSlop={8}>
+                <Settings size={22} color={dark ? '#aaa' : '#666'} />
+              </Pressable>
+            </View>
           ),
         }}
       />
@@ -63,6 +69,7 @@ export default function BooksScreen() {
       />
 
       <SettingsSheet visible={showSettings} onClose={() => setShowSettings(false)} />
+      <EnableSyncSheet visible={showEnableSync} onClose={() => setShowEnableSync(false)} />
       <AddManuallySheet
         visible={showAddManual}
         onClose={() => setShowAddManual(false)}

@@ -4,6 +4,7 @@ import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { KeyboardProvider } from 'react-native-keyboard-controller'
+import Snackbar from '@/components/Snackbar'
 
 export default function RootLayout() {
   const dark = useColorScheme() === 'dark'
@@ -33,6 +34,7 @@ export default function RootLayout() {
             options={{ headerShown: false, presentation: 'fullScreenModal' }}
           />
         </Stack>
+        <Snackbar />
       </KeyboardProvider>
     </GestureHandlerRootView>
   )

@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   Pressable,
-  Platform,
   ActivityIndicator,
   Switch,
   useColorScheme,
@@ -12,6 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import BottomDrawer from './BottomDrawer'
+import EnableSyncSheet from './EnableSyncSheet'
 import DraggableFlatList, {
   RenderItemParams,
   ScaleDecorator,
@@ -19,13 +19,20 @@ import DraggableFlatList, {
 import { GripVertical, ChevronDown, ChevronRight, TriangleAlert } from 'lucide-react-native'
 import { getSettings, saveSettings } from '@/lib/data/settings'
 import { getLogs, clearLogs } from '@/lib/log'
-import { getUser, signInWithGoogle, signInWithApple, signOut } from '@/lib/auth'
-import type { AuthUser } from '@/lib/auth'
 import * as Clipboard from 'expo-clipboard'
 import { providers, AiProvider } from '@/lib/providers'
 import type { Settings, ProviderConfig, ProviderId } from '@/lib/types'
 import { DEFAULT_PROVIDERS } from '@/lib/types'
-import { runDevSync } from '@/lib/cloud/devSync'
+import {
+  clearAll as clearCloudState,
+  getAccountEmail,
+  getLastSyncAt,
+  getProvider,
+  subscribeCloudState,
+  type CloudProvider,
+} from '@/lib/cloud/state'
+import { runConfiguredSync } from '@/lib/cloud/syncRunner'
+import { showSnackbar } from '@/lib/snackbar'
 
 function findProvider(id: string) {
   return providers[id]
@@ -49,65 +56,62 @@ export default function SettingsSheet({
     geminiKey: '',
     providers: DEFAULT_PROVIDERS,
   })
-  const [user, setUser] = useState<AuthUser | null>(null)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [testing, setTesting] = useState<Record<string, 'idle' | 'loading' | 'success' | 'error'>>(
     {},
   )
   const [testMsg, setTestMsg] = useState<Record<string, string>>({})
-  const [devSyncMsg, setDevSyncMsg] = useState<string>('')
-  const [devSyncRunning, setDevSyncRunning] = useState(false)
+  const [cloudProvider, setCloudProvider] = useState<CloudProvider | undefined>(undefined)
+  const [cloudEmail, setCloudEmail] = useState<string | undefined>(undefined)
+  const [lastSyncAt, setLastSyncAt] = useState<string | undefined>(undefined)
+  const [syncRunning, setSyncRunning] = useState(false)
+  const [showEnableSheet, setShowEnableSheet] = useState(false)
   const settingsRef = useRef(settings)
   settingsRef.current = settings
   const dark = useColorScheme() === 'dark'
   const { bottom } = useSafeAreaInsets()
 
+  const refreshCloud = async () => {
+    const [p, email, last] = await Promise.all([getProvider(), getAccountEmail(), getLastSyncAt()])
+    setCloudProvider(p)
+    setCloudEmail(email)
+    setLastSyncAt(last)
+  }
+
   useEffect(() => {
     if (visible) {
       getSettings().then(setSettings)
-      getUser().then(setUser)
+      refreshCloud()
     }
   }, [visible])
 
-  const handleSignInGoogle = async () => {
-    const result = await signInWithGoogle()
+  useEffect(() => {
+    return subscribeCloudState(() => {
+      refreshCloud()
+    })
+  }, [])
 
-    if (result) {
-      setUser(result)
+  const handleSyncNow = async () => {
+    if (syncRunning) {
+      return
     }
-  }
 
-  const handleSignInApple = async () => {
-    const result = await signInWithApple()
-
-    if (result) {
-      setUser(result)
-    }
-  }
-
-  const handleSignOut = async () => {
-    await signOut()
-    setUser(null)
-  }
-
-  const handleDevSync = async () => {
-    setDevSyncRunning(true)
-    setDevSyncMsg('Syncing…')
+    setSyncRunning(true)
 
     try {
-      const result = await runDevSync()
-
-      setDevSyncMsg(
-        `OK — pulled:${result.pulled} pushed:${result.pushed} ` +
-          `covers↑${result.coverUploads} covers↓${result.coverDownloads} ` +
-          `retries:${result.retries} etag:${result.newEtag}`,
-      )
+      await runConfiguredSync()
+      showSnackbar('Sync complete')
     } catch (e) {
-      const msg = e instanceof Error ? `${e.name}: ${e.message}` : String(e)
-      setDevSyncMsg(`FAIL — ${msg}`)
+      const msg = e instanceof Error ? e.message : String(e)
+      showSnackbar(`Sync failed: ${msg}`, 'error')
     } finally {
-      setDevSyncRunning(false)
+      setSyncRunning(false)
     }
+  }
+
+  const handleDisableSync = async () => {
+    await clearCloudState()
+    showSnackbar('Sync disabled')
   }
 
   const update = (next: Settings) => {
@@ -260,109 +264,128 @@ export default function SettingsSheet({
   }
 
   return (
-    <BottomDrawer visible={visible} onClose={onClose}>
-      <DraggableFlatList
-        data={settings.providers}
-        keyExtractor={(item) => item.id}
-        onDragEnd={({ data }) => update({ ...settingsRef.current, providers: data })}
-        renderItem={renderItem}
-        containerStyle={{ flexGrow: 0 }}
-        ListHeaderComponent={
-          <View className="px-4 pt-2">
-            <Text className="text-2xl font-bold mb-6 dark:text-white">Settings</Text>
-            <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">Providers</Text>
-          </View>
-        }
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: bottom + 16 }}
-        ListFooterComponent={
-          <View className="mt-6">
-            <Text className="text-sm font-medium text-gray-500 mb-3 uppercase">Account</Text>
-
-            {user ? (
-              <View className="bg-gray-100 dark:bg-neutral-800 rounded-lg p-4 mb-4">
-                <Text className="text-base font-medium dark:text-white">
-                  {user.name || user.email}
-                </Text>
-                {user.name ? (
-                  <Text className="text-sm text-gray-400 mt-0.5">{user.email}</Text>
-                ) : null}
-                <Text className="text-xs text-gray-400 mt-1">
-                  Signed in with {user.provider === 'google' ? 'Google' : 'Apple'}
-                </Text>
-
-                <Pressable onPress={handleSignOut} className="mt-3">
-                  <Text className="text-sm text-red-500">Sign out</Text>
-                </Pressable>
-              </View>
-            ) : (
-              <View className="gap-2 mb-4">
-                <Pressable
-                  onPress={handleSignInGoogle}
-                  className="bg-gray-100 dark:bg-neutral-800 rounded-lg py-3 px-4"
-                >
-                  <Text className="text-base text-center dark:text-white">Sign in with Google</Text>
-                </Pressable>
-
-                {Platform.OS === 'ios' && (
-                  <Pressable
-                    onPress={handleSignInApple}
-                    className="bg-black dark:bg-white rounded-lg py-3 px-4"
-                  >
-                    <Text className="text-base text-center text-white dark:text-black">
-                      Sign in with Apple
-                    </Text>
-                  </Pressable>
-                )}
-              </View>
-            )}
-
-            {__DEV__ && (
-              <View className="mb-4">
-                <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">
-                  Cloud sync (dev)
-                </Text>
-                <Pressable
-                  onPress={handleDevSync}
-                  disabled={devSyncRunning}
-                  className="bg-gray-100 dark:bg-neutral-800 rounded-lg py-3 px-4"
-                >
-                  {devSyncRunning ? (
-                    <ActivityIndicator color={dark ? '#fff' : '#000'} size="small" />
-                  ) : (
-                    <Text className="text-base text-center dark:text-white">
-                      Run sync against FakeCloudAdapter
-                    </Text>
-                  )}
-                </Pressable>
-                {devSyncMsg ? (
-                  <Text className="text-xs text-gray-500 dark:text-neutral-400 mt-2 text-center">
-                    {devSyncMsg}
-                  </Text>
-                ) : null}
-              </View>
-            )}
-
-            <View className="flex-row justify-center gap-4 mb-3">
-              <Pressable
-                onPress={async () => {
-                  const logs = await getLogs()
-                  await Clipboard.setStringAsync(logs || '(empty)')
-                }}
-              >
-                <Text className="text-xs text-blue-500">Copy logs</Text>
-              </Pressable>
-
-              <Pressable onPress={clearLogs}>
-                <Text className="text-xs text-red-400">Clear logs</Text>
-              </Pressable>
+    <>
+      <BottomDrawer visible={visible} onClose={onClose}>
+        <DraggableFlatList
+          data={settings.providers}
+          keyExtractor={(item) => item.id}
+          onDragEnd={({ data }) => update({ ...settingsRef.current, providers: data })}
+          renderItem={renderItem}
+          containerStyle={{ flexGrow: 0 }}
+          ListHeaderComponent={
+            <View className="px-4 pt-2">
+              <Text className="text-2xl font-bold mb-6 dark:text-white">Settings</Text>
+              <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">Providers</Text>
             </View>
+          }
+          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: bottom + 16 }}
+          ListFooterComponent={
+            <View className="mt-6">
+              <Text className="text-sm font-medium text-gray-500 mb-3 uppercase">Sync</Text>
 
-            <Text className="text-xs text-gray-400 text-center">
-              Version: {process.env.EXPO_PUBLIC_COMMIT_SHA?.slice(0, 7) || 'dev'}
-            </Text>
-          </View>
-        }
-      />
-    </BottomDrawer>
+              {cloudProvider === undefined ? (
+                <Pressable
+                  onPress={() => setShowEnableSheet(true)}
+                  className="bg-gray-100 dark:bg-neutral-800 rounded-lg py-3 px-4 mb-4"
+                >
+                  <Text className="text-base text-center dark:text-white">Enable sync</Text>
+                </Pressable>
+              ) : (
+                <View className="bg-gray-100 dark:bg-neutral-800 rounded-lg p-4 mb-4">
+                  <Text className="text-base font-medium dark:text-white">
+                    {providerLabel(cloudProvider)}
+                  </Text>
+                  {cloudEmail ? (
+                    <Text className="text-sm text-gray-400 mt-0.5">{cloudEmail}</Text>
+                  ) : null}
+                  <Text className="text-xs text-gray-400 mt-1">
+                    {lastSyncAt ? `Last synced: ${formatRelative(lastSyncAt)}` : 'Not synced yet'}
+                  </Text>
+
+                  <Pressable
+                    onPress={handleSyncNow}
+                    disabled={syncRunning}
+                    className="mt-3 py-2 border-t border-gray-200 dark:border-neutral-700"
+                  >
+                    {syncRunning ? (
+                      <ActivityIndicator color={dark ? '#fff' : '#000'} size="small" />
+                    ) : (
+                      <Text className="text-sm dark:text-white">Sync now</Text>
+                    )}
+                  </Pressable>
+
+                  <Pressable onPress={handleDisableSync} className="mt-1 py-2">
+                    <Text className="text-sm text-red-500">Disable sync</Text>
+                  </Pressable>
+                </View>
+              )}
+
+              <View className="flex-row justify-center gap-4 mb-3">
+                <Pressable
+                  onPress={async () => {
+                    const logs = await getLogs()
+                    await Clipboard.setStringAsync(logs || '(empty)')
+                  }}
+                >
+                  <Text className="text-xs text-blue-500">Copy logs</Text>
+                </Pressable>
+
+                <Pressable onPress={clearLogs}>
+                  <Text className="text-xs text-red-400">Clear logs</Text>
+                </Pressable>
+              </View>
+
+              <Text className="text-xs text-gray-400 text-center">
+                Version: {process.env.EXPO_PUBLIC_COMMIT_SHA?.slice(0, 7) || 'dev'}
+              </Text>
+            </View>
+          }
+        />
+      </BottomDrawer>
+      <EnableSyncSheet visible={showEnableSheet} onClose={() => setShowEnableSheet(false)} />
+    </>
   )
+}
+
+function providerLabel(p: CloudProvider): string {
+  if (p === 'google') {
+    return 'Google Drive'
+  }
+
+  if (p === 'apple') {
+    return 'iCloud'
+  }
+
+  return 'Fake (dev)'
+}
+
+function formatRelative(iso: string): string {
+  const then = new Date(iso).getTime()
+
+  if (Number.isNaN(then)) {
+    return iso
+  }
+
+  const diffMs = Date.now() - then
+  const diffSec = Math.max(0, Math.round(diffMs / 1000))
+
+  if (diffSec < 60) {
+    return 'just now'
+  }
+
+  const diffMin = Math.round(diffSec / 60)
+
+  if (diffMin < 60) {
+    return `${diffMin} min ago`
+  }
+
+  const diffHr = Math.round(diffMin / 60)
+
+  if (diffHr < 24) {
+    return `${diffHr} h ago`
+  }
+
+  const diffDay = Math.round(diffHr / 24)
+
+  return `${diffDay} d ago`
 }
