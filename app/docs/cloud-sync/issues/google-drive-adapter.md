@@ -11,6 +11,7 @@ Replace the `'fake'` placeholder in `EnableSyncSheet`'s "Sync with Google Drive"
 3. Constructs and returns a configured `GoogleDriveAdapter` that implements `CloudAdapter` against the Google Drive REST API in `appDataFolder` scope.
 
 `GoogleDriveAdapter` covers:
+
 - `getFile(path)` → Drive `files.list` filtered to `appDataFolder` parent, find by name, then `files.get?alt=media`; capture the `etag` response header.
 - `putFile(path, data, ifMatchEtag?)` → Drive `files.create` (multipart) on first write, `files.update` on subsequent writes using `If-Match` with the stored etag; map Drive's 412 Precondition Failed to `EtagMismatchError`.
 - `listFiles(dir)` → `files.list` filtered by parent (where `dir` is mapped to the parent file id — `appDataFolder` for root, a sub-folder file id for `covers/`); ensure the `covers/` folder file is auto-created on first push.
@@ -21,6 +22,7 @@ Token expiry: the adapter must transparently refresh via `GoogleSignin.getTokens
 Disabling sync must call `GoogleSignin.revokeAccess()` (best-effort, swallow errors) before clearing AsyncStorage.
 
 This slice is **HITL** because it requires:
+
 - Adding `https://www.googleapis.com/auth/drive.appdata` to the OAuth consent screen on Google Cloud Console (by the human user).
 - Verifying the sign-in + scope-grant flow against a real Google account on a real device.
 

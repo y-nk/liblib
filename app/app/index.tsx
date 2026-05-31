@@ -41,8 +41,8 @@ export default function ShelvesScreen() {
   }
 
   const rows = [
-    { id: undefined, name: 'Mis-shelved books' },
-    ...shelves.map((s) => ({ id: String(s.id), name: s.name })),
+    { id: undefined as string | undefined, name: 'Mis-shelved books' },
+    ...shelves.map((s) => ({ id: s.id, name: s.name })),
   ]
 
   return (
@@ -66,7 +66,7 @@ export default function ShelvesScreen() {
             refreshKey={refreshKey}
             onLongPress={
               shelf.id
-                ? () => setSelectedShelf(shelves.find((s) => String(s.id) === shelf.id) ?? null)
+                ? () => setSelectedShelf(shelves.find((s) => s.id === shelf.id) ?? null)
                 : undefined
             }
           />

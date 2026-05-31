@@ -1,4 +1,5 @@
 import type { SQLiteDatabase } from 'expo-sqlite'
+import { nanoid } from 'nanoid/non-secure'
 
 type Migration = {
   version: number
@@ -112,6 +113,68 @@ const migrations: Migration[] = [
         DROP TABLE books;
         ALTER TABLE books_v8 RENAME TO books;
       `)
+    },
+  },
+  {
+    version: 9,
+    up: async (db) => {
+      // Convert shelves.id from INTEGER AUTOINCREMENT to TEXT (nanoid).
+      // Rewrite books.shelfId integer references to the new nanoid ids.
+      const existing = await db.getAllAsync<{ id: number; name: string; syncedAt: number | null }>(
+        'SELECT id, name, syncedAt FROM shelves',
+      )
+
+      const idMap = new Map<string, string>()
+
+      for (const row of existing) {
+        idMap.set(String(row.id), nanoid())
+      }
+
+      await db.execAsync(`
+        CREATE TABLE shelves_v9 (
+          id       TEXT NOT NULL PRIMARY KEY,
+          name     TEXT NOT NULL,
+          syncedAt INTEGER
+        )
+      `)
+
+      for (const row of existing) {
+        const newId = idMap.get(String(row.id))!
+        await db.runAsync('INSERT INTO shelves_v9 (id, name, syncedAt) VALUES (?, ?, ?)', [
+          newId,
+          row.name,
+          row.syncedAt,
+        ])
+      }
+
+      await db.execAsync(`
+        DROP TABLE shelves;
+        ALTER TABLE shelves_v9 RENAME TO shelves;
+      `)
+
+      // Rewrite books.shelfId values: previously they were integer-as-string;
+      // now they need to be the corresponding nanoid.
+      const books = await db.getAllAsync<{ isbn: string; shelfId: string | null }>(
+        'SELECT isbn, shelfId FROM books WHERE shelfId IS NOT NULL',
+      )
+
+      for (const b of books) {
+        const newId = idMap.get(String(b.shelfId))
+
+        if (newId) {
+          await db.runAsync('UPDATE books SET shelfId = ? WHERE isbn = ? AND shelfId IS ?', [
+            newId,
+            b.isbn,
+            b.shelfId,
+          ])
+        } else {
+          // Orphaned reference — no matching shelf. Demote to mis-shelved.
+          await db.runAsync('UPDATE books SET shelfId = NULL WHERE isbn = ? AND shelfId IS ?', [
+            b.isbn,
+            b.shelfId,
+          ])
+        }
+      }
     },
   },
 ]

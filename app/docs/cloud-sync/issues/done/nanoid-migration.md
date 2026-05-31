@@ -11,6 +11,7 @@ This is the prerequisite that makes whole-db sync safe across two devices: witho
 Land this migration in `lib/migrations.ts` as version 9, behind the existing forward-only migration runner. After migration 9 ships, every shelf id everywhere in the codebase is a `string` (nanoid). New entities introduced later follow the same nanoid convention.
 
 This slice has no UI surface. It is verified by:
+
 - The existing app still works end-to-end after the migration runs against a pre-existing local database.
 - The migration is covered by unit tests against an in-memory SQLite seeded with realistic pre-migration data.
 

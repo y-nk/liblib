@@ -9,23 +9,27 @@ Replace the `'fake'` placeholder in `EnableSyncSheet`'s "Sync with iCloud" butto
 This requires both Expo config plugin work and a native Swift module — there is no off-the-shelf RN library to lean on, so we build a minimal one. The largest risk in the feature.
 
 Native module surface (mirrors `CloudAdapter`):
+
 - `getFile(relativePath)` → resolves the ubiquity container URL via `FileManager.default.url(forUbiquityContainerIdentifier:)`, reads the file, returns `{ data, etag }` where `etag` is synthesized from `NSFileVersion.currentVersionOfItem(at:).persistentIdentifier` (or a content SHA-256 if the version identifier is unstable across devices).
 - `putFile(relativePath, data, ifMatchEtag?)` → uses `NSFileCoordinator.coordinate(writingItemAt:options:.forReplacing, ...)` to atomically write; before writing, re-reads the current etag and compares against `ifMatchEtag`; mismatch raises `EtagMismatchError`. After write, returns the new synthesized etag.
 - `listFiles(relativeDir)` → enumerates the directory inside the ubiquity container via `FileManager`, returns name/etag/size for each. Triggers `startDownloadingUbiquitousItem` for non-resident files so subsequent `getFile` calls have local data.
 - `deleteFile(relativePath)` → coordinated delete.
 
 Config plugin (`app.plugin.js` inside the `cloud-sync` package):
+
 - Adds the iCloud container identifier to the iOS section.
 - Adds `com.apple.developer.icloud-container-identifiers` and `com.apple.developer.icloud-services = ['CloudDocuments']` to the iOS entitlements.
 - Registers `NSUbiquitousContainers` in `Info.plist` with the human-visible name "Liblib" so the folder labels correctly in Files.app.
 
 `EnableSyncSheet`'s iCloud button:
+
 - Pre-flight: call `FileManager.default.ubiquityIdentityToken`. If `nil`, surface "iCloud not available — sign into iCloud in iOS Settings" and do not enable.
 - On success, persist `cloud.provider = 'apple'`. No tokens to store (entitlement-based access).
 
 Disabling sync for iCloud users simply clears AsyncStorage; nothing to revoke.
 
 This slice is **HITL** because it requires:
+
 - Provisioning an iCloud container in the Apple Developer portal.
 - Updating `app.config.ts` with the container identifier (decision-driven by the human user since it affects the bundle id).
 - Running `expo prebuild --clean --platform ios` and verifying entitlements are picked up.

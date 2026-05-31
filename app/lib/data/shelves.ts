@@ -1,14 +1,17 @@
+import { nanoid } from 'nanoid/non-secure'
 import { getDb } from '../db'
 
 export type Shelf = {
-  id: number
+  id: string
   name: string
   syncedAt: number | null
 }
 
 export async function getShelves() {
   const db = await getDb()
-  const rows = await db.getAllAsync<Shelf>('SELECT id, name, syncedAt FROM shelves ORDER BY id ASC')
+  const rows = await db.getAllAsync<Shelf>(
+    'SELECT id, name, syncedAt FROM shelves ORDER BY name ASC',
+  )
 
   return rows
 }
@@ -28,18 +31,19 @@ export async function getShelfName(shelfId: string | null | undefined) {
 
 export async function createShelf(name: string) {
   const db = await getDb()
-  const result = await db.runAsync('INSERT INTO shelves (name) VALUES (?)', [name])
+  const id = nanoid()
+  await db.runAsync('INSERT INTO shelves (id, name) VALUES (?, ?)', [id, name])
 
-  return { id: result.lastInsertRowId, name }
+  return { id, name }
 }
 
-export async function updateShelfName(id: number, name: string) {
+export async function updateShelfName(id: string, name: string) {
   const db = await getDb()
   await db.runAsync('UPDATE shelves SET name = ? WHERE id = ?', [name, id])
 }
 
-export async function deleteShelf(id: number) {
+export async function deleteShelf(id: string) {
   const db = await getDb()
-  await db.runAsync('UPDATE books SET shelfId = NULL WHERE shelfId = ?', [String(id)])
+  await db.runAsync('UPDATE books SET shelfId = NULL WHERE shelfId = ?', [id])
   await db.runAsync('DELETE FROM shelves WHERE id = ?', [id])
 }

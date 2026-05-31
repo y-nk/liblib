@@ -15,13 +15,13 @@ Components and changes:
    - `cloud.lastEtag`: string
    - `cloud.autoLocked`: boolean
    - Provider-specific token blobs (kept opaque to the rest of the app)
-   When `cloud.provider === undefined`, sync is considered disabled.
+     When `cloud.provider === undefined`, sync is considered disabled.
 
 2. **`components/SyncButton.tsx`** — new component. Rendered in `headerRight` of `app/books.tsx`, immediately to the left of the existing gear icon. Uses lucide `RefreshCw`. Three visual states:
    - **idle**: outline icon
    - **syncing**: same icon rotating in place via `Animated.Value` (not a separate spinner replacing it)
    - **auto-locked**: filled icon plus a small dot/badge
-   Gestures:
+     Gestures:
    - Tap when `cloud.provider === undefined` → opens `EnableSyncSheet`.
    - Tap when sync is enabled → runs `SyncEngine.sync()` against the currently-configured adapter; rotates icon during; on success returns to idle; on error briefly turns red + surfaces a snackbar.
    - Long-press when sync is enabled → toggles `cloud.autoLocked` (visual state updates; the actual timer lives in the auto-sync-lock slice).
@@ -29,7 +29,7 @@ Components and changes:
 3. **`components/sheets/EnableSyncSheet.tsx`** — new bottom sheet. Two action buttons, both shown on iOS, only the Drive one on Android:
    - **"Sync with Google Drive"** — placeholder in this slice: writes `cloud.provider = 'fake'` and closes. Real Drive wiring lands in a later slice.
    - **"Sync with iCloud"** — placeholder in this slice: same behavior, also `'fake'`. Real iCloud wiring lands in a later slice.
-   Sign in with Apple is rendered as an additional button on iOS to satisfy App Store guideline 4.8, but it does NOT select a sync provider; it is informational/identity only in MVP and may be removed if the App Store check turns out not to apply.
+     Sign in with Apple is rendered as an additional button on iOS to satisfy App Store guideline 4.8, but it does NOT select a sync provider; it is informational/identity only in MVP and may be removed if the App Store check turns out not to apply.
 
 4. **`components/sheets/SettingsSheet.tsx`** (modified) — remove the existing identity-only sign-in block (Google + Apple buttons + signed-in user card + sign-out). Replace it with a **"Sync"** section that is conditionally rendered:
    - When `cloud.provider === undefined`: show a single "Enable sync" row that opens `EnableSyncSheet`.
