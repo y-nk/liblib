@@ -88,8 +88,11 @@ describe('SyncEngine', () => {
     db.applyRow('books', { id: 'b1', title: 'Dune' })
 
     const adapter = new InMemoryCloudAdapter()
-    // Seed the cloud so the engine has an etag to mismatch against.
-    await adapter.putFile(DB_PATH, new TextEncoder().encode('{}'))
+    // Seed the cloud with a real serialized db so the pull step deserializes
+    // cleanly — the only thing the test actually cares about is that there's
+    // an etag to mismatch against.
+    const seeded = await new FakeDb().serializeAsync()
+    await adapter.putFile(DB_PATH, seeded)
     adapter.forceConflicts = 1
 
     const state: SyncState = { lastEtag: '1' }
@@ -109,7 +112,8 @@ describe('SyncEngine', () => {
     db.applyRow('books', { id: 'b1', title: 'Dune' })
 
     const adapter = new InMemoryCloudAdapter()
-    await adapter.putFile(DB_PATH, new TextEncoder().encode('{}'))
+    const seeded = await new FakeDb().serializeAsync()
+    await adapter.putFile(DB_PATH, seeded)
     adapter.forceConflicts = 99
 
     const state: SyncState = { lastEtag: '1' }
