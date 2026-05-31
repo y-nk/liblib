@@ -10,6 +10,7 @@
  * so the swap is mechanical.
  */
 import './SyncEngine.test'
+import './GoogleDriveAdapter.test'
 import { runAll } from './harness'
 
 async function main() {

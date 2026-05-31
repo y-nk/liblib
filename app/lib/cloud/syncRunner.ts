@@ -1,7 +1,13 @@
-import { sync, type SyncResult, type SyncState } from '@y_nk/react-native-cloud-sync'
+import {
+  sync,
+  type CloudAdapter,
+  type SyncResult,
+  type SyncState,
+} from '@y_nk/react-native-cloud-sync'
 import { buildDbHandle } from './dbHandle'
 import { createFileSystemCoverStore } from './coverStore'
 import { devFakeAdapter } from './devSync'
+import { createGoogleDriveAdapter } from './googleSync'
 import { getLastEtag, getProvider, setLastEtag, setLastSyncAt } from './state'
 
 /** Highest known migration version — see `lib/migrations.ts`. */
@@ -43,13 +49,13 @@ export async function runConfiguredSync(): Promise<SyncResult> {
       throw new Error('Sync is not enabled')
     }
 
-    // Only `'fake'` ships in this slice; real Google/Apple adapters arrive in
-    // their own slices and will replace this branch.
-    if (provider !== 'fake') {
+    // `'apple'` (iCloud) ships in a later slice.
+    if (provider === 'apple') {
       throw new Error(`Provider not yet implemented: ${provider}`)
     }
 
-    const adapter = devFakeAdapter
+    const adapter: CloudAdapter =
+      provider === 'google' ? createGoogleDriveAdapter() : devFakeAdapter
     const { handle } = await buildDbHandle()
     const covers = createFileSystemCoverStore()
 

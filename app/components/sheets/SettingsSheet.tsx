@@ -32,6 +32,7 @@ import {
   type CloudProvider,
 } from '@/lib/cloud/state'
 import { runConfiguredSync } from '@/lib/cloud/syncRunner'
+import { revokeGoogleAccess } from '@/lib/cloud/googleSync'
 import { showSnackbar } from '@/lib/snackbar'
 
 function findProvider(id: string) {
@@ -110,6 +111,14 @@ export default function SettingsSheet({
   }
 
   const handleDisableSync = async () => {
+    // Revoke the Drive scope before wiping local state, but only for Google
+    // — for `'fake'` (and future `'apple'`) there's nothing to revoke.
+    // `revokeGoogleAccess()` is best-effort and swallows its own errors,
+    // so a flaky network never blocks disabling sync locally.
+    if (cloudProvider === 'google') {
+      await revokeGoogleAccess()
+    }
+
     await clearCloudState()
     showSnackbar('Sync disabled')
   }

@@ -1,13 +1,16 @@
-import { Platform, Pressable, Text, View } from 'react-native'
+import { useState } from 'react'
+import { ActivityIndicator, Platform, Pressable, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import BottomDrawer from './BottomDrawer'
 import { setProvider } from '@/lib/cloud/state'
+import { signInWithGoogleDrive } from '@/lib/cloud/googleSync'
+import { showSnackbar } from '@/lib/snackbar'
 
 /**
  * Provider chooser. iOS shows Drive + iCloud + Sign in with Apple; Android
- * shows Drive only. In this slice both Drive and iCloud are placeholders
- * that just stamp `cloud.provider = 'fake'`; real wiring lives in the
- * Google-Drive and iCloud adapter slices.
+ * shows Drive only. In this slice iCloud is a placeholder that stamps
+ * `cloud.provider = 'fake'`; Drive runs the real Google sign-in flow
+ * (with the `drive.appdata` scope) and persists `cloud.provider = 'google'`.
  *
  * Sign in with Apple is rendered on iOS solely to satisfy App Store
  * guideline 4.8 for apps offering Google sign-in; it does NOT select a
@@ -24,6 +27,32 @@ export default function EnableSyncSheet({
   onEnabled?: () => void
 }) {
   const { bottom } = useSafeAreaInsets()
+  const [signingIn, setSigningIn] = useState(false)
+
+  const enableGoogleDrive = async () => {
+    if (signingIn) {
+      return
+    }
+
+    setSigningIn(true)
+
+    try {
+      const result = await signInWithGoogleDrive()
+
+      if (!result) {
+        // User cancelled the consent screen — leave provider unset.
+        return
+      }
+
+      onEnabled?.()
+      onClose()
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      showSnackbar(`Sign-in failed: ${msg}`, 'error')
+    } finally {
+      setSigningIn(false)
+    }
+  }
 
   const enableFake = async () => {
     await setProvider('fake')
@@ -41,10 +70,15 @@ export default function EnableSyncSheet({
 
         <View className="gap-2">
           <Pressable
-            onPress={enableFake}
+            onPress={enableGoogleDrive}
+            disabled={signingIn}
             className="bg-gray-100 dark:bg-neutral-800 rounded-lg py-3 px-4"
           >
-            <Text className="text-base text-center dark:text-white">Sync with Google Drive</Text>
+            {signingIn ? (
+              <ActivityIndicator size="small" />
+            ) : (
+              <Text className="text-base text-center dark:text-white">Sync with Google Drive</Text>
+            )}
           </Pressable>
 
           {Platform.OS === 'ios' && (
