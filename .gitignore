@@ -40,9 +40,3 @@ yarn-error.*
 # generated native folders
 /app/ios
 /app/android
-
-# fastlane
-app/fastlane/report.xml
-app/fastlane/README.md
-app/fastlane/test_output
-app/vendor/bundle

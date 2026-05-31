@@ -40,12 +40,6 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: '3.3'
-          bundler-cache: true
-          working-directory: app
-
       - uses: actions/cache@v4
         with:
           path: |
@@ -62,8 +56,16 @@ jobs:
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 -d > "$ANDROID_KEYSTORE_PATH"
           test -s "$ANDROID_KEYSTORE_PATH" || { echo "keystore decode failed"; exit 1; }
 
-      - name: Fastlane build
-        run: bundle exec fastlane android ci
+      - run: npx expo prebuild --clean --platform android --no-install
+
+      - name: Build signed release APK
+        run: |
+          cd android
+          ./gradlew assembleRelease -quiet \
+            "-Pandroid.injected.signing.store.file=$ANDROID_KEYSTORE_PATH" \
+            "-Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD" \
+            "-Pandroid.injected.signing.key.alias=$ANDROID_KEY_ALIAS" \
+            "-Pandroid.injected.signing.key.password=$ANDROID_KEY_PASSWORD"
         env:
           EXPO_PUBLIC_COMMIT_SHA: ${{ github.sha }}
 
