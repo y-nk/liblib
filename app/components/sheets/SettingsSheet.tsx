@@ -4,6 +4,7 @@ import {
   Text,
   TextInput,
   Pressable,
+  Platform,
   ActivityIndicator,
   Switch,
   useColorScheme,
@@ -18,6 +19,8 @@ import DraggableFlatList, {
 import { GripVertical, ChevronDown, ChevronRight, TriangleAlert } from 'lucide-react-native'
 import { getSettings, saveSettings } from '@/lib/data/settings'
 import { getLogs, clearLogs } from '@/lib/log'
+import { getUser, signInWithGoogle, signInWithApple, signOut } from '@/lib/auth'
+import type { AuthUser } from '@/lib/auth'
 import * as Clipboard from 'expo-clipboard'
 import { providers, AiProvider } from '@/lib/providers'
 import type { Settings, ProviderConfig, ProviderId } from '@/lib/types'
@@ -45,6 +48,7 @@ export default function SettingsSheet({
     geminiKey: '',
     providers: DEFAULT_PROVIDERS,
   })
+  const [user, setUser] = useState<AuthUser | null>(null)
   const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const [testing, setTesting] = useState<Record<string, 'idle' | 'loading' | 'success' | 'error'>>(
     {},
@@ -58,8 +62,30 @@ export default function SettingsSheet({
   useEffect(() => {
     if (visible) {
       getSettings().then(setSettings)
+      getUser().then(setUser)
     }
   }, [visible])
+
+  const handleSignInGoogle = async () => {
+    const result = await signInWithGoogle()
+
+    if (result) {
+      setUser(result)
+    }
+  }
+
+  const handleSignInApple = async () => {
+    const result = await signInWithApple()
+
+    if (result) {
+      setUser(result)
+    }
+  }
+
+  const handleSignOut = async () => {
+    await signOut()
+    setUser(null)
+  }
 
   const update = (next: Settings) => {
     setSettings(next)
@@ -227,6 +253,46 @@ export default function SettingsSheet({
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: bottom + 16 }}
         ListFooterComponent={
           <View className="mt-6">
+            <Text className="text-sm font-medium text-gray-500 mb-3 uppercase">Account</Text>
+
+            {user ? (
+              <View className="bg-gray-100 dark:bg-neutral-800 rounded-lg p-4 mb-4">
+                <Text className="text-base font-medium dark:text-white">
+                  {user.name || user.email}
+                </Text>
+                {user.name ? (
+                  <Text className="text-sm text-gray-400 mt-0.5">{user.email}</Text>
+                ) : null}
+                <Text className="text-xs text-gray-400 mt-1">
+                  Signed in with {user.provider === 'google' ? 'Google' : 'Apple'}
+                </Text>
+
+                <Pressable onPress={handleSignOut} className="mt-3">
+                  <Text className="text-sm text-red-500">Sign out</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View className="gap-2 mb-4">
+                <Pressable
+                  onPress={handleSignInGoogle}
+                  className="bg-gray-100 dark:bg-neutral-800 rounded-lg py-3 px-4"
+                >
+                  <Text className="text-base text-center dark:text-white">Sign in with Google</Text>
+                </Pressable>
+
+                {Platform.OS === 'ios' && (
+                  <Pressable
+                    onPress={handleSignInApple}
+                    className="bg-black dark:bg-white rounded-lg py-3 px-4"
+                  >
+                    <Text className="text-base text-center text-white dark:text-black">
+                      Sign in with Apple
+                    </Text>
+                  </Pressable>
+                )}
+              </View>
+            )}
+
             <View className="flex-row justify-center gap-4 mb-3">
               <Pressable
                 onPress={async () => {

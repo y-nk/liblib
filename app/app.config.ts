@@ -22,6 +22,7 @@ export default ({ config: _config }: ConfigContext): ExpoConfig => ({
     infoPlist: {
       NSCameraUsageDescription: 'LibLib needs camera access to scan book barcodes',
     },
+    usesAppleSignIn: true,
   },
   android: {
     adaptiveIcon: {
@@ -31,10 +32,6 @@ export default ({ config: _config }: ConfigContext): ExpoConfig => ({
     edgeToEdgeEnabled: true,
     package: 'com.liblib.app',
     permissions: ['CAMERA'],
-  },
-  web: {
-    favicon: './assets/favicon.png',
-    bundler: 'metro',
   },
   plugins: [
     'expo-router',
@@ -63,6 +60,13 @@ export default ({ config: _config }: ConfigContext): ExpoConfig => ({
             cropBackgroundColor: '#000000',
           },
         },
+      },
+    ],
+    'expo-apple-authentication',
+    [
+      '@react-native-google-signin/google-signin',
+      {
+        iosUrlScheme: process.env.GOOGLE_IOS_URL_SCHEME || 'com.googleusercontent.apps.placeholder',
       },
     ],
   ],
