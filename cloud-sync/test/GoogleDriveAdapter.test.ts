@@ -1,4 +1,4 @@
-import { describe, expect, expectAsyncThrows, it } from './harness'
+import { describe, expect, it } from 'vitest'
 import { GoogleDriveAdapter } from '../src/GoogleDriveAdapter'
 import { EtagMismatchError } from '../src/errors'
 
@@ -351,10 +351,9 @@ describe('GoogleDriveAdapter', () => {
 
     await adapter.putFile('liblib.db', new Uint8Array([1]))
 
-    await expectAsyncThrows(
-      () => adapter.putFile('liblib.db', new Uint8Array([2]), { ifMatchEtag: '"wrong"' }),
-      (e) => e instanceof EtagMismatchError,
-    )
+    await expect(
+      adapter.putFile('liblib.db', new Uint8Array([2]), { ifMatchEtag: '"wrong"' }),
+    ).rejects.toThrow(EtagMismatchError)
   })
 
   it('putFile with current ifMatchEtag succeeds and bumps etag', async () => {

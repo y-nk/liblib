@@ -1,4 +1,4 @@
-import { describe, expect, expectAsyncThrows, it } from './harness'
+import { describe, expect, it } from 'vitest'
 import { InMemoryCloudAdapter } from '../src/InMemoryCloudAdapter'
 import { sync, type SyncState } from '../src/SyncEngine'
 import { SchemaTooNewError, SyncConflictError } from '../src/errors'
@@ -118,16 +118,14 @@ describe('SyncEngine', () => {
 
     const state: SyncState = { lastEtag: '1' }
 
-    await expectAsyncThrows(
-      () =>
-        sync({
-          handle,
-          adapter,
-          state,
-          localSchemaVersion: LOCAL_SCHEMA,
-        }),
-      (e) => e instanceof SyncConflictError,
-    )
+    await expect(
+      sync({
+        handle,
+        adapter,
+        state,
+        localSchemaVersion: LOCAL_SCHEMA,
+      }),
+    ).rejects.toThrow(SyncConflictError)
   })
 
   it('schema gate: cloud db with newer schema_version raises SchemaTooNewError', async () => {
@@ -138,16 +136,14 @@ describe('SyncEngine', () => {
     const seededBytes = await seeded.serializeAsync()
     await adapter.putFile(DB_PATH, seededBytes)
 
-    await expectAsyncThrows(
-      () =>
-        sync({
-          handle,
-          adapter,
-          state: {},
-          localSchemaVersion: LOCAL_SCHEMA,
-        }),
-      (e) => e instanceof SchemaTooNewError,
-    )
+    await expect(
+      sync({
+        handle,
+        adapter,
+        state: {},
+        localSchemaVersion: LOCAL_SCHEMA,
+      }),
+    ).rejects.toThrow(SchemaTooNewError)
   })
 
   it('round-trip restore: write → sync → wipe → re-sync → state restored', async () => {

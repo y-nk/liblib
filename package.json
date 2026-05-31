@@ -12,5 +12,8 @@
     "lint": "pnpm --recursive --parallel --if-present lint",
     "test": "pnpm --recursive --parallel --if-present test",
     "typecheck": "pnpm --recursive --parallel --if-present typecheck"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": ["esbuild"]
   }
 }

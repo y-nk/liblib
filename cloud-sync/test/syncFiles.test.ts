@@ -1,4 +1,4 @@
-import { describe, expect, it } from './harness'
+import { describe, expect, it } from 'vitest'
 import { InMemoryCloudAdapter } from '../src/InMemoryCloudAdapter'
 import { syncFiles } from '../src/syncFiles'
 import { createInMemoryFileStore } from './inMemoryFileStore'
