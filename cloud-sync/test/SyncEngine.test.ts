@@ -1,9 +1,8 @@
 import { describe, expect, expectAsyncThrows, it } from './harness'
-import { FakeCloudAdapter } from '../src/FakeCloudAdapter'
+import { InMemoryCloudAdapter } from '../src/InMemoryCloudAdapter'
 import { sync, type SyncState } from '../src/SyncEngine'
 import { SchemaTooNewError, SyncConflictError } from '../src/errors'
 import { FakeDb, buildFakeHandle, type DiskSlot } from './fakeDb'
-import { createInMemoryCoverStore } from './coverStore'
 
 const LOCAL_SCHEMA = 9
 const DB_PATH = 'liblib.db'
@@ -28,12 +27,11 @@ describe('SyncEngine', () => {
     // Write happens *after* the session is bound — so it's recorded.
     db.applyRow('books', { id: 'b2', title: 'Foundation' })
 
-    const adapter = new FakeCloudAdapter()
+    const adapter = new InMemoryCloudAdapter()
     const state: SyncState = {}
     const result = await sync({
       handle,
       adapter,
-      covers: createInMemoryCoverStore(),
       state,
       localSchemaVersion: LOCAL_SCHEMA,
     })
@@ -52,12 +50,11 @@ describe('SyncEngine', () => {
     const a = await setupDevice([])
     a.db.applyRow('books', { id: 'A', title: 'From A' })
 
-    const adapter = new FakeCloudAdapter()
+    const adapter = new InMemoryCloudAdapter()
     const stateA: SyncState = {}
     await sync({
       handle: a.handle,
       adapter,
-      covers: createInMemoryCoverStore(),
       state: stateA,
       localSchemaVersion: LOCAL_SCHEMA,
     })
@@ -70,7 +67,6 @@ describe('SyncEngine', () => {
     const result = await sync({
       handle: b.handle,
       adapter,
-      covers: createInMemoryCoverStore(),
       state: stateB,
       localSchemaVersion: LOCAL_SCHEMA,
     })
@@ -91,7 +87,7 @@ describe('SyncEngine', () => {
     const { db, handle } = await setupDevice([])
     db.applyRow('books', { id: 'b1', title: 'Dune' })
 
-    const adapter = new FakeCloudAdapter()
+    const adapter = new InMemoryCloudAdapter()
     // Seed the cloud so the engine has an etag to mismatch against.
     await adapter.putFile(DB_PATH, new TextEncoder().encode('{}'))
     adapter.forceConflicts = 1
@@ -100,7 +96,6 @@ describe('SyncEngine', () => {
     const result = await sync({
       handle,
       adapter,
-      covers: createInMemoryCoverStore(),
       state,
       localSchemaVersion: LOCAL_SCHEMA,
     })
@@ -113,7 +108,7 @@ describe('SyncEngine', () => {
     const { db, handle } = await setupDevice([])
     db.applyRow('books', { id: 'b1', title: 'Dune' })
 
-    const adapter = new FakeCloudAdapter()
+    const adapter = new InMemoryCloudAdapter()
     await adapter.putFile(DB_PATH, new TextEncoder().encode('{}'))
     adapter.forceConflicts = 99
 
@@ -124,7 +119,6 @@ describe('SyncEngine', () => {
         sync({
           handle,
           adapter,
-          covers: createInMemoryCoverStore(),
           state,
           localSchemaVersion: LOCAL_SCHEMA,
         }),
@@ -132,68 +126,9 @@ describe('SyncEngine', () => {
     )
   })
 
-  it('cover diff: uploads new locals + downloads new remotes', async () => {
-    const { handle } = await setupDevice([])
-    const adapter = new FakeCloudAdapter()
-    // Seed remote covers.
-    await adapter.putFile('covers/remote-only.jpg', new Uint8Array([9, 9, 9]))
-
-    const covers = createInMemoryCoverStore({
-      'local-only.jpg': new Uint8Array([1, 2, 3]),
-    })
-
-    const result = await sync({
-      handle,
-      adapter,
-      covers,
-      state: {},
-      localSchemaVersion: LOCAL_SCHEMA,
-    })
-
-    expect(result.coverUploads).toBe(1)
-    expect(result.coverDownloads).toBe(1)
-
-    const finalLocal = await covers.list()
-    expect(finalLocal.includes('remote-only.jpg')).toBe(true)
-    expect(finalLocal.includes('local-only.jpg')).toBe(true)
-
-    const cloudRemote = await adapter.getFile('covers/local-only.jpg')
-    expect(cloudRemote !== null).toBeTruthy()
-  })
-
-  it('cover collision: local wins (no overwrite either way)', async () => {
-    const { handle } = await setupDevice([])
-    const adapter = new FakeCloudAdapter()
-    const remoteBytes = new Uint8Array([7, 7, 7])
-    const localBytes = new Uint8Array([1, 1, 1])
-    await adapter.putFile('covers/shared.jpg', remoteBytes)
-
-    const covers = createInMemoryCoverStore({ 'shared.jpg': localBytes })
-
-    const result = await sync({
-      handle,
-      adapter,
-      covers,
-      state: {},
-      localSchemaVersion: LOCAL_SCHEMA,
-    })
-
-    expect(result.coverUploads).toBe(0)
-    expect(result.coverDownloads).toBe(0)
-
-    // Local content unchanged.
-    const localAfter = await covers.read('shared.jpg')
-    expect(localAfter !== null).toBeTruthy()
-    expect(Array.from(localAfter!).join(',')).toBe('1,1,1')
-
-    // Remote content unchanged.
-    const remoteAfter = await adapter.getFile('covers/shared.jpg')
-    expect(Array.from(remoteAfter!.data).join(',')).toBe('7,7,7')
-  })
-
   it('schema gate: cloud db with newer schema_version raises SchemaTooNewError', async () => {
     const { handle } = await setupDevice([])
-    const adapter = new FakeCloudAdapter()
+    const adapter = new InMemoryCloudAdapter()
     // Seed a cloud db whose serialized state declares a newer schema.
     const seeded = new FakeDb({ schemaVersion: LOCAL_SCHEMA + 1, tables: new Map() })
     const seededBytes = await seeded.serializeAsync()
@@ -204,7 +139,6 @@ describe('SyncEngine', () => {
         sync({
           handle,
           adapter,
-          covers: createInMemoryCoverStore(),
           state: {},
           localSchemaVersion: LOCAL_SCHEMA,
         }),
@@ -217,11 +151,10 @@ describe('SyncEngine', () => {
     const a = await setupDevice([])
     a.db.applyRow('books', { id: 'restored', title: 'Hyperion' })
 
-    const adapter = new FakeCloudAdapter()
+    const adapter = new InMemoryCloudAdapter()
     await sync({
       handle: a.handle,
       adapter,
-      covers: createInMemoryCoverStore(),
       state: {},
       localSchemaVersion: LOCAL_SCHEMA,
     })
@@ -231,7 +164,6 @@ describe('SyncEngine', () => {
     await sync({
       handle: aPrime.handle,
       adapter,
-      covers: createInMemoryCoverStore(),
       state: {},
       localSchemaVersion: LOCAL_SCHEMA,
     })

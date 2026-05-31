@@ -1,18 +1,22 @@
 import {
   sync,
+  syncFiles,
   type CloudAdapter,
   type SyncResult,
   type SyncState,
 } from '@y_nk/react-native-cloud-sync'
 import { buildDbHandle } from './dbHandle'
 import { createFileSystemCoverStore } from './coverStore'
-import { devFakeAdapter } from './devSync'
+import { devInMemoryAdapter } from './devSync'
 import { createGoogleDriveAdapter } from './googleSync'
 import { createICloudAdapter } from './icloudSync'
 import { getLastEtag, getProvider, setLastEtag, setLastSyncAt } from './state'
 
 /** Highest known migration version — see `lib/migrations.ts`. */
 const LOCAL_SCHEMA_VERSION = 9
+
+/** Remote directory the app stores its cover blobs under. */
+const COVERS_DIR = 'covers'
 
 /**
  * Module-level in-flight guard. All sync entry points (manual tap, settings
@@ -28,9 +32,9 @@ export function isSyncInFlight(): boolean {
 
 /**
  * Resolves the adapter for the currently-configured provider and runs the
- * engine. Persists the resulting etag + lastSyncAt into the cloud state
- * facade. In this slice only the `'fake'` provider is wired; real adapters
- * land in later slices.
+ * engine, then reconciles the local covers directory against the matching
+ * remote folder. Persists the resulting etag + lastSyncAt into the cloud
+ * state facade.
  *
  * Throws if no provider is configured — callers should guard on
  * `getProvider()` first.
@@ -63,21 +67,21 @@ export async function runConfiguredSync(): Promise<SyncResult> {
 
       adapter = icloud
     } else {
-      adapter = devFakeAdapter
+      adapter = devInMemoryAdapter
     }
-    const { handle } = await buildDbHandle()
-    const covers = createFileSystemCoverStore()
 
+    const { handle } = await buildDbHandle()
     const lastEtag = await getLastEtag()
     const state: SyncState = lastEtag ? { lastEtag } : {}
 
     const result = await sync({
       handle,
       adapter,
-      covers,
       state,
       localSchemaVersion: LOCAL_SCHEMA_VERSION,
     })
+
+    await syncFiles(adapter, createFileSystemCoverStore(), COVERS_DIR)
 
     await setLastEtag(result.newEtag)
     await setLastSyncAt(new Date().toISOString())

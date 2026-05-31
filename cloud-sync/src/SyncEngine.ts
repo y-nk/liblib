@@ -1,10 +1,8 @@
 import type { CloudAdapter } from './CloudAdapter'
-import type { CoverStore } from './CoverStore'
 import type { DbHandle, SqliteDb } from './SqliteSurface'
 import { EtagMismatchError, SchemaTooNewError, SyncConflictError } from './errors'
 
 const DB_PATH = 'liblib.db'
-const COVERS_DIR = 'covers'
 const MAX_ATTEMPTS = 4 // Initial attempt + 3 retries.
 
 export type SyncState = {
@@ -15,8 +13,6 @@ export type SyncState = {
 export type SyncResult = {
   pulled: boolean
   pushed: boolean
-  coverUploads: number
-  coverDownloads: number
   retries: number
   newEtag: string
 }
@@ -24,7 +20,6 @@ export type SyncResult = {
 export type SyncOptions = {
   handle: DbHandle
   adapter: CloudAdapter
-  covers: CoverStore
   state: SyncState
   /** Highest migration version this app build knows how to read. */
   localSchemaVersion: number
@@ -42,16 +37,18 @@ async function readSchemaVersion(db: SqliteDb) {
  * known etag. Retries the entire pull-merge-push loop up to 3 times on etag
  * race; throws `SyncConflictError` on the 4th failure.
  *
- * Steps map 1:1 to the PRD:
+ * Side-channel blobs (covers, attachments, …) are out of scope here —
+ * compose `syncFiles` for those.
+ *
+ * Steps:
  *   1. Capture local changeset.
  *   2. Pull cloud db (or skip — Case A).
  *   3. Apply local changeset on top.
  *   4. Swap temp into local path + reopen + fresh session.
  *   5. Push merged db with `ifMatchEtag`; retry on conflict.
- *   6. Cover diff.
  */
 export async function sync(opts: SyncOptions): Promise<SyncResult> {
-  const { adapter, covers, state, localSchemaVersion } = opts
+  const { adapter, state, localSchemaVersion } = opts
   let handle = opts.handle
   let retries = 0
   let attempt = 0
@@ -116,16 +113,11 @@ export async function sync(opts: SyncOptions): Promise<SyncResult> {
         ifMatchEtag: state.lastEtag,
       })
 
-      // Success — Step 6: cover diff
-      const { coverUploads, coverDownloads } = await syncCovers(adapter, covers)
-
       state.lastEtag = put.etag
 
       return {
         pulled,
         pushed: true,
-        coverUploads,
-        coverDownloads,
         retries,
         newEtag: put.etag,
       }
@@ -149,56 +141,4 @@ export async function sync(opts: SyncOptions): Promise<SyncResult> {
   }
 
   throw new SyncConflictError(MAX_ATTEMPTS)
-}
-
-type CoverDiffResult = {
-  coverUploads: number
-  coverDownloads: number
-}
-
-async function syncCovers(adapter: CloudAdapter, covers: CoverStore): Promise<CoverDiffResult> {
-  const [localNames, remoteEntries] = await Promise.all([
-    covers.list(),
-    adapter.listFiles(COVERS_DIR),
-  ])
-
-  const localSet = new Set(localNames)
-  const remoteByName = new Map(remoteEntries.map((e) => [e.name, e]))
-
-  let coverUploads = 0
-  let coverDownloads = 0
-
-  // Locals-missing-remote → upload.
-  for (const name of localNames) {
-    if (remoteByName.has(name)) {
-      continue // Collision: local wins, but we don't overwrite remote bytes.
-    }
-
-    const data = await covers.read(name)
-
-    if (!data) {
-      continue
-    }
-
-    await adapter.putFile(`${COVERS_DIR}/${name}`, data)
-    coverUploads += 1
-  }
-
-  // Remotes-missing-local → download. (Collisions skipped: local wins.)
-  for (const [name] of remoteByName) {
-    if (localSet.has(name)) {
-      continue
-    }
-
-    const fetched = await adapter.getFile(`${COVERS_DIR}/${name}`)
-
-    if (!fetched) {
-      continue
-    }
-
-    await covers.write(name, fetched.data)
-    coverDownloads += 1
-  }
-
-  return { coverUploads, coverDownloads }
 }

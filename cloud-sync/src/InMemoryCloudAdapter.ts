@@ -10,7 +10,7 @@ type Entry = {
  * In-memory CloudAdapter for tests and the dev app. Etags are a monotonic
  * counter bumped on every successful put.
  */
-export class FakeCloudAdapter implements CloudAdapter {
+export class InMemoryCloudAdapter implements CloudAdapter {
   private readonly files = new Map<string, Entry>()
   private counter = 0
 

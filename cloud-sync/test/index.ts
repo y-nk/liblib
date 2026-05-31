@@ -10,6 +10,7 @@
  * so the swap is mechanical.
  */
 import './SyncEngine.test'
+import './syncFiles.test'
 import './GoogleDriveAdapter.test'
 import './ICloudAdapter.test'
 import { runAll } from './harness'

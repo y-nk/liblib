@@ -1,5 +1,5 @@
 import { Directory, File, Paths } from 'expo-file-system'
-import type { CoverStore } from '@y_nk/react-native-cloud-sync'
+import type { FileStore } from '@y_nk/react-native-cloud-sync'
 
 const COVERS_DIR = new Directory(Paths.document, 'covers')
 
@@ -10,10 +10,12 @@ function ensureDir() {
 }
 
 /**
- * CoverStore backed by the app's existing `<document>/covers/` directory.
- * Matches the on-disk layout already produced by `lib/covers.ts`.
+ * App-side `FileStore` over the local `<document>/covers/` directory.
+ * Matches the on-disk layout already produced by `lib/covers.ts`. The
+ * engine itself is blob-agnostic; "cover" is the app's vocabulary for
+ * the kind of file we happen to put in this store.
  */
-export function createFileSystemCoverStore(): CoverStore {
+export function createFileSystemCoverStore(): FileStore {
   return {
     async list() {
       ensureDir()

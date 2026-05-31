@@ -1,6 +1,6 @@
-import type { CoverStore } from '../src/CoverStore'
+import type { FileStore } from '../src/FileStore'
 
-export function createInMemoryCoverStore(initial?: Record<string, Uint8Array>): CoverStore {
+export function createInMemoryFileStore(initial?: Record<string, Uint8Array>): FileStore {
   const files = new Map<string, Uint8Array>(
     initial ? Object.entries(initial).map(([k, v]) => [k, new Uint8Array(v)]) : [],
   )

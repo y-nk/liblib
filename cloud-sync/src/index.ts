@@ -1,7 +1,7 @@
 export type { CloudAdapter, CloudFile, CloudListEntry, PutOptions, PutResult } from './CloudAdapter'
-export type { CoverStore } from './CoverStore'
+export type { FileStore } from './FileStore'
 export type { Changeset, SqliteSession, SqliteDb, DbHandle } from './SqliteSurface'
-export { FakeCloudAdapter } from './FakeCloudAdapter'
+export { InMemoryCloudAdapter } from './InMemoryCloudAdapter'
 export {
   GoogleDriveAdapter,
   type GoogleDriveAdapterOptions,
@@ -14,4 +14,5 @@ export {
   type ICloudNativeModule,
 } from './ICloudAdapter'
 export { sync, type SyncOptions, type SyncResult, type SyncState } from './SyncEngine'
+export { syncFiles, type SyncFilesResult } from './syncFiles'
 export { EtagMismatchError, NotFoundError, SchemaTooNewError, SyncConflictError } from './errors'

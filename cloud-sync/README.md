@@ -1,29 +1,32 @@
 # @y_nk/react-native-cloud-sync
 
-Provider-agnostic SQLite + blob sync for Expo / React Native apps. Pulls a
-shared db file from a cloud "drive" provider, replays the device's local
-changeset on top, swaps the merged file into place, and pushes back with
-optimistic concurrency control. Includes pluggable adapters for Google Drive
-(`appDataFolder`) and iCloud Drive (ubiquity container), plus a fake adapter
-for in-memory tests.
+Provider-agnostic SQLite + opaque-file sync for Expo / React Native apps.
+Pulls a shared db file from a cloud "drive" provider, replays the device's
+local changeset on top, swaps the merged file into place, and pushes back
+with optimistic concurrency control. A separate, file-agnostic helper
+(`syncFiles`) reconciles arbitrary blob directories — the host app composes
+the two for whatever it stores alongside the db (in this monorepo, that's
+`covers/`). Ships adapters for Google Drive (`appDataFolder`) and iCloud
+Drive (ubiquity container), plus an in-memory adapter for tests.
 
 ## What's in the box
 
 ```
-packages/cloud-sync/
+cloud-sync/
 ├── src/
-│   ├── CloudAdapter.ts        — adapter interface (get/put/list/delete + ETag)
-│   ├── SyncEngine.ts          — pull → apply → swap → push with retry loop
-│   ├── CoverStore.ts          — host-supplied blob store for jpg/png covers
-│   ├── SqliteSurface.ts       — abstract DB / session shape, host-provided
-│   ├── errors.ts              — EtagMismatch / NotFound / SchemaTooNew / SyncConflict
-│   ├── FakeCloudAdapter.ts    — in-memory adapter, used by tests + dev wiring
-│   ├── GoogleDriveAdapter.ts  — Drive REST against appDataFolder
-│   └── ICloudAdapter.ts       — wraps the LiblibICloud native module
-├── ios/                       — Swift native module + podspec
-├── plugin/withICloud.js       — Expo config plugin (entitlements + Info.plist + Podfile)
-├── app.plugin.js              — re-exports the plugin so `plugins: ['@y_nk/react-native-cloud-sync']` works
-└── test/                      — engine + adapter unit tests (Node)
+│   ├── CloudAdapter.ts          — adapter interface (get/put/list/delete + ETag)
+│   ├── SyncEngine.ts            — pull → apply → swap → push, with retry loop (db only)
+│   ├── syncFiles.ts             — generic local↔remote dir reconciler
+│   ├── FileStore.ts             — interface the host implements for syncFiles
+│   ├── SqliteSurface.ts         — abstract DB / session shape, host-provided
+│   ├── errors.ts                — EtagMismatch / NotFound / SchemaTooNew / SyncConflict
+│   ├── InMemoryCloudAdapter.ts  — in-memory adapter for tests + dev wiring
+│   ├── GoogleDriveAdapter.ts    — Drive REST against appDataFolder
+│   └── ICloudAdapter.ts         — wraps the LiblibICloud native module
+├── ios/                         — Swift native module + podspec
+├── plugin/withICloud.js         — Expo config plugin (entitlements + Info.plist + Podfile)
+├── app.plugin.js                — re-exports the plugin so `plugins: ['@y_nk/react-native-cloud-sync']` works
+└── test/                        — engine + adapter + syncFiles unit tests (Node)
 ```
 
 ## Engine flow (Approach A)
@@ -34,20 +37,23 @@ packages/cloud-sync/
 4. Swap merged file into the local path, reopen the DB, bind a fresh session.
 5. Push with `ifMatchEtag = state.lastEtag`. On `EtagMismatchError`, retry from
    step 2 (up to 3 retries → `SyncConflictError`).
-6. Diff covers directory, upload new ones, download missing ones.
 
 The engine refuses to run if the cloud db's `schema_version` exceeds the local
 app build's `localSchemaVersion` — surfaces as `SchemaTooNewError` so the host
 can prompt the user to upgrade.
+
+Side-channel blobs (covers, attachments, …) are out of scope here. Compose
+`syncFiles(adapter, store, dir)` after `sync()` for those.
 
 ## Wiring it up
 
 ```ts
 import {
   sync,
+  syncFiles,
   GoogleDriveAdapter,
   ICloudAdapter,
-  FakeCloudAdapter,
+  InMemoryCloudAdapter,
 } from '@y_nk/react-native-cloud-sync'
 
 const adapter =
@@ -55,15 +61,17 @@ const adapter =
     ? new GoogleDriveAdapter({ getAccessToken })
     : provider === 'apple'
       ? new ICloudAdapter({ native: LiblibICloud })
-      : new FakeCloudAdapter()
+      : new InMemoryCloudAdapter()
 
-const result = await sync({ handle, adapter, covers, state, localSchemaVersion: 9 })
+const result = await sync({ handle, adapter, state, localSchemaVersion: 9 })
+await syncFiles(adapter, coverStore, 'covers')
 ```
 
 The host owns:
 
 - `DbHandle` (an open `expo-sqlite` DB + an active changeset session)
-- `CoverStore` (read/write/list the local covers dir — `expo-file-system`)
+- A `FileStore` per side-channel blob directory (e.g. `<document>/covers/`
+  backed by `expo-file-system`)
 - `SyncState` persistence (just `lastEtag`; AsyncStorage in this app)
 - Per-provider auth (token producer for Drive; iCloud sign-in is implicit)
 
@@ -161,12 +169,12 @@ real dev build. The adapter's `available()` pre-flight surfaces a typed
 `ICloudNotAvailableError` if you ship without setting up iCloud properly,
 so the failure mode is "Sync with iCloud" button shows an error, not crash.
 
-### Fake adapter
+### In-memory adapter
 
-`FakeCloudAdapter` is in-memory, ETag-correct, and exercised by the engine
-tests. The host app exposes it behind a dev-only "Run fake sync" button in
-`SettingsSheet` (`__DEV__` only) so the engine is demoable before either real
-adapter is provisioned.
+`InMemoryCloudAdapter` is ETag-correct, exercised by the engine + `syncFiles`
+tests, and used as the dev provider in the host app behind a `__DEV__`-only
+"Run sync" button in `SettingsSheet` so the engine is demoable before any
+real adapter is provisioned.
 
 ## Schema versions
 
