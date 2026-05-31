@@ -14,3 +14,12 @@ export function getDb() {
 
   return dbPromise
 }
+
+/**
+ * Replace the singleton db connection. Used by the sync engine after it
+ * swaps the on-disk file and reopens; all subsequent `getDb()` calls
+ * should resolve to the new connection.
+ */
+export function replaceDb(db: SQLiteDatabase) {
+  dbPromise = Promise.resolve(db)
+}

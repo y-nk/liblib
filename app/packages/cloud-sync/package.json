@@ -1,0 +1,8 @@
+{
+  "name": "@y_nk/react-native-cloud-sync",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "main": "src/index.ts",
+  "types": "src/index.ts"
+}

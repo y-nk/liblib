@@ -25,6 +25,7 @@ import * as Clipboard from 'expo-clipboard'
 import { providers, AiProvider } from '@/lib/providers'
 import type { Settings, ProviderConfig, ProviderId } from '@/lib/types'
 import { DEFAULT_PROVIDERS } from '@/lib/types'
+import { runDevSync } from '@/lib/cloud/devSync'
 
 function findProvider(id: string) {
   return providers[id]
@@ -54,6 +55,8 @@ export default function SettingsSheet({
     {},
   )
   const [testMsg, setTestMsg] = useState<Record<string, string>>({})
+  const [devSyncMsg, setDevSyncMsg] = useState<string>('')
+  const [devSyncRunning, setDevSyncRunning] = useState(false)
   const settingsRef = useRef(settings)
   settingsRef.current = settings
   const dark = useColorScheme() === 'dark'
@@ -85,6 +88,26 @@ export default function SettingsSheet({
   const handleSignOut = async () => {
     await signOut()
     setUser(null)
+  }
+
+  const handleDevSync = async () => {
+    setDevSyncRunning(true)
+    setDevSyncMsg('Syncing…')
+
+    try {
+      const result = await runDevSync()
+
+      setDevSyncMsg(
+        `OK — pulled:${result.pulled} pushed:${result.pushed} ` +
+          `covers↑${result.coverUploads} covers↓${result.coverDownloads} ` +
+          `retries:${result.retries} etag:${result.newEtag}`,
+      )
+    } catch (e) {
+      const msg = e instanceof Error ? `${e.name}: ${e.message}` : String(e)
+      setDevSyncMsg(`FAIL — ${msg}`)
+    } finally {
+      setDevSyncRunning(false)
+    }
   }
 
   const update = (next: Settings) => {
@@ -290,6 +313,32 @@ export default function SettingsSheet({
                     </Text>
                   </Pressable>
                 )}
+              </View>
+            )}
+
+            {__DEV__ && (
+              <View className="mb-4">
+                <Text className="text-sm font-medium text-gray-500 mb-2 uppercase">
+                  Cloud sync (dev)
+                </Text>
+                <Pressable
+                  onPress={handleDevSync}
+                  disabled={devSyncRunning}
+                  className="bg-gray-100 dark:bg-neutral-800 rounded-lg py-3 px-4"
+                >
+                  {devSyncRunning ? (
+                    <ActivityIndicator color={dark ? '#fff' : '#000'} size="small" />
+                  ) : (
+                    <Text className="text-base text-center dark:text-white">
+                      Run sync against FakeCloudAdapter
+                    </Text>
+                  )}
+                </Pressable>
+                {devSyncMsg ? (
+                  <Text className="text-xs text-gray-500 dark:text-neutral-400 mt-2 text-center">
+                    {devSyncMsg}
+                  </Text>
+                ) : null}
               </View>
             )}
 
