@@ -7,6 +7,8 @@ import type { Shelf } from '@/lib/data/shelves'
 import CenterModal from '@/components/CenterModal'
 import ShelfRow from '@/components/ShelfRow'
 import ShelfDetailSheet from '@/components/sheets/ShelfDetailSheet'
+import EnableSyncSheet from '@/components/sheets/EnableSyncSheet'
+import SyncButton from '@/components/SyncButton'
 
 export default function ShelvesScreen() {
   const [shelves, setShelves] = useState<Shelf[]>([])
@@ -14,6 +16,7 @@ export default function ShelvesScreen() {
   const [showCreate, setShowCreate] = useState(false)
   const [newName, setNewName] = useState('')
   const [selectedShelf, setSelectedShelf] = useState<Shelf | null>(null)
+  const [showEnableSync, setShowEnableSync] = useState(false)
   const dark = useColorScheme() === 'dark'
 
   const load = () => {
@@ -50,9 +53,12 @@ export default function ShelvesScreen() {
       <Stack.Screen
         options={{
           headerRight: () => (
-            <Pressable onPress={() => setShowCreate(true)} hitSlop={8}>
-              <Plus size={24} color={dark ? '#aaa' : '#666'} />
-            </Pressable>
+            <View className="flex-row items-center">
+              <SyncButton onRequestEnable={() => setShowEnableSync(true)} />
+              <Pressable onPress={() => setShowCreate(true)} hitSlop={8}>
+                <Plus size={24} color={dark ? '#aaa' : '#666'} />
+              </Pressable>
+            </View>
           ),
         }}
       />
@@ -109,6 +115,8 @@ export default function ShelvesScreen() {
         onClose={() => setSelectedShelf(null)}
         onChanged={load}
       />
+
+      <EnableSyncSheet visible={showEnableSync} onClose={() => setShowEnableSync(false)} />
     </View>
   )
 }

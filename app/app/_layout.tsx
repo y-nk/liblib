@@ -37,7 +37,6 @@ export default function RootLayout() {
           <Stack.Screen
             name="books"
             options={{
-              title: 'Books',
               headerBackTitle: 'Shelves',
             }}
           />

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { View, Pressable, useColorScheme } from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import { Stack } from 'expo-router'
@@ -12,6 +12,7 @@ import EnableSyncSheet from '@/components/sheets/EnableSyncSheet'
 import ActionToolbar from '@/components/ActionToolbar'
 import BookDetailSheet from '@/components/sheets/BookDetailSheet'
 import SyncButton from '@/components/SyncButton'
+import { getShelfName } from '@/lib/data/shelves'
 import type { Book } from '@/lib/types'
 
 export default function BooksScreen() {
@@ -22,8 +23,13 @@ export default function BooksScreen() {
   const [showSearch, setShowSearch] = useState(false)
   const [showEnableSync, setShowEnableSync] = useState(false)
   const [selectedBook, setSelectedBook] = useState<Book | null>(null)
+  const [title, setTitle] = useState('')
   const listRef = useRef<BookListRef>(null)
   const dark = useColorScheme() === 'dark'
+
+  useEffect(() => {
+    getShelfName(shelfId).then(setTitle)
+  }, [shelfId])
 
   const reload = async () => {
     const updated = await listRef.current?.reload()
@@ -37,6 +43,7 @@ export default function BooksScreen() {
     <View className="flex-1 bg-white dark:bg-neutral-950">
       <Stack.Screen
         options={{
+          title,
           headerRight: () => (
             <View className="flex-row items-center">
               <SyncButton onRequestEnable={() => setShowEnableSync(true)} />
