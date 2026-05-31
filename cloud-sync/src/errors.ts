@@ -5,13 +5,6 @@ export class EtagMismatchError extends Error {
   }
 }
 
-export class NotFoundError extends Error {
-  constructor(path: string) {
-    super(`Not found: ${path}`)
-    this.name = 'NotFoundError'
-  }
-}
-
 export class SyncConflictError extends Error {
   constructor(public readonly attempts: number) {
     super(`Sync conflict: gave up after ${attempts} attempts`)

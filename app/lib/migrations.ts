@@ -177,6 +177,15 @@ const migrations: Migration[] = [
       }
     },
   },
+  {
+    version: 10,
+    up: async (db) => {
+      // Drop the unused `favorite` column. It was added in migration 4 and
+      // carried through the table rebuilds in 7/8, but the app never reads
+      // or writes it.
+      await db.execAsync(`ALTER TABLE books DROP COLUMN favorite`)
+    },
+  },
 ]
 
 export async function runMigrations(db: SQLiteDatabase) {

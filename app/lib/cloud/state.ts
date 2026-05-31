@@ -9,7 +9,7 @@ import { nanoid } from 'nanoid/non-secure'
  * When `cloud.provider === undefined`, sync is considered disabled.
  */
 
-export type CloudProvider = 'google' | 'apple' | 'fake'
+export type CloudProvider = 'google' | 'apple'
 
 const KEYS = {
   provider: 'cloud.provider',
@@ -48,7 +48,7 @@ function notify() {
 export async function getProvider(): Promise<CloudProvider | undefined> {
   const raw = await AsyncStorage.getItem(KEYS.provider)
 
-  if (raw === 'google' || raw === 'apple' || raw === 'fake') {
+  if (raw === 'google' || raw === 'apple') {
     return raw
   }
 
@@ -107,13 +107,7 @@ export async function getAccountEmail(): Promise<string | undefined> {
   return (await AsyncStorage.getItem(KEYS.accountEmail)) ?? undefined
 }
 
-export async function setAccountEmail(email: string | undefined) {
-  if (email === undefined) {
-    await AsyncStorage.removeItem(KEYS.accountEmail)
-
-    return
-  }
-
+export async function setAccountEmail(email: string) {
   await AsyncStorage.setItem(KEYS.accountEmail, email)
 }
 

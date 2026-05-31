@@ -15,4 +15,4 @@ export {
 } from './ICloudAdapter'
 export { sync, type SyncOptions, type SyncResult, type SyncState } from './SyncEngine'
 export { syncFiles, type SyncFilesResult } from './syncFiles'
-export { EtagMismatchError, NotFoundError, SchemaTooNewError, SyncConflictError } from './errors'
+export { EtagMismatchError, SchemaTooNewError, SyncConflictError } from './errors'

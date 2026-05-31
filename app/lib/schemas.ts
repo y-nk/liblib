@@ -35,10 +35,6 @@ export const bookSchema = z.object({
   shelfId: z.string().nullish(),
 })
 
-export const metadataSchema = z.object({
-  coverUrl: z.string().optional(),
-})
-
 export const bookRowSchema = z.object({
   isbn: z.string(),
   title: z.string(),

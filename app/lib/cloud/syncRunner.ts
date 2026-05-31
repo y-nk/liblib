@@ -7,13 +7,12 @@ import {
 } from '@y_nk/react-native-cloud-sync'
 import { buildDbHandle } from './dbHandle'
 import { createFileSystemCoverStore } from './coverStore'
-import { devInMemoryAdapter } from './devSync'
 import { createGoogleDriveAdapter } from './googleSync'
 import { createICloudAdapter } from './icloudSync'
 import { getLastEtag, getProvider, setLastEtag, setLastSyncAt } from './state'
 
 /** Highest known migration version — see `lib/migrations.ts`. */
-const LOCAL_SCHEMA_VERSION = 9
+const LOCAL_SCHEMA_VERSION = 10
 
 /** Remote directory the app stores its cover blobs under. */
 const COVERS_DIR = 'covers'
@@ -58,7 +57,7 @@ export async function runConfiguredSync(): Promise<SyncResult> {
 
     if (provider === 'google') {
       adapter = createGoogleDriveAdapter()
-    } else if (provider === 'apple') {
+    } else {
       const icloud = createICloudAdapter()
 
       if (!icloud) {
@@ -66,8 +65,6 @@ export async function runConfiguredSync(): Promise<SyncResult> {
       }
 
       adapter = icloud
-    } else {
-      adapter = devInMemoryAdapter
     }
 
     const { handle } = await buildDbHandle()

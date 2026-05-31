@@ -112,7 +112,7 @@ export default function SettingsSheet({
 
   const handleDisableSync = async () => {
     // Revoke the Drive scope before wiping local state, but only for Google
-    // — for `'fake'` (and future `'apple'`) there's nothing to revoke.
+    // — for Apple/iCloud there's nothing to revoke.
     // `revokeGoogleAccess()` is best-effort and swallows its own errors,
     // so a flaky network never blocks disabling sync locally.
     if (cloudProvider === 'google') {
