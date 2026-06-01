@@ -1,5 +1,5 @@
 import { AppState, type AppStateStatus, type NativeEventSubscription } from 'react-native'
-import { useCloudState, useCloudStore } from './state'
+import { getCloudState, useCloudStore } from './state'
 import { isSyncInFlight, runConfiguredSync } from './syncRunner'
 import { showSnackbar } from '@/lib/snackbar'
 
@@ -90,7 +90,7 @@ export function startAutoSync(intervalMs: number = BASE_INTERVAL_MS) {
 
     // Re-check provider + locked on every tick; either flag may have flipped
     // between the subscribe-driven restart and this fire.
-    const { provider, autoLocked } = useCloudState()
+    const { provider, autoLocked } = getCloudState()
 
     if (!provider || !autoLocked) {
       return
@@ -151,7 +151,7 @@ export function startAutoSync(intervalMs: number = BASE_INTERVAL_MS) {
       return
     }
 
-    const { provider, autoLocked } = useCloudState()
+    const { provider, autoLocked } = getCloudState()
     const shouldRun = foreground && !!provider && autoLocked
 
     if (shouldRun) {

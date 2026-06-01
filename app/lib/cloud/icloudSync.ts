@@ -4,7 +4,7 @@ import {
   ICloudNotAvailableError,
   type ICloudNativeModule,
 } from '@y_nk/react-native-cloud-sync'
-import { useCloudState } from './state'
+import { getCloudState } from './state'
 
 /**
  * Drives the "Sync with iCloud" button. There's no OAuth flow — iCloud
@@ -68,5 +68,5 @@ export async function enableICloudSync() {
   }
 
   await adapter.assertAvailable()
-  useCloudState().setProvider('apple')
+  getCloudState().setProvider('apple')
 }

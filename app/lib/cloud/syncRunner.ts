@@ -9,7 +9,7 @@ import { buildDbHandle } from './dbHandle'
 import { createFileSystemCoverStore } from './coverStore'
 import { createGoogleDriveAdapter } from './googleSync'
 import { createICloudAdapter } from './icloudSync'
-import { useCloudState } from './state'
+import { getCloudState } from './state'
 import { log } from '@/lib/log'
 
 /** Highest known migration version — see `lib/migrations.ts`. */
@@ -53,7 +53,7 @@ export function subscribeSyncCompleted(fn: SyncCompletedListener) {
  * store.
  *
  * Throws if no provider is configured — callers should guard on
- * `useCloudState().provider` first.
+ * `getCloudState().provider` first.
  *
  * If a sync is already in flight, returns that same promise instead of
  * starting a second concurrent run.
@@ -64,7 +64,7 @@ export async function runConfiguredSync() {
   }
 
   inFlight = (async () => {
-    const provider = useCloudState().provider
+    const provider = getCloudState().provider
 
     if (!provider) {
       throw new Error('Sync is not enabled')
@@ -85,7 +85,7 @@ export async function runConfiguredSync() {
     }
 
     const { handle } = await buildDbHandle()
-    const lastEtag = useCloudState().lastEtag
+    const lastEtag = getCloudState().lastEtag
     const state: SyncState = lastEtag ? { lastEtag } : {}
 
     const result = await sync({
@@ -97,8 +97,8 @@ export async function runConfiguredSync() {
 
     await syncFiles(adapter, createFileSystemCoverStore(), COVERS_DIR)
 
-    useCloudState().setLastEtag(result.newEtag)
-    useCloudState().setLastSyncAt(new Date().toISOString())
+    getCloudState().setLastEtag(result.newEtag)
+    getCloudState().setLastSyncAt(new Date().toISOString())
 
     for (const fn of completedListeners) {
       fn()
