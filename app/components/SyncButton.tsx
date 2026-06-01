@@ -88,6 +88,7 @@ export default function SyncButton({ onRequestEnable }: { onRequestEnable: () =>
     try {
       await runConfiguredSync()
       setStatus('idle')
+      showSnackbar('Sync complete')
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       showSnackbar(`Sync failed: ${msg}`, 'error')
