@@ -1,7 +1,7 @@
 import { GoogleSignin, isSuccessResponse } from '@react-native-google-signin/google-signin'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { GoogleDriveAdapter, type GoogleTokenProvider } from '@y_nk/react-native-cloud-sync'
-import { CLOUD_KEYS, useCloudStore } from './state'
+import { CLOUD_KEYS, useCloudState } from './state'
 
 /**
  * The OAuth scope that lets us read/write the per-app `appDataFolder` on
@@ -85,8 +85,8 @@ export async function signInWithGoogleDrive() {
   // explicitly so we can stash it in AsyncStorage for the adapter to use.
   const tokens = await GoogleSignin.getTokens()
   await persistTokens({ idToken: idToken ?? null, accessToken: tokens.accessToken })
-  useCloudStore.getState().setAccountEmail(user.email)
-  useCloudStore.getState().setProvider('google')
+  useCloudState().setAccountEmail(user.email)
+  useCloudState().setProvider('google')
 
   return { email: user.email }
 }

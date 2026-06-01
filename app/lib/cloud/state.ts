@@ -66,3 +66,10 @@ export const useCloudStore = create<CloudState & CloudActions>()(
     },
   ),
 )
+
+/**
+ * Current cloud-store snapshot (state + actions) for imperative use outside
+ * React — the sync engine, the auto-sync timer, the sign-in modules. Inside
+ * components, read reactively with `useCloudStore(selector)` instead.
+ */
+export const useCloudState = () => useCloudStore.getState()
