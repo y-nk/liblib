@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { ICloudNotAvailableError } from '@y_nk/react-native-cloud-sync'
 import { runConfiguredSync, subscribeSyncCompleted } from './syncRunner'
+import { startAutoSync } from './autoSync'
 import { signInWithGoogleDrive } from './googleSync'
 import { enableICloudSync } from './icloudSync'
 import { showSnackbar } from '@/lib/snackbar'
@@ -43,6 +44,15 @@ export function SyncProvider({ children }: { children: ReactNode }) {
     return subscribeSyncCompleted(() => {
       setSyncVersion((v) => v + 1)
     })
+  }, [])
+
+  // Own the foreground auto-sync timer for the app session. The controller
+  // observes the provider / auto-lock flags and AppState internally, so it
+  // just needs starting once and disposing on unmount.
+  useEffect(() => {
+    const dispose = startAutoSync()
+
+    return dispose
   }, [])
 
   // Pull the existing cloud library right after sign-in. Fire-and-forget so
