@@ -88,12 +88,12 @@ jobs:
           MINS=$(( DURATION / 60 ))
           SECS=$(( DURATION % 60 ))
           if [ "${{ job.status }}" = "success" ]; then
-            TITLE="Android build ready"
+            TITLE="Android build ready (#${{ github.run_number }})"
             TAGS="white_check_mark,android"
             CLICK="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/artifacts/${{ steps.upload.outputs.artifact-id }}"
             BODY="Build ${GITHUB_SHA::7} finished in ${MINS}m${SECS}s."
           else
-            TITLE="Android build failed"
+            TITLE="Android build failed (#${{ github.run_number }})"
             TAGS="x,android"
             CLICK="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
             BODY="Build ${GITHUB_SHA::7} failed after ${MINS}m${SECS}s."
