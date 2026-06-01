@@ -12,28 +12,20 @@ export default function ShelfDetailSheet({
   onClose,
   onChanged,
 }: {
-  shelf: Shelf | null
+  shelf: Shelf
   visible: boolean
   onClose: () => void
   onChanged: () => void
 }) {
   const handleNameSave = useCallback(
     async (name: string) => {
-      if (!shelf) {
-        return
-      }
-
       await updateShelfName(shelf.id, name)
       onChanged()
     },
-    [shelf?.id, onChanged],
+    [shelf.id, onChanged],
   )
 
   const confirmDelete = useCallback(() => {
-    if (!shelf) {
-      return
-    }
-
     const doDelete = async () => {
       await deleteShelf(shelf.id)
       onClose()
@@ -50,11 +42,7 @@ export default function ShelfDetailSheet({
         { text: 'Delete', style: 'destructive', onPress: doDelete },
       ])
     }
-  }, [shelf?.id, onClose, onChanged])
-
-  if (!shelf) {
-    return null
-  }
+  }, [shelf.id, onClose, onChanged])
 
   return (
     <BottomDrawer visible={visible} onClose={onClose}>

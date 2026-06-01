@@ -124,12 +124,14 @@ export default function ShelvesScreen() {
         </View>
       </CenterModal>
 
-      <ShelfDetailSheet
-        shelf={selectedShelf}
-        visible={!!selectedShelf}
-        onClose={() => setSelectedShelf(null)}
-        onChanged={load}
-      />
+      {selectedShelf ? (
+        <ShelfDetailSheet
+          shelf={selectedShelf}
+          visible
+          onClose={() => setSelectedShelf(null)}
+          onChanged={load}
+        />
+      ) : null}
 
       <EnableSyncSheet visible={showEnableSync} onClose={() => setShowEnableSync(false)} />
     </View>
