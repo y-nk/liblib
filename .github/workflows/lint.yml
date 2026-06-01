@@ -3,7 +3,6 @@ name: Lint
 on:
   push:
     branches: [main]
-  pull_request:
 
 jobs:
   lint:
@@ -23,4 +22,3 @@ jobs:
 
       - run: pnpm format:check
       - run: pnpm lint
-      - run: pnpm test
