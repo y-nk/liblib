@@ -70,11 +70,7 @@ export class ICloudAdapter implements CloudAdapter {
   async getFile(path: string): Promise<CloudFile | null> {
     const out = await this.native.getFile(path)
 
-    if (!out) {
-      return null
-    }
-
-    return { data: base64ToBytes(out.base64), etag: out.etag }
+    return out ? { data: base64ToBytes(out.base64), etag: out.etag } : null
   }
 
   async putFile(path: string, data: Uint8Array, options?: PutOptions): Promise<PutResult> {

@@ -35,11 +35,7 @@ export class InMemoryCloudAdapter implements CloudAdapter {
   async getFile(path: string): Promise<CloudFile | null> {
     const e = this.files.get(path)
 
-    if (!e) {
-      return null
-    }
-
-    return { data: new Uint8Array(e.data), etag: e.etag }
+    return e ? { data: new Uint8Array(e.data), etag: e.etag } : null
   }
 
   async putFile(path: string, data: Uint8Array, options?: PutOptions): Promise<PutResult> {

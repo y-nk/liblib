@@ -26,11 +26,7 @@ export function createFileSystemCoverStore() {
     async read(name: string) {
       const f = new File(COVERS_DIR, name)
 
-      if (!f.exists) {
-        return null
-      }
-
-      return new Uint8Array(await f.arrayBuffer())
+      return f.exists ? new Uint8Array(await f.arrayBuffer()) : null
     },
 
     async write(name: string, data: Uint8Array) {

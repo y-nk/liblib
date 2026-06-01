@@ -130,11 +130,7 @@ export async function getLogs() {
 
     const f = new File(LOG_DIR, 'liblib.log')
 
-    if (!f.exists) {
-      return ''
-    }
-
-    return await f.text()
+    return f.exists ? await f.text() : ''
   } catch {
     return ''
   }

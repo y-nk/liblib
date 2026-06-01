@@ -7,11 +7,7 @@ import { Camera } from 'lucide-react-native'
 const isWeb = Platform.OS === 'web'
 
 function assetToDataUrl(a: ImagePicker.ImagePickerAsset) {
-  if (a.base64) {
-    return `data:${a.mimeType || 'image/jpeg'};base64,${a.base64}`
-  }
-
-  return a.uri || ''
+  return a.base64 ? `data:${a.mimeType || 'image/jpeg'};base64,${a.base64}` : a.uri || ''
 }
 
 export default function CoverPicker({
