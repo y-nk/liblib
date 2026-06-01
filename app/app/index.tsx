@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { View, Text, TextInput, ScrollView, Pressable, useColorScheme } from 'react-native'
 import { useFocusEffect, Stack } from 'expo-router'
 import { Plus } from 'lucide-react-native'
@@ -9,7 +9,7 @@ import ShelfRow from '@/components/ShelfRow'
 import ShelfDetailSheet from '@/components/sheets/ShelfDetailSheet'
 import EnableSyncSheet from '@/components/sheets/EnableSyncSheet'
 import SyncButton from '@/components/SyncButton'
-import { subscribeSyncCompleted } from '@/lib/cloud/syncRunner'
+import { useSyncVersion } from '@/lib/cloud/SyncProvider'
 
 export default function ShelvesScreen() {
   const [shelves, setShelves] = useState<Shelf[]>([])
@@ -19,6 +19,7 @@ export default function ShelvesScreen() {
   const [selectedShelf, setSelectedShelf] = useState<Shelf | null>(null)
   const [showEnableSync, setShowEnableSync] = useState(false)
   const dark = useColorScheme() === 'dark'
+  const syncVersion = useSyncVersion()
 
   const load = () => {
     getShelves().then(setShelves)
@@ -32,12 +33,17 @@ export default function ShelvesScreen() {
   )
 
   // Reload after a sync from any source so pulled shelves/books appear
-  // without leaving and re-entering the screen.
+  // without leaving and re-entering the screen. `useFocusEffect` already
+  // covers the initial load, so skip the mount value and react to bumps.
+  const mountedSyncVersion = useRef(syncVersion)
+
   useEffect(() => {
-    return subscribeSyncCompleted(() => {
-      load()
-    })
-  }, [])
+    if (syncVersion === mountedSyncVersion.current) {
+      return
+    }
+
+    load()
+  }, [syncVersion])
 
   const handleCreate = async () => {
     const name = newName.trim()

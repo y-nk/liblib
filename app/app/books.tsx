@@ -13,7 +13,7 @@ import ActionToolbar from '@/components/ActionToolbar'
 import BookDetailSheet from '@/components/sheets/BookDetailSheet'
 import SyncButton from '@/components/SyncButton'
 import { getShelfName } from '@/lib/data/shelves'
-import { subscribeSyncCompleted } from '@/lib/cloud/syncRunner'
+import { useSyncVersion } from '@/lib/cloud/SyncProvider'
 import type { Book } from '@/lib/types'
 
 export default function BooksScreen() {
@@ -27,6 +27,7 @@ export default function BooksScreen() {
   const [title, setTitle] = useState('')
   const listRef = useRef<BookListRef>(null)
   const dark = useColorScheme() === 'dark'
+  const syncVersion = useSyncVersion()
 
   useEffect(() => {
     getShelfName(shelfId).then(setTitle)
@@ -41,13 +42,18 @@ export default function BooksScreen() {
   }
 
   // Reload the list + title after a sync from any source so pulled changes
-  // show without navigating away.
+  // show without navigating away. Skip the mount value (initial load is
+  // handled above) and react only to subsequent bumps.
+  const mountedSyncVersion = useRef(syncVersion)
+
   useEffect(() => {
-    return subscribeSyncCompleted(() => {
-      getShelfName(shelfId).then(setTitle)
-      listRef.current?.reload()
-    })
-  }, [shelfId])
+    if (syncVersion === mountedSyncVersion.current) {
+      return
+    }
+
+    getShelfName(shelfId).then(setTitle)
+    listRef.current?.reload()
+  }, [syncVersion, shelfId])
 
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">
