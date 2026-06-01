@@ -10,10 +10,8 @@ import { runMigrations } from '../migrations'
 
 const DB_NAME = 'liblib.db'
 
-function dbFile() {
-  const dir = defaultDatabaseDirectory ?? Paths.document.uri
-
-  return new File(dir, DB_NAME)
+function dbDir() {
+  return defaultDatabaseDirectory ?? Paths.document.uri
 }
 
 async function bindSession(db: SQLiteDatabase) {
@@ -54,28 +52,52 @@ export async function buildDbHandle(): Promise<{
     },
 
     async swapAndReopen(merged: Uint8Array) {
+      const dir = dbDir()
+
       await current.closeAsync()
 
-      const file = dbFile()
+      const reopen = async () => {
+        const db = await openDatabaseAsync(DB_NAME)
+        // Re-run migrations so the freshly-opened db has the app's expected
+        // schema_version row; the merged bytes already carry the version,
+        // but running migrations is idempotent.
+        await runMigrations(db)
+        const session = await bindSession(db)
 
-      if (file.exists) {
-        file.delete()
+        current = db
+        currentSession = session as unknown as SqliteSession
+        replaceDb(db)
+
+        return db
       }
 
-      file.create()
-      file.write(merged)
+      try {
+        // expo-sqlite runs in WAL mode, leaving `-wal`/`-shm` sidecars next to
+        // the db. Dropping fresh bytes into `liblib.db` while a stale WAL
+        // lingers makes the next open replay it on top of the new file and
+        // corrupt it — so remove all three before writing.
+        for (const name of [DB_NAME, `${DB_NAME}-wal`, `${DB_NAME}-shm`]) {
+          const sidecar = new File(dir, name)
 
-      const reopened = await openDatabaseAsync(DB_NAME)
-      // Re-run migrations to make sure the freshly-opened db has the
-      // app's expected schema_version row in sync; the merged bytes
-      // already carry the version, but running migrations is idempotent.
-      await runMigrations(reopened)
+          if (sidecar.exists) {
+            sidecar.delete()
+          }
+        }
 
-      const freshSession = await bindSession(reopened)
+        const file = new File(dir, DB_NAME)
+        file.create()
+        file.write(merged)
+      } catch (e) {
+        // Staging the merged bytes failed after we already closed the live
+        // connection. Reopen so the app's singleton is never left pointing at
+        // a closed handle (which would surface as "Access to closed resource"
+        // on the next sync), then surface the original error.
+        await reopen()
 
-      current = reopened
-      currentSession = freshSession as unknown as SqliteSession
-      replaceDb(reopened)
+        throw e
+      }
+
+      const reopened = await reopen()
 
       return {
         db: reopened as unknown as SqliteDb,

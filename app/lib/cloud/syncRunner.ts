@@ -10,6 +10,7 @@ import { createFileSystemCoverStore } from './coverStore'
 import { createGoogleDriveAdapter } from './googleSync'
 import { createICloudAdapter } from './icloudSync'
 import { getLastEtag, getProvider, setLastEtag, setLastSyncAt } from './state'
+import { log } from '@/lib/log'
 
 /** Highest known migration version — see `lib/migrations.ts`. */
 const LOCAL_SCHEMA_VERSION = 10
@@ -88,6 +89,12 @@ export async function runConfiguredSync(): Promise<SyncResult> {
 
   try {
     return await inFlight
+  } catch (e) {
+    log.error('sync', e instanceof Error ? e.message : String(e), {
+      stack: e instanceof Error ? e.stack : undefined,
+    })
+
+    throw e
   } finally {
     inFlight = null
   }
