@@ -5,6 +5,7 @@ import BottomDrawer from './BottomDrawer'
 import { ICloudNotAvailableError } from '@y_nk/react-native-cloud-sync'
 import { signInWithGoogleDrive } from '@/lib/cloud/googleSync'
 import { enableICloudSync } from '@/lib/cloud/icloudSync'
+import { runConfiguredSync } from '@/lib/cloud/syncRunner'
 import { showSnackbar } from '@/lib/snackbar'
 
 /**
@@ -31,6 +32,19 @@ export default function EnableSyncSheet({
   const { bottom } = useSafeAreaInsets()
   const [signingIn, setSigningIn] = useState(false)
 
+  // Pull the existing cloud library immediately after sign-in. Fire-and-forget
+  // so the sheet closes right away; the snackbar reports the outcome and
+  // subscribed screens refresh themselves when it completes.
+  const runFirstSync = async () => {
+    try {
+      await runConfiguredSync()
+      showSnackbar('Sync complete')
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      showSnackbar(`Sync failed: ${msg}`, 'error')
+    }
+  }
+
   const enableGoogleDrive = async () => {
     if (signingIn) {
       return
@@ -48,6 +62,7 @@ export default function EnableSyncSheet({
 
       onEnabled?.()
       onClose()
+      runFirstSync()
     } catch (e) {
       const msg = e instanceof Error ? e.message : String(e)
       showSnackbar(`Sign-in failed: ${msg}`, 'error')
@@ -67,6 +82,7 @@ export default function EnableSyncSheet({
       await enableICloudSync()
       onEnabled?.()
       onClose()
+      runFirstSync()
     } catch (e) {
       if (e instanceof ICloudNotAvailableError) {
         showSnackbar('iCloud not available — sign into iCloud in iOS Settings', 'error')

@@ -30,6 +30,22 @@ export function isSyncInFlight(): boolean {
   return inFlight !== null
 }
 
+type SyncCompletedListener = () => void
+const completedListeners = new Set<SyncCompletedListener>()
+
+/**
+ * Subscribe to successful syncs from any source (manual tap, settings, the
+ * auto-sync timer, or the first sync after sign-in). Screens use this to
+ * reload their data so pulled changes show without a manual refresh.
+ */
+export function subscribeSyncCompleted(fn: SyncCompletedListener): () => void {
+  completedListeners.add(fn)
+
+  return () => {
+    completedListeners.delete(fn)
+  }
+}
+
 /**
  * Resolves the adapter for the currently-configured provider and runs the
  * engine, then reconciles the local covers directory against the matching
@@ -83,6 +99,10 @@ export async function runConfiguredSync(): Promise<SyncResult> {
 
     await setLastEtag(result.newEtag)
     await setLastSyncAt(new Date().toISOString())
+
+    for (const fn of completedListeners) {
+      fn()
+    }
 
     return result
   })()

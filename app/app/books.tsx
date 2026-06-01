@@ -13,6 +13,7 @@ import ActionToolbar from '@/components/ActionToolbar'
 import BookDetailSheet from '@/components/sheets/BookDetailSheet'
 import SyncButton from '@/components/SyncButton'
 import { getShelfName } from '@/lib/data/shelves'
+import { subscribeSyncCompleted } from '@/lib/cloud/syncRunner'
 import type { Book } from '@/lib/types'
 
 export default function BooksScreen() {
@@ -38,6 +39,15 @@ export default function BooksScreen() {
       setSelectedBook((prev) => (prev ? (updated.find((b) => b.isbn === prev.isbn) ?? null) : null))
     }
   }
+
+  // Reload the list + title after a sync from any source so pulled changes
+  // show without navigating away.
+  useEffect(() => {
+    return subscribeSyncCompleted(() => {
+      getShelfName(shelfId).then(setTitle)
+      listRef.current?.reload()
+    })
+  }, [shelfId])
 
   return (
     <View className="flex-1 bg-white dark:bg-neutral-950">

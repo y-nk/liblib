@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { View, Text, TextInput, ScrollView, Pressable, useColorScheme } from 'react-native'
 import { useFocusEffect, Stack } from 'expo-router'
 import { Plus } from 'lucide-react-native'
@@ -9,6 +9,7 @@ import ShelfRow from '@/components/ShelfRow'
 import ShelfDetailSheet from '@/components/sheets/ShelfDetailSheet'
 import EnableSyncSheet from '@/components/sheets/EnableSyncSheet'
 import SyncButton from '@/components/SyncButton'
+import { subscribeSyncCompleted } from '@/lib/cloud/syncRunner'
 
 export default function ShelvesScreen() {
   const [shelves, setShelves] = useState<Shelf[]>([])
@@ -29,6 +30,14 @@ export default function ShelvesScreen() {
       load()
     }, []),
   )
+
+  // Reload after a sync from any source so pulled shelves/books appear
+  // without leaving and re-entering the screen.
+  useEffect(() => {
+    return subscribeSyncCompleted(() => {
+      load()
+    })
+  }, [])
 
   const handleCreate = async () => {
     const name = newName.trim()
