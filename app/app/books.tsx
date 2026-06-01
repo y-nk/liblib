@@ -84,12 +84,14 @@ export default function BooksScreen() {
         }}
       />
 
-      <BookDetailSheet
-        book={selectedBook}
-        visible={!!selectedBook}
-        onClose={() => setSelectedBook(null)}
-        onChanged={reload}
-      />
+      {selectedBook ? (
+        <BookDetailSheet
+          book={selectedBook}
+          visible
+          onClose={() => setSelectedBook(null)}
+          onChanged={reload}
+        />
+      ) : null}
 
       <SettingsSheet visible={showSettings} onClose={() => setShowSettings(false)} />
       <EnableSyncSheet visible={showEnableSync} onClose={() => setShowEnableSync(false)} />

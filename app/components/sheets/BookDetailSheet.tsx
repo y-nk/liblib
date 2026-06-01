@@ -56,7 +56,7 @@ export default function BookDetailSheet({
   onClose,
   onChanged,
 }: {
-  book: Book | null
+  book: Book
   visible: boolean
   onClose: () => void
   onChanged: () => void
@@ -194,10 +194,6 @@ export default function BookDetailSheet({
       ])
     }
   }, [book?.isbn, onClose, onChanged])
-
-  if (!book) {
-    return null
-  }
 
   return (
     <BottomDrawer visible={visible} onClose={onClose}>
