@@ -1,120 +1,178 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { nanoid } from 'nanoid/non-secure'
+import { create } from 'zustand'
+import { createJSONStorage, persist } from 'zustand/middleware'
 
 /**
- * AsyncStorage facade for cloud-sync state. All keys are namespaced under
- * `cloud.*` so a single `clearAll()` can wipe sync state without touching
- * the rest of the app.
+ * Cloud-sync state, persisted on AsyncStorage via zustand. React code can
+ * read reactively with the `useCloudStore` hook; the async wrapper functions
+ * below preserve the original facade for non-React callers (the sync engine,
+ * the auto-sync timer) and await rehydration so a value is never read before
+ * the persisted state has loaded.
  *
- * When `cloud.provider === undefined`, sync is considered disabled.
+ * When `provider === undefined`, sync is considered disabled.
  */
 
 export type CloudProvider = 'google' | 'apple'
 
-const KEYS = {
-  provider: 'cloud.provider',
-  deviceId: 'cloud.deviceId',
-  lastSyncAt: 'cloud.lastSyncAt',
-  lastEtag: 'cloud.lastEtag',
-  autoLocked: 'cloud.autoLocked',
-  accountEmail: 'cloud.accountEmail',
-  // Provider-specific opaque token blobs.
+// Provider-specific opaque token blobs live under their own keys (managed by
+// the google/apple sign-in modules), not in the persisted store.
+export const CLOUD_KEYS = {
   googleToken: 'cloud.token.google',
   appleToken: 'cloud.token.apple',
 } as const
 
-const ALL_KEYS = Object.values(KEYS)
-
-// Tiny pub/sub so UI surfaces (header sync button, settings sheet) can
-// observe provider / auto-lock changes without re-querying AsyncStorage
-// on every render.
-type Listener = () => void
-const listeners = new Set<Listener>()
-
-export function subscribeCloudState(fn: Listener): () => void {
-  listeners.add(fn)
-
-  return () => {
-    listeners.delete(fn)
-  }
+type CloudState = {
+  provider?: CloudProvider
+  deviceId?: string
+  lastSyncAt?: string
+  lastEtag?: string
+  autoLocked: boolean
+  accountEmail?: string
 }
 
-function notify() {
-  for (const fn of listeners) {
-    fn()
+type CloudActions = {
+  setProvider: (provider: CloudProvider) => void
+  setDeviceId: (id: string) => void
+  setLastSyncAt: (iso: string) => void
+  setLastEtag: (etag: string) => void
+  setAutoLocked: (locked: boolean) => void
+  setAccountEmail: (email: string) => void
+  reset: () => void
+}
+
+const INITIAL: CloudState = {
+  provider: undefined,
+  deviceId: undefined,
+  lastSyncAt: undefined,
+  lastEtag: undefined,
+  autoLocked: false,
+  accountEmail: undefined,
+}
+
+export const useCloudStore = create<CloudState & CloudActions>()(
+  persist(
+    (set) => ({
+      ...INITIAL,
+      setProvider: (provider) => set({ provider }),
+      setDeviceId: (deviceId) => set({ deviceId }),
+      setLastSyncAt: (lastSyncAt) => set({ lastSyncAt }),
+      setLastEtag: (lastEtag) => set({ lastEtag }),
+      setAutoLocked: (autoLocked) => set({ autoLocked }),
+      setAccountEmail: (accountEmail) => set({ accountEmail }),
+      reset: () => set({ ...INITIAL }),
+    }),
+    {
+      name: 'cloud-state',
+      storage: createJSONStorage(() => AsyncStorage),
+    },
+  ),
+)
+
+/** Resolves once the persisted state has been read back from AsyncStorage. */
+function whenHydrated(): Promise<void> {
+  if (useCloudStore.persist.hasHydrated()) {
+    return Promise.resolve()
   }
+
+  return new Promise((resolve) => {
+    const unsub = useCloudStore.persist.onFinishHydration(() => {
+      unsub()
+      resolve()
+    })
+  })
+}
+
+// Facade -----------------------------------------------------------------
+
+/**
+ * Subscribe to cloud-state changes. Returns an unsubscribe function. Used by
+ * UI surfaces (header sync button, settings sheet) that aren't already
+ * reading the store via the hook.
+ */
+export function subscribeCloudState(fn: () => void): () => void {
+  return useCloudStore.subscribe(fn)
 }
 
 export async function getProvider(): Promise<CloudProvider | undefined> {
-  const raw = await AsyncStorage.getItem(KEYS.provider)
+  await whenHydrated()
 
-  if (raw === 'google' || raw === 'apple') {
-    return raw
-  }
-
-  return undefined
+  return useCloudStore.getState().provider
 }
 
 export async function setProvider(provider: CloudProvider) {
-  await AsyncStorage.setItem(KEYS.provider, provider)
-  notify()
+  await whenHydrated()
+  useCloudStore.getState().setProvider(provider)
 }
 
 /**
- * Returns the device id, generating and persisting one on first call.
- * Once generated, the id is frozen for the lifetime of the install.
+ * Returns the device id, generating and persisting one on first call. Once
+ * generated, the id is frozen for the lifetime of the install.
  */
 export async function getDeviceId(): Promise<string> {
-  const existing = await AsyncStorage.getItem(KEYS.deviceId)
+  await whenHydrated()
+  const existing = useCloudStore.getState().deviceId
 
   if (existing) {
     return existing
   }
 
   const id = nanoid()
-  await AsyncStorage.setItem(KEYS.deviceId, id)
+  useCloudStore.getState().setDeviceId(id)
 
   return id
 }
 
 export async function getLastSyncAt(): Promise<string | undefined> {
-  return (await AsyncStorage.getItem(KEYS.lastSyncAt)) ?? undefined
+  await whenHydrated()
+
+  return useCloudStore.getState().lastSyncAt
 }
 
 export async function setLastSyncAt(iso: string) {
-  await AsyncStorage.setItem(KEYS.lastSyncAt, iso)
-  notify()
+  await whenHydrated()
+  useCloudStore.getState().setLastSyncAt(iso)
 }
 
 export async function getLastEtag(): Promise<string | undefined> {
-  return (await AsyncStorage.getItem(KEYS.lastEtag)) ?? undefined
+  await whenHydrated()
+
+  return useCloudStore.getState().lastEtag
 }
 
 export async function setLastEtag(etag: string) {
-  await AsyncStorage.setItem(KEYS.lastEtag, etag)
+  await whenHydrated()
+  useCloudStore.getState().setLastEtag(etag)
 }
 
 export async function getAutoLocked(): Promise<boolean> {
-  return (await AsyncStorage.getItem(KEYS.autoLocked)) === '1'
+  await whenHydrated()
+
+  return useCloudStore.getState().autoLocked
 }
 
 export async function setAutoLocked(locked: boolean) {
-  await AsyncStorage.setItem(KEYS.autoLocked, locked ? '1' : '0')
-  notify()
+  await whenHydrated()
+  useCloudStore.getState().setAutoLocked(locked)
 }
 
 export async function getAccountEmail(): Promise<string | undefined> {
-  return (await AsyncStorage.getItem(KEYS.accountEmail)) ?? undefined
+  await whenHydrated()
+
+  return useCloudStore.getState().accountEmail
 }
 
 export async function setAccountEmail(email: string) {
-  await AsyncStorage.setItem(KEYS.accountEmail, email)
+  await whenHydrated()
+  useCloudStore.getState().setAccountEmail(email)
 }
 
-/** Wipes every `cloud.*` key. Cloud files on the remote provider are NOT touched. */
+/**
+ * Wipes all cloud state — the persisted store and the provider token blobs.
+ * Cloud files on the remote provider are NOT touched.
+ */
 export async function clearAll() {
-  await AsyncStorage.multiRemove(ALL_KEYS)
-  notify()
+  await whenHydrated()
+  useCloudStore.getState().reset()
+  await AsyncStorage.multiRemove([CLOUD_KEYS.googleToken, CLOUD_KEYS.appleToken])
 }
-
-export const CLOUD_KEYS = KEYS

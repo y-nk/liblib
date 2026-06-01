@@ -1,11 +1,10 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import { create } from 'zustand'
+import { createJSONStorage, persist } from 'zustand/middleware'
 import type { Settings, ProviderConfig } from '../types'
 import { DEFAULT_PROVIDERS } from '../types'
-import { settingsSchema, providerConfigSchema } from '../schemas'
-import { z } from 'zod'
 
-const SETTINGS_KEY = 'liblib:settings'
-
+/** Adds any providers introduced since the user's settings were last saved. */
 function mergeProviders(saved: ProviderConfig[]): ProviderConfig[] {
   const savedIds = new Set(saved.map((p) => p.id))
   const missing = DEFAULT_PROVIDERS.filter((p) => !savedIds.has(p.id))
@@ -13,35 +12,62 @@ function mergeProviders(saved: ProviderConfig[]): ProviderConfig[] {
   return [...saved, ...missing]
 }
 
+type SettingsActions = {
+  save: (settings: Settings) => void
+}
+
+const INITIAL: Settings = { openaiKey: '', geminiKey: '', providers: DEFAULT_PROVIDERS }
+
+/**
+ * App settings (provider API keys + the ISBN-provider list), persisted on
+ * AsyncStorage via zustand. The async wrappers below preserve the original
+ * facade for non-React callers (the providers) and await rehydration so a
+ * value is never read before the persisted state has loaded.
+ */
+export const useSettingsStore = create<Settings & SettingsActions>()(
+  persist(
+    (set) => ({
+      ...INITIAL,
+      save: (settings) => set({ ...settings }),
+    }),
+    {
+      name: 'settings-store',
+      storage: createJSONStorage(() => AsyncStorage),
+      // Backfill providers added since the persisted snapshot was written.
+      merge: (persisted, current) => {
+        const p = (persisted ?? {}) as Partial<Settings>
+
+        return {
+          ...current,
+          ...p,
+          providers: mergeProviders(p.providers ?? current.providers),
+        }
+      },
+    },
+  ),
+)
+
+function whenHydrated(): Promise<void> {
+  if (useSettingsStore.persist.hasHydrated()) {
+    return Promise.resolve()
+  }
+
+  return new Promise((resolve) => {
+    const unsub = useSettingsStore.persist.onFinishHydration(() => {
+      unsub()
+      resolve()
+    })
+  })
+}
+
 export async function getSettings(): Promise<Settings> {
-  const raw = await AsyncStorage.getItem(SETTINGS_KEY)
-  const defaults: Settings = { openaiKey: '', geminiKey: '', providers: DEFAULT_PROVIDERS }
+  await whenHydrated()
+  const { openaiKey, geminiKey, providers } = useSettingsStore.getState()
 
-  if (!raw) {
-    return defaults
-  }
-
-  const parsed = JSON.parse(raw)
-
-  const partialResult = settingsSchema
-    .extend({ providers: z.array(providerConfigSchema).optional() })
-    .safeParse(parsed)
-
-  if (!partialResult.success) {
-    return defaults
-  }
-
-  const providers = partialResult.data.providers
-    ? mergeProviders(partialResult.data.providers)
-    : defaults.providers
-
-  return {
-    openaiKey: partialResult.data.openaiKey,
-    geminiKey: partialResult.data.geminiKey,
-    providers,
-  }
+  return { openaiKey, geminiKey, providers }
 }
 
 export async function saveSettings(settings: Settings) {
-  await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+  await whenHydrated()
+  useSettingsStore.getState().save(settings)
 }
