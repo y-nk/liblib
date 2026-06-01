@@ -5,7 +5,7 @@ import type { Settings, ProviderConfig } from '../types'
 import { DEFAULT_PROVIDERS } from '../types'
 
 /** Adds any providers introduced since the user's settings were last saved. */
-function mergeProviders(saved: ProviderConfig[]): ProviderConfig[] {
+function mergeProviders(saved: ProviderConfig[]) {
   const savedIds = new Set(saved.map((p) => p.id))
   const missing = DEFAULT_PROVIDERS.filter((p) => !savedIds.has(p.id))
 
@@ -47,12 +47,12 @@ export const useSettingsStore = create<Settings & SettingsActions>()(
   ),
 )
 
-function whenHydrated(): Promise<void> {
+function whenHydrated() {
   if (useSettingsStore.persist.hasHydrated()) {
     return Promise.resolve()
   }
 
-  return new Promise((resolve) => {
+  return new Promise<void>((resolve) => {
     const unsub = useSettingsStore.persist.onFinishHydration(() => {
       unsub()
       resolve()
@@ -60,7 +60,7 @@ function whenHydrated(): Promise<void> {
   })
 }
 
-export async function getSettings(): Promise<Settings> {
+export async function getSettings() {
   await whenHydrated()
   const { openaiKey, geminiKey, providers } = useSettingsStore.getState()
 

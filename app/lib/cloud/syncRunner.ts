@@ -9,7 +9,7 @@ import { buildDbHandle } from './dbHandle'
 import { createFileSystemCoverStore } from './coverStore'
 import { createGoogleDriveAdapter } from './googleSync'
 import { createICloudAdapter } from './icloudSync'
-import { getLastEtag, getProvider, setLastEtag, setLastSyncAt } from './state'
+import { useCloudStore } from './state'
 import { log } from '@/lib/log'
 
 /** Highest known migration version — see `lib/migrations.ts`. */
@@ -26,7 +26,7 @@ const COVERS_DIR = 'covers'
 let inFlight: Promise<SyncResult> | null = null
 
 /** True iff a sync is currently running anywhere in the app. */
-export function isSyncInFlight(): boolean {
+export function isSyncInFlight() {
   return inFlight !== null
 }
 
@@ -38,7 +38,7 @@ const completedListeners = new Set<SyncCompletedListener>()
  * auto-sync timer, or the first sync after sign-in). Screens use this to
  * reload their data so pulled changes show without a manual refresh.
  */
-export function subscribeSyncCompleted(fn: SyncCompletedListener): () => void {
+export function subscribeSyncCompleted(fn: SyncCompletedListener) {
   completedListeners.add(fn)
 
   return () => {
@@ -50,21 +50,21 @@ export function subscribeSyncCompleted(fn: SyncCompletedListener): () => void {
  * Resolves the adapter for the currently-configured provider and runs the
  * engine, then reconciles the local covers directory against the matching
  * remote folder. Persists the resulting etag + lastSyncAt into the cloud
- * state facade.
+ * store.
  *
  * Throws if no provider is configured — callers should guard on
- * `getProvider()` first.
+ * `useCloudStore.getState().provider` first.
  *
  * If a sync is already in flight, returns that same promise instead of
  * starting a second concurrent run.
  */
-export async function runConfiguredSync(): Promise<SyncResult> {
+export async function runConfiguredSync() {
   if (inFlight) {
     return inFlight
   }
 
   inFlight = (async () => {
-    const provider = await getProvider()
+    const provider = useCloudStore.getState().provider
 
     if (!provider) {
       throw new Error('Sync is not enabled')
@@ -85,7 +85,7 @@ export async function runConfiguredSync(): Promise<SyncResult> {
     }
 
     const { handle } = await buildDbHandle()
-    const lastEtag = await getLastEtag()
+    const lastEtag = useCloudStore.getState().lastEtag
     const state: SyncState = lastEtag ? { lastEtag } : {}
 
     const result = await sync({
@@ -97,8 +97,8 @@ export async function runConfiguredSync(): Promise<SyncResult> {
 
     await syncFiles(adapter, createFileSystemCoverStore(), COVERS_DIR)
 
-    await setLastEtag(result.newEtag)
-    await setLastSyncAt(new Date().toISOString())
+    useCloudStore.getState().setLastEtag(result.newEtag)
+    useCloudStore.getState().setLastSyncAt(new Date().toISOString())
 
     for (const fn of completedListeners) {
       fn()

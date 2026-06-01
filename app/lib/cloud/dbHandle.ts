@@ -36,11 +36,7 @@ async function bindSession(db: SQLiteDatabase) {
  * after `sync()` completes so the app's `getDb()` singleton can be
  * re-pointed at the freshly-reopened connection.
  */
-export async function buildDbHandle(): Promise<{
-  handle: DbHandle
-  /** The freshly-opened db after sync; the caller should replace the singleton with this. */
-  getCurrentDb: () => SQLiteDatabase
-}> {
+export async function buildDbHandle() {
   const { getDb, replaceDb } = await import('../db')
   const db = await getDb()
   const session = await bindSession(db)

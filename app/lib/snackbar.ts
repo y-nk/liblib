@@ -22,7 +22,7 @@ type Listener = (msg: SnackbarMessage | null) => void
 const listeners = new Set<Listener>()
 let counter = 0
 
-export function subscribe(fn: Listener): () => void {
+export function subscribe(fn: Listener) {
   listeners.add(fn)
 
   return () => {

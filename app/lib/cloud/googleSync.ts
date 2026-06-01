@@ -1,7 +1,7 @@
 import { GoogleSignin, isSuccessResponse } from '@react-native-google-signin/google-signin'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { GoogleDriveAdapter, type GoogleTokenProvider } from '@y_nk/react-native-cloud-sync'
-import { CLOUD_KEYS, setAccountEmail, setProvider } from './state'
+import { CLOUD_KEYS, useCloudStore } from './state'
 
 /**
  * The OAuth scope that lets us read/write the per-app `appDataFolder` on
@@ -47,7 +47,7 @@ async function persistTokens(tokens: { idToken: string | null; accessToken: stri
   await AsyncStorage.setItem(CLOUD_KEYS.googleToken, JSON.stringify(blob))
 }
 
-async function readPersistedTokens(): Promise<StoredTokens | null> {
+async function readPersistedTokens() {
   const raw = await AsyncStorage.getItem(CLOUD_KEYS.googleToken)
 
   if (!raw) {
@@ -71,7 +71,7 @@ async function readPersistedTokens(): Promise<StoredTokens | null> {
  * Returns the AuthUser-shaped subset the caller needs, or `null` if the user
  * cancelled. Throws on any non-cancel error so the UI can surface it.
  */
-export async function signInWithGoogleDrive(): Promise<{ email: string } | null> {
+export async function signInWithGoogleDrive() {
   ensureConfigured()
   await GoogleSignin.hasPlayServices()
   const response = await GoogleSignin.signIn()
@@ -85,8 +85,8 @@ export async function signInWithGoogleDrive(): Promise<{ email: string } | null>
   // explicitly so we can stash it in AsyncStorage for the adapter to use.
   const tokens = await GoogleSignin.getTokens()
   await persistTokens({ idToken: idToken ?? null, accessToken: tokens.accessToken })
-  await setAccountEmail(user.email)
-  await setProvider('google')
+  useCloudStore.getState().setAccountEmail(user.email)
+  useCloudStore.getState().setProvider('google')
 
   return { email: user.email }
 }
@@ -119,7 +119,7 @@ const tokenProvider: GoogleTokenProvider = async (forceRefresh) => {
  * from any sync entry point; the underlying token cache survives multiple
  * adapter instances within a process.
  */
-export function createGoogleDriveAdapter(): GoogleDriveAdapter {
+export function createGoogleDriveAdapter() {
   ensureConfigured()
 
   return new GoogleDriveAdapter({ getAccessToken: tokenProvider })
@@ -130,7 +130,7 @@ export function createGoogleDriveAdapter(): GoogleDriveAdapter {
  * etc.) are swallowed so the caller's "Disable sync" UX never blocks on
  * Google's servers being reachable.
  */
-export async function revokeGoogleAccess(): Promise<void> {
+export async function revokeGoogleAccess() {
   ensureConfigured()
 
   try {

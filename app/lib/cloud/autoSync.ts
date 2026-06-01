@@ -1,5 +1,5 @@
 import { AppState, type AppStateStatus, type NativeEventSubscription } from 'react-native'
-import { getAutoLocked, getProvider, subscribeCloudState } from './state'
+import { useCloudStore } from './state'
 import { isSyncInFlight, runConfiguredSync } from './syncRunner'
 import { showSnackbar } from '@/lib/snackbar'
 
@@ -35,7 +35,7 @@ type Listener = (s: Status) => void
 const statusListeners = new Set<Listener>()
 let currentStatus: Status = { running: false, backedOff: false }
 
-export function subscribeAutoSyncStatus(fn: Listener): () => void {
+export function subscribeAutoSyncStatus(fn: Listener) {
   statusListeners.add(fn)
   fn(currentStatus)
 
@@ -58,7 +58,7 @@ function setStatus(next: Partial<Status>) {
   }
 }
 
-export function getAutoSyncStatus(): Status {
+export function getAutoSyncStatus() {
   return currentStatus
 }
 
@@ -70,7 +70,7 @@ export function getAutoSyncStatus(): Status {
  * Pass `intervalMs` to override the base 120s cadence (e.g. for dev
  * verification — the issue's acceptance criterion asks for a 10s test).
  */
-export function startAutoSync(intervalMs: number = BASE_INTERVAL_MS): () => void {
+export function startAutoSync(intervalMs: number = BASE_INTERVAL_MS) {
   let timer: ReturnType<typeof setInterval> | null = null
   let consecutiveFailures = 0
   let currentIntervalMs = intervalMs
@@ -90,9 +90,9 @@ export function startAutoSync(intervalMs: number = BASE_INTERVAL_MS): () => void
 
     // Re-check provider + locked on every tick; either flag may have flipped
     // between the subscribe-driven restart and this fire.
-    const [provider, locked] = await Promise.all([getProvider(), getAutoLocked()])
+    const { provider, autoLocked } = useCloudStore.getState()
 
-    if (!provider || !locked) {
+    if (!provider || !autoLocked) {
       return
     }
 
@@ -151,8 +151,8 @@ export function startAutoSync(intervalMs: number = BASE_INTERVAL_MS): () => void
       return
     }
 
-    const [provider, locked] = await Promise.all([getProvider(), getAutoLocked()])
-    const shouldRun = foreground && !!provider && locked
+    const { provider, autoLocked } = useCloudStore.getState()
+    const shouldRun = foreground && !!provider && autoLocked
 
     if (shouldRun) {
       if (timer === null) {
@@ -177,7 +177,7 @@ export function startAutoSync(intervalMs: number = BASE_INTERVAL_MS): () => void
   }
 
   const appStateSub: NativeEventSubscription = AppState.addEventListener('change', onAppStateChange)
-  const unsubscribeCloud = subscribeCloudState(() => {
+  const unsubscribeCloud = useCloudStore.subscribe(() => {
     evaluate()
   })
 

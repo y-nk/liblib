@@ -23,14 +23,7 @@ import * as Clipboard from 'expo-clipboard'
 import { providers, AiProvider } from '@/lib/providers'
 import type { Settings, ProviderConfig, ProviderId } from '@/lib/types'
 import { DEFAULT_PROVIDERS } from '@/lib/types'
-import {
-  clearAll as clearCloudState,
-  getAccountEmail,
-  getLastSyncAt,
-  getProvider,
-  subscribeCloudState,
-  type CloudProvider,
-} from '@/lib/cloud/state'
+import { useCloudStore, type CloudProvider } from '@/lib/cloud/state'
 import { runConfiguredSync } from '@/lib/cloud/syncRunner'
 import { revokeGoogleAccess } from '@/lib/cloud/googleSync'
 import { showSnackbar } from '@/lib/snackbar'
@@ -62,9 +55,9 @@ export default function SettingsSheet({
     {},
   )
   const [testMsg, setTestMsg] = useState<Record<string, string>>({})
-  const [cloudProvider, setCloudProvider] = useState<CloudProvider | undefined>(undefined)
-  const [cloudEmail, setCloudEmail] = useState<string | undefined>(undefined)
-  const [lastSyncAt, setLastSyncAt] = useState<string | undefined>(undefined)
+  const cloudProvider = useCloudStore((s) => s.provider)
+  const cloudEmail = useCloudStore((s) => s.accountEmail)
+  const lastSyncAt = useCloudStore((s) => s.lastSyncAt)
   const [syncRunning, setSyncRunning] = useState(false)
   const [showEnableSheet, setShowEnableSheet] = useState(false)
   const settingsRef = useRef(settings)
@@ -72,25 +65,11 @@ export default function SettingsSheet({
   const dark = useColorScheme() === 'dark'
   const { bottom } = useSafeAreaInsets()
 
-  const refreshCloud = async () => {
-    const [p, email, last] = await Promise.all([getProvider(), getAccountEmail(), getLastSyncAt()])
-    setCloudProvider(p)
-    setCloudEmail(email)
-    setLastSyncAt(last)
-  }
-
   useEffect(() => {
     if (visible) {
       getSettings().then(setSettings)
-      refreshCloud()
     }
   }, [visible])
-
-  useEffect(() => {
-    return subscribeCloudState(() => {
-      refreshCloud()
-    })
-  }, [])
 
   const handleSyncNow = async () => {
     if (syncRunning) {
@@ -119,7 +98,7 @@ export default function SettingsSheet({
       await revokeGoogleAccess()
     }
 
-    await clearCloudState()
+    await useCloudStore.getState().clearAll()
     showSnackbar('Sync disabled')
   }
 
@@ -356,7 +335,7 @@ export default function SettingsSheet({
   )
 }
 
-function providerLabel(p: CloudProvider): string {
+function providerLabel(p: CloudProvider) {
   if (p === 'google') {
     return 'Google Drive'
   }
@@ -368,7 +347,7 @@ function providerLabel(p: CloudProvider): string {
   return 'Fake (dev)'
 }
 
-function formatRelative(iso: string): string {
+function formatRelative(iso: string) {
   const then = new Date(iso).getTime()
 
   if (Number.isNaN(then)) {

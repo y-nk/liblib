@@ -4,7 +4,7 @@ import {
   ICloudNotAvailableError,
   type ICloudNativeModule,
 } from '@y_nk/react-native-cloud-sync'
-import { setProvider } from './state'
+import { useCloudStore } from './state'
 
 /**
  * Drives the "Sync with iCloud" button. There's no OAuth flow — iCloud
@@ -23,7 +23,7 @@ import { setProvider } from './state'
 
 let cachedAdapter: ICloudAdapter | null = null
 
-function getNativeModule(): ICloudNativeModule | null {
+function getNativeModule() {
   if (Platform.OS !== 'ios') {
     return null
   }
@@ -39,7 +39,7 @@ function getNativeModule(): ICloudNativeModule | null {
  * code in Expo Go without the prebuilt native pod). Callers should treat
  * `null` the same as "iCloud not available".
  */
-export function createICloudAdapter(): ICloudAdapter | null {
+export function createICloudAdapter() {
   if (cachedAdapter) {
     return cachedAdapter
   }
@@ -60,7 +60,7 @@ export function createICloudAdapter(): ICloudAdapter | null {
  * (no signed-in account, or the native module isn't linked into this
  * binary). On success persists `cloud.provider = 'apple'`.
  */
-export async function enableICloudSync(): Promise<void> {
+export async function enableICloudSync() {
   const adapter = createICloudAdapter()
 
   if (!adapter) {
@@ -68,5 +68,5 @@ export async function enableICloudSync(): Promise<void> {
   }
 
   await adapter.assertAvailable()
-  await setProvider('apple')
+  useCloudStore.getState().setProvider('apple')
 }

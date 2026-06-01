@@ -1,13 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Animated, Easing, Pressable, View, useColorScheme } from 'react-native'
 import { RefreshCw } from 'lucide-react-native'
-import {
-  getAutoLocked,
-  getProvider,
-  setAutoLocked,
-  subscribeCloudState,
-  type CloudProvider,
-} from '@/lib/cloud/state'
+import { useCloudStore } from '@/lib/cloud/state'
 import { runConfiguredSync } from '@/lib/cloud/syncRunner'
 import { subscribeAutoSyncStatus } from '@/lib/cloud/autoSync'
 import { showSnackbar } from '@/lib/snackbar'
@@ -21,32 +15,19 @@ type Status = 'idle' | 'syncing' | 'error'
  *   - auto-locked: filled icon + small dot
  *
  * Tap with no provider configured opens the EnableSyncSheet. Tap with a
- * provider runs the engine. Long-press toggles `cloud.autoLocked`; the
- * actual timer that consumes the flag lives in the auto-sync-lock slice.
+ * provider runs the engine. Long-press toggles `autoLocked`; the actual timer
+ * that consumes the flag lives in the auto-sync-lock slice.
  *
  * On error the icon flashes red and a snackbar surfaces the reason.
  */
 export default function SyncButton({ onRequestEnable }: { onRequestEnable: () => void }) {
   const dark = useColorScheme() === 'dark'
-  const [provider, setProviderState] = useState<CloudProvider | undefined>(undefined)
-  const [autoLocked, setAutoLockedState] = useState(false)
+  const provider = useCloudStore((s) => s.provider)
+  const autoLocked = useCloudStore((s) => s.autoLocked)
   const [status, setStatus] = useState<Status>('idle')
   const [backedOff, setBackedOff] = useState(false)
   const spin = useRef(new Animated.Value(0)).current
   const spinLoop = useRef<Animated.CompositeAnimation | null>(null)
-
-  const refreshState = useCallback(async () => {
-    const [p, locked] = await Promise.all([getProvider(), getAutoLocked()])
-    setProviderState(p)
-    setAutoLockedState(locked)
-  }, [])
-
-  useEffect(() => {
-    refreshState()
-    const unsubscribe = subscribeCloudState(refreshState)
-
-    return unsubscribe
-  }, [refreshState])
 
   useEffect(() => {
     return subscribeAutoSyncStatus((s) => {
@@ -97,12 +78,8 @@ export default function SyncButton({ onRequestEnable }: { onRequestEnable: () =>
     }
   }
 
-  const handlePress = async () => {
-    // Re-read provider in case state was changed elsewhere (e.g. settings).
-    const p = await getProvider()
-    setProviderState(p)
-
-    if (!p) {
+  const handlePress = () => {
+    if (!provider) {
       onRequestEnable()
 
       return
@@ -111,14 +88,12 @@ export default function SyncButton({ onRequestEnable }: { onRequestEnable: () =>
     runSync()
   }
 
-  const handleLongPress = async () => {
+  const handleLongPress = () => {
     if (!provider) {
       return
     }
 
-    const next = !autoLocked
-    await setAutoLocked(next)
-    setAutoLockedState(next)
+    useCloudStore.getState().setAutoLocked(!autoLocked)
   }
 
   const rotate = spin.interpolate({

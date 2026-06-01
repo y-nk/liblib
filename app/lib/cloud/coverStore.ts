@@ -1,5 +1,4 @@
 import { Directory, File, Paths } from 'expo-file-system'
-import type { FileStore } from '@y_nk/react-native-cloud-sync'
 
 const COVERS_DIR = new Directory(Paths.document, 'covers')
 
@@ -15,7 +14,7 @@ function ensureDir() {
  * engine itself is blob-agnostic; "cover" is the app's vocabulary for
  * the kind of file we happen to put in this store.
  */
-export function createFileSystemCoverStore(): FileStore {
+export function createFileSystemCoverStore() {
   return {
     async list() {
       ensureDir()
@@ -24,7 +23,7 @@ export function createFileSystemCoverStore(): FileStore {
       return entries.filter((e) => e instanceof File).map((e) => e.name)
     },
 
-    async read(name) {
+    async read(name: string) {
       const f = new File(COVERS_DIR, name)
 
       if (!f.exists) {
@@ -34,7 +33,7 @@ export function createFileSystemCoverStore(): FileStore {
       return new Uint8Array(await f.arrayBuffer())
     },
 
-    async write(name, data) {
+    async write(name: string, data: Uint8Array) {
       ensureDir()
       const f = new File(COVERS_DIR, name)
 
