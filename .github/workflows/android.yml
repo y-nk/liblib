@@ -39,8 +39,16 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: gradle-${{ hashFiles('app/**/*.gradle*', 'app/**/gradle-wrapper.properties') }}
-          restore-keys: gradle-
+          # Suffix the key with the SHA so every run saves a fresh cache that
+          # carries the accumulated Gradle build-cache (~/.gradle/caches/
+          # build-cache-1) forward. restore-keys fall back to the most recent
+          # cache for the same dep/native config. The android/ dir is generated
+          # by prebuild, so we key on the inputs that exist at checkout and
+          # drive the native build rather than the (absent) gradle files.
+          key: gradle-${{ hashFiles('pnpm-lock.yaml', 'app/package.json', 'app/app.config.ts') }}-${{ github.sha }}
+          restore-keys: |
+            gradle-${{ hashFiles('pnpm-lock.yaml', 'app/package.json', 'app/app.config.ts') }}-
+            gradle-
 
       - run: pnpm install --frozen-lockfile
 
@@ -56,7 +64,7 @@ jobs:
       - name: Build signed release APK
         working-directory: app/android
         run: |
-          ./gradlew assembleRelease -quiet \
+          ./gradlew assembleRelease -quiet --build-cache --parallel \
             "-Pandroid.injected.signing.store.file=$ANDROID_KEYSTORE_PATH" \
             "-Pandroid.injected.signing.store.password=$ANDROID_KEYSTORE_PASSWORD" \
             "-Pandroid.injected.signing.key.alias=$ANDROID_KEY_ALIAS" \
