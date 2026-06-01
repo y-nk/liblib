@@ -11,7 +11,13 @@ import { runMigrations } from '../migrations'
 const DB_NAME = 'liblib.db'
 
 function dbDir() {
-  return defaultDatabaseDirectory ?? Paths.document.uri
+  const dir = defaultDatabaseDirectory ?? Paths.document.uri
+
+  // expo-sqlite reports `defaultDatabaseDirectory` as a bare filesystem path
+  // (e.g. /data/.../files/SQLite on Android), but the expo-file-system `File`
+  // API requires an absolute `file://` URI — without the scheme it throws
+  // "URI is not absolute". Normalize so both agree on the same location.
+  return dir.startsWith('file://') ? dir : `file://${dir}`
 }
 
 async function bindSession(db: SQLiteDatabase) {
