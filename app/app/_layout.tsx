@@ -7,6 +7,11 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { KeyboardProvider } from 'react-native-keyboard-controller'
 import Snackbar from '@/components/Snackbar'
 import { startAutoSync } from '@/lib/cloud/autoSync'
+import { installGlobalErrorLogging } from '@/lib/log'
+
+// Install before any component renders so uncaught/fatal errors during the
+// first render are captured in the on-disk log.
+installGlobalErrorLogging()
 
 export default function RootLayout() {
   const dark = useColorScheme() === 'dark'
